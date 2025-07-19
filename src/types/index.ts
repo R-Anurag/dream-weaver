@@ -1,7 +1,5 @@
 
-
-
-export type ItemType = 'text' | 'image' | 'shape' | 'post-it';
+export type ItemType = 'text' | 'image' | 'shape' | 'post-it' | 'drawing';
 
 export type ShapeType = 'rectangle' | 'circle' | 'star';
 
@@ -23,6 +21,10 @@ export type CanvasItem = {
     borderColor: string;
     borderWidth: number;
     textAlign: 'left' | 'center' | 'right';
+    // For drawings
+    strokeColor?: string;
+    strokeWidth?: number;
+    points?: [number, number][];
   };
 };
 

@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Pencil, Eraser } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -12,17 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 interface ToolbarProps {
   onAddItem: (type: ItemType, content?: string, shape?: ShapeType) => void;
+  activeTool: 'select' | 'pencil' | 'eraser';
+  onSetTool: (tool: 'select' | 'pencil' | 'eraser') => void;
 }
 
-export default function Toolbar({ onAddItem }: ToolbarProps) {
+export default function Toolbar({ onAddItem, activeTool, onSetTool }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +43,6 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
       };
       reader.readAsDataURL(file);
     }
-    // Reset file input
     if(event.target) {
         event.target.value = "";
     }
@@ -54,6 +54,11 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
     { shape: 'star' as ShapeType, icon: Star, label: 'Star' }
   ];
 
+  const handleAddItemAndSelect = (type: ItemType, content?: string, shape?: ShapeType) => {
+      onAddItem(type, content, shape);
+      onSetTool('select');
+  }
+
   return (
     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-1">
       <input
@@ -63,13 +68,22 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
         accept="image/*"
         onChange={handleImageUpload}
       />
+      <Button variant={activeTool === 'pencil' ? 'secondary' : 'ghost'} size="icon" onClick={() => onSetTool('pencil')} aria-label="Pencil">
+        <Pencil className="h-5 w-5" />
+      </Button>
+      <Button variant={activeTool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => onSetTool('eraser')} aria-label="Eraser">
+        <Eraser className="h-5 w-5" />
+      </Button>
+      
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
       <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} aria-label="Add Image">
         <ImageIcon className="h-5 w-5" />
       </Button>
-      <Button variant="ghost" size="icon" onClick={() => onAddItem('text')} aria-label="Add Text">
+      <Button variant="ghost" size="icon" onClick={() => handleAddItemAndSelect('text')} aria-label="Add Text">
         <Type className="h-5 w-5" />
       </Button>
-      <Button variant="ghost" size="icon" onClick={() => onAddItem('post-it')} aria-label="Add Post-it Note">
+      <Button variant="ghost" size="icon" onClick={() => handleAddItemAndSelect('post-it')} aria-label="Add Post-it Note">
         <StickyNote className="h-5 w-5" />
       </Button>
       <DropdownMenu>
@@ -80,9 +94,9 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
            {shapeMenuItems.map(({ shape, icon: Icon, label }) => (
-            <DropdownMenuItem key={shape} onClick={() => onAddItem('shape', '', shape)}>
-              <Icon className={cn(!isMobile && "mr-2", "h-4 w-4")} />
-              {!isMobile && <span>{label}</span>}
+            <DropdownMenuItem key={shape} onClick={() => handleAddItemAndSelect('shape', '', shape)}>
+              <Icon className="mr-2 h-4 w-4" />
+              <span>{label}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

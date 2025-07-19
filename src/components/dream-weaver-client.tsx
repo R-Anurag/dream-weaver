@@ -65,6 +65,17 @@ const createNewItem = (type: ItemType, content: string = '', shape: ShapeType = 
         content: '',
         style: { ...baseItem.style, backgroundColor: '#E6E6FA', borderColor: '#A0A0E0', borderWidth: 2 },
       };
+    case 'drawing':
+        return {
+             ...baseItem,
+            width: 0, height: 0,
+            style: {
+                ...baseItem.style,
+                strokeColor: '#000000',
+                strokeWidth: 4,
+                points: [],
+            }
+        };
     default:
       throw new Error('Unknown item type');
   }
@@ -92,6 +103,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { toggleSidebar, isMobile: sidebarIsMobile } = useSidebar();
@@ -99,10 +111,10 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
   useEffect(() => {
-    // When the active board changes, deselect any selected item and close the panels.
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
+    setActiveTool('select');
   }, [activeBoardId]);
 
   useEffect(() => {
@@ -133,11 +145,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
+    setActiveTool('select');
     
     if (itemId) {
       setBoards(prevBoards =>
         prevBoards.map(board => {
           if (board.id !== activeBoardId) return board;
+          // Don't reorder for drawing items
+          if (board.items.find(item => item.id === itemId)?.type === 'drawing') return board;
+
           const itemIndex = board.items.findIndex(item => item.id === itemId);
           if (itemIndex === -1 || itemIndex === board.items.length - 1) return board;
           
@@ -161,8 +177,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     }
     const newItem = createNewItem(type, content, shape);
     setBoards(prevBoards => prevBoards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, newItem] } : b));
-    handleSelectItem(newItem.id);
+    if (type !== 'drawing') {
+      handleSelectItem(newItem.id);
+    }
   };
+
+  const handleAddDrawingItem = useCallback((item: CanvasItem) => {
+    if (!activeBoardId) return;
+    setBoards(prevBoards => prevBoards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, item] } : b));
+  }, [activeBoardId, setBoards]);
   
   const handleDeleteItem = useCallback((itemIdToDelete: string) => {
     if (!itemIdToDelete || !activeBoardId) return;
@@ -297,14 +320,16 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             </Button>
           </header>
 
-          <Toolbar onAddItem={handleAddItem} />
+          <Toolbar onAddItem={handleAddItem} activeTool={activeTool} onSetTool={setActiveTool} />
           <Canvas
             board={activeBoard}
             onUpdateItem={handleUpdateItem}
+            onAddItem={handleAddDrawingItem}
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
             onEditItem={() => setIsPropertiesPanelOpen(true)}
             onDeleteItem={handleDeleteItem}
+            activeTool={activeTool}
           />
         </div>
         {renderPanels()}
