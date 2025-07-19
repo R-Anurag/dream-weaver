@@ -1,3 +1,4 @@
+
 export type ItemType = 'text' | 'image' | 'shape' | 'post-it';
 
 export type ShapeType = 'rectangle' | 'circle' | 'star';
@@ -30,4 +31,5 @@ export type Board = {
   description?: string;
   tags?: string[];
   flairs?: string[];
+  published?: boolean;
 };

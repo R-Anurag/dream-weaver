@@ -58,6 +58,7 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -67,17 +68,47 @@ export default function ExplorePage() {
   
   const [tapCount, setTapCount] = useState(0);
 
+  useEffect(() => {
+    let publishedBoards: Board[] = [];
+    try {
+        const savedBoards = localStorage.getItem('dreamWeaverBoards');
+        if (savedBoards) {
+            const localBoards: Board[] = JSON.parse(savedBoards);
+            publishedBoards = localBoards.filter(b => b.published);
+        }
+    } catch (error) {
+        console.error("Failed to load published boards from localStorage", error);
+    }
+    
+    // Combine sample boards and user's published boards, avoiding duplicates
+    const combinedBoards = [...sampleBoards];
+    const sampleBoardIds = new Set(sampleBoards.map(b => b.id));
+    publishedBoards.forEach(pBoard => {
+      if (!sampleBoardIds.has(pBoard.id)) {
+        combinedBoards.push(pBoard);
+      }
+    });
+
+    setAllBoards(combinedBoards);
+  }, []);
+
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
-      return sampleBoards;
+      return allBoards;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    return sampleBoards.filter(board =>
-      board.name.toLowerCase().includes(lowercasedFilter) ||
-      (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
-      board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
-    );
-  }, [searchTerm]);
+    return allBoards.filter(board =>
+      (board.published && (
+        board.name.toLowerCase().includes(lowercasedFilter) ||
+        (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
+        board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
+      )) || (!board.published && ( // also allow searching sample boards
+        board.name.toLowerCase().includes(lowercasedFilter) ||
+        (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
+        board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
+      ))
+    ).filter(b => b.published || sampleBoards.some(sb => sb.id === b.id)); // only show published or sample
+  }, [searchTerm, allBoards]);
 
   const handleNextBoard = useCallback(() => {
     if (isMobile) {

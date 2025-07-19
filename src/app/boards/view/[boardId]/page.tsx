@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Board, CanvasItem } from '@/types';
 import CanvasItemComponent from '@/components/canvas-item';
 import { sampleBoards } from '@/lib/sample-data';
@@ -40,6 +40,8 @@ function ViewOnlyCanvas({ board }: ViewOnlyCanvasProps) {
               onUpdate={() => {}}
               isSelected={false}
               onSelect={() => {}}
+              onEdit={() => {}}
+              onDelete={() => {}}
             />
         </div>
       ))}
@@ -51,7 +53,31 @@ function ViewOnlyCanvas({ board }: ViewOnlyCanvasProps) {
 export default function ViewBoardPage() {
   const params = useParams();
   const boardId = params.boardId as string;
-  const board = sampleBoards.find(b => b.id === boardId);
+  const [board, setBoard] = useState<Board | undefined>();
+
+  useEffect(() => {
+    // First, check sample boards
+    const sampleBoard = sampleBoards.find(b => b.id === boardId);
+    if (sampleBoard) {
+      setBoard(sampleBoard);
+      return;
+    }
+
+    // If not in sample, check local storage
+    try {
+      const savedBoards = localStorage.getItem('dreamWeaverBoards');
+      if (savedBoards) {
+        const localBoards: Board[] = JSON.parse(savedBoards);
+        const userBoard = localBoards.find(b => b.id === boardId);
+        if (userBoard) {
+          setBoard(userBoard);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load board from localStorage", error);
+    }
+  }, [boardId]);
+
 
   return (
     <div className="flex flex-col h-screen w-screen bg-background">

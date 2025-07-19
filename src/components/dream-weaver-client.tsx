@@ -17,6 +17,7 @@ import {
 import { useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
 import { Menu } from 'lucide-react';
+import { PublishDialog } from './publish-dialog';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -78,12 +79,14 @@ export const WelcomeBoard: Board = {
       id: generateId(), type: 'post-it', x: 500, y: 80, width: 200, height: 200, rotation: 5, content: 'Add images, shapes, and notes to visualize your dreams. \n\nLet\'s get started!',
       style: { backgroundColor: '#FFFACD', color: '#333333', fontFamily: 'Alegreya', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' }
     },
-  ]
+  ],
+  published: false,
 };
 
 export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { toggleSidebar } = useSidebar();
@@ -157,6 +160,22 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setIsPropertiesPanelOpen(false);
   }
 
+  const handlePublish = (details: Partial<Board>) => {
+    if (!activeBoardId) return;
+    setBoards(prevBoards =>
+      prevBoards.map(board =>
+        board.id === activeBoardId
+          ? { ...board, ...details, published: true }
+          : board
+      )
+    );
+    toast({
+      title: "Board Published!",
+      description: "Your vision board is now live on the Explore page.",
+    });
+    setIsPublishing(false);
+  };
+
   const renderPropertiesPanel = () => {
     if (!selectedItem) return null;
     
@@ -199,12 +218,12 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
               size="icon"
               onClick={toggleSidebar}
               aria-label="Toggle Sidebar"
-              className="absolute top-4 left-4 z-10 bg-card shadow-lg border border-border"
+              className="absolute top-4 left-4 z-20 bg-card shadow-lg border border-border"
             >
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <Toolbar onAddItem={handleAddItem} />
+          <Toolbar onAddItem={handleAddItem} onPublish={() => setIsPublishing(true)} isPublished={activeBoard?.published} />
           <Canvas
             board={activeBoard}
             onUpdateItem={handleUpdateItem}
@@ -215,6 +234,12 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
           />
         </div>
         {renderPropertiesPanel()}
+        {activeBoard && <PublishDialog
+            isOpen={isPublishing}
+            onOpenChange={setIsPublishing}
+            board={activeBoard}
+            onPublish={handlePublish}
+         />}
       </main>
   );
 }
