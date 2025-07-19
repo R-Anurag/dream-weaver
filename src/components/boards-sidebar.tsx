@@ -130,8 +130,8 @@ export default function BoardsSidebar({
                 </div>
               ) : (
                 <>
-                  <span className="truncate font-medium">{board.name}</span>
-                  <div className="flex items-center">
+                  <span className="flex-1 truncate font-medium">{board.name}</span>
+                  <div className="flex items-center gap-1">
                     {board.published && (
                       <Button size="icon" variant="ghost" className="h-6 w-6 flex-shrink-0" onClick={(e) => handleViewProposals(e, board.id)}>
                         <Inbox className="h-4 w-4" />
