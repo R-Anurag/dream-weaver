@@ -48,11 +48,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   });
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
-    // Prevent starting a drag on right-click
-    if (e.button === 2) return;
-    
-    // Allow text selection in textareas
-    if ((e.target as HTMLElement).tagName === 'TEXTAREA') {
+    // Prevent starting a drag on right-click or on a textarea
+    if (e.button === 2 || (e.target as HTMLElement).tagName === 'TEXTAREA') {
         if (!isSelected) {
             onSelect(item.id);
         }
@@ -63,10 +60,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     e.stopPropagation();
     
     if (!isSelected) {
-        onSelect(item.id);
-    } else {
-        // If it's already selected, we want to start moving immediately.
-        interactionRef.current.type = 'move';
+      onSelect(item.id);
     }
     
     interactionRef.current = {
@@ -117,8 +111,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleMouseUp = (e: MouseEvent) => {
-    if (!interactionRef.current.isDragging && (e.target as HTMLElement).tagName !== 'TEXTAREA' && !isSelected) {
-        onSelect(item.id);
+    if (!interactionRef.current.isDragging && !isSelected) {
+      onSelect(item.id);
     }
     interactionRef.current.type = null;
     interactionRef.current.isDragging = false;
@@ -138,7 +132,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   return (
     <div
       ref={itemRef}
-      className={cn("absolute", isSelected ? "cursor-default" : "cursor-pointer", isSelected && "z-10")}
+      className={cn("absolute", isSelected ? "cursor-default" : "cursor-pointer")}
       style={{
         left: item.x,
         top: item.y,
@@ -147,7 +141,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         transform: `rotate(${item.rotation}deg)`,
       }}
       onMouseDown={(e) => {
-        // We only trigger move from the main div, not from resize handles.
         if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]')) {
             return;
         }
@@ -156,7 +149,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
-            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md" data-ai-hint="dream board" />
+            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
           )}
           {item.type === 'text' && (
              <textarea
@@ -186,7 +179,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              />
           )}
           {item.type === 'shape' && (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
                 <Shape item={item} />
             </svg>
           )}

@@ -12,33 +12,31 @@ export default function BoardsSidebarWrapper() {
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
 
   useEffect(() => {
+    let loadedBoards: Board[] = [];
     try {
       const savedBoards = localStorage.getItem('dreamWeaverBoards');
       if (savedBoards) {
-        const parsedBoards = JSON.parse(savedBoards);
-        if (parsedBoards.length > 0) {
-          setBoards(parsedBoards);
-          if (!activeBoardId) {
-            setActiveBoardId(parsedBoards[0].id);
-          }
-        } else {
-          setBoards([WelcomeBoard]);
-          setActiveBoardId(WelcomeBoard.id);
-        }
-      } else {
-        setBoards([WelcomeBoard]);
-        setActiveBoardId(WelcomeBoard.id);
+        loadedBoards = JSON.parse(savedBoards);
       }
     } catch (error) {
       console.error("Failed to load boards from localStorage", error);
-      setBoards([WelcomeBoard]);
-      setActiveBoardId(WelcomeBoard.id);
+    }
+    
+    if (loadedBoards.length > 0) {
+      setBoards(loadedBoards);
+      setActiveBoardId(prevId => prevId ?? loadedBoards[0].id);
+    } else {
+      const welcome = { ...WelcomeBoard, id: generateId() };
+      setBoards([welcome]);
+      setActiveBoardId(welcome.id);
     }
   }, []);
 
   useEffect(() => {
     if (boards.length > 0) {
       localStorage.setItem('dreamWeaverBoards', JSON.stringify(boards));
+    } else {
+      localStorage.removeItem('dreamWeaverBoards');
     }
   }, [boards]);
 
@@ -48,20 +46,25 @@ export default function BoardsSidebarWrapper() {
       name: `New Board ${boards.length + 1}`,
       items: [],
     };
-    setBoards([...boards, newBoard]);
+    const newBoards = [...boards, newBoard];
+    setBoards(newBoards);
     setActiveBoardId(newBoard.id);
   };
 
   const handleDeleteBoard = (boardId: string) => {
-    const newBoards = boards.filter(b => b.id !== boardId);
-    setBoards(newBoards);
-    if (activeBoardId === boardId) {
-      const newActiveId = newBoards.length > 0 ? newBoards[0].id : null;
-      setActiveBoardId(newActiveId);
-    }
-    if (newBoards.length === 0) {
-      localStorage.removeItem('dreamWeaverBoards');
-    }
+    setBoards(prevBoards => {
+      const newBoards = prevBoards.filter(b => b.id !== boardId);
+      if (activeBoardId === boardId) {
+        if (newBoards.length > 0) {
+          setActiveBoardId(newBoards[0].id);
+        } else {
+          const welcome = { ...WelcomeBoard, id: generateId() };
+          setActiveBoardId(welcome.id);
+          return [welcome];
+        }
+      }
+      return newBoards;
+    });
   };
   
   const handleRenameBoard = (boardId: string, newName: string) => {
