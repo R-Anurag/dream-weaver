@@ -148,8 +148,7 @@ export default function ExplorePage() {
         const dx = dragEnd.x - dragStart.current.x;
         const dy = dragEnd.y - dragStart.current.y;
         
-        // Ensure it's more of a horizontal swipe than a vertical one
-        if (Math.abs(dx) > Math.abs(dy) + 20) {
+        if (Math.abs(dx) > Math.abs(dy) + 20) { // Ensure horizontal swipe
             if (dx > 50) { // Right swipe: next board
                 emblaApi.scrollPrev();
             } else if (dx < -50) { // Left swipe: view canvas
@@ -169,7 +168,7 @@ export default function ExplorePage() {
       containerNode.removeEventListener('pointerdown', onPointerDown);
       containerNode.removeEventListener('pointerup', onPointerUp);
     }
-  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
+  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard, handleNextBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -276,3 +275,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
