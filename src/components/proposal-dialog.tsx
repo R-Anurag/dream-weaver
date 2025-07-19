@@ -174,7 +174,8 @@ export function ProposalDialog({ board }: { board: Board }) {
             userName: 'Local User', // Placeholder name
             userAvatar: `https://i.pravatar.cc/150?u=${generateId()}`, // Placeholder avatar
             message: proposalBody,
-            status: 'pending'
+            status: 'pending',
+            accessLevel: null
         };
 
         try {
