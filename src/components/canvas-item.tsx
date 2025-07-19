@@ -5,13 +5,14 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Move } from 'lucide-react';
+import { Move, Settings } from 'lucide-react';
 
 interface CanvasItemProps {
   item: CanvasItem;
   onUpdate: (item: CanvasItem) => void;
   isSelected: boolean;
   onSelect: (id: string | null) => void;
+  onEdit: (id: string) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -33,7 +34,7 @@ const Shape = ({ item }: { item: CanvasItem }) => {
   }
 };
 
-export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect }: CanvasItemProps) {
+export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit }: CanvasItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef({
     type: null as 'move' | 'resize' | null,
@@ -127,6 +128,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     }
   }, []);
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onEdit(item.id);
+  }
+
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
   return (
@@ -141,7 +148,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         transform: `rotate(${item.rotation}deg)`,
       }}
       onMouseDown={(e) => {
-        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]')) {
+        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]') || (e.target as HTMLElement).closest('[data-edit-handle]')) {
             return;
         }
         handleMouseDown(e, 'move');
@@ -201,12 +208,21 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   onMouseDown={(e) => handleMouseDown(e, 'resize', handle)}
                 />
               ))}
-              <div
-                  data-move-handle
-                  className="absolute -top-7 left-1/2 -translate-x-1/2 p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                  onMouseDown={(e) => handleMouseDown(e, 'move')}
-              >
-                <Move className="w-4 h-4 text-accent-foreground" />
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
+                <div
+                    data-move-handle
+                    className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
+                    onMouseDown={(e) => handleMouseDown(e, 'move')}
+                >
+                  <Move className="w-4 h-4 text-accent-foreground" />
+                </div>
+                <div
+                    data-edit-handle
+                    className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
+                    onClick={handleEditClick}
+                >
+                  <Settings className="w-4 h-4 text-accent-foreground" />
+                </div>
               </div>
             </>
           )}

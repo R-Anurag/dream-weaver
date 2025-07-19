@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -9,9 +10,10 @@ interface CanvasProps {
   onUpdateItem: (item: CanvasItem) => void;
   selectedItemId: string | null;
   onSelectItem: (id: string | null) => void;
+  onEditItem: (id: string) => void;
 }
 
-export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectItem }: CanvasProps) {
+export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectItem, onEditItem }: CanvasProps) {
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onSelectItem(null);
@@ -43,6 +45,7 @@ export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectIt
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
           onSelect={onSelectItem}
+          onEdit={onEditItem}
         />
       ))}
     </div>

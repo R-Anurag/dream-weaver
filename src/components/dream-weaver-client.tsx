@@ -80,12 +80,14 @@ export const WelcomeBoard: Board = {
 
 export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
   useEffect(() => {
-    // When the active board changes, deselect any selected item.
+    // When the active board changes, deselect any selected item and close the panel.
     setSelectedItemId(null);
+    setIsPropertiesPanelOpen(false);
   }, [activeBoardId]);
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
@@ -99,7 +101,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   }, [activeBoardId, setBoards]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
+    if (itemId === null) {
+      setIsPropertiesPanelOpen(false);
+    }
     setSelectedItemId(itemId);
+    
     if (itemId) {
       setBoards(prevBoards =>
         prevBoards.map(board => {
@@ -135,6 +141,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     if (!selectedItemId || !activeBoardId) return;
     setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: b.items.filter(i => i.id !== selectedItemId) } : b));
     setSelectedItemId(null);
+    setIsPropertiesPanelOpen(false);
+  }
+  
+  const handleClosePanel = () => {
+    setIsPropertiesPanelOpen(false);
   }
 
   const renderPropertiesPanel = () => {
@@ -146,13 +157,13 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         item={selectedItem}
         onUpdateItem={handleUpdateItem}
         onDeleteItem={handleDeleteItem}
-        onClose={() => setSelectedItemId(null)}
+        onClose={handleClosePanel}
       />
     );
 
     if (isMobile) {
       return (
-        <Sheet open={!!selectedItemId} onOpenChange={(open) => !open && setSelectedItemId(null)}>
+        <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
           <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
             <SheetHeader className="p-4 border-b">
                 <SheetTitle className="capitalize text-lg">{selectedItem.type} Properties</SheetTitle>
@@ -163,7 +174,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
       )
     }
 
-    return panel;
+    if (isPropertiesPanelOpen) {
+       return panel;
+    }
+
+    return null;
   }
 
   return (
@@ -175,6 +190,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onUpdateItem={handleUpdateItem}
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
+            onEditItem={() => setIsPropertiesPanelOpen(true)}
           />
         </div>
         {renderPropertiesPanel()}
