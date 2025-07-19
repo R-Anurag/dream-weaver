@@ -11,9 +11,10 @@ interface CanvasProps {
   selectedItemId: string | null;
   onSelectItem: (id: string | null) => void;
   onEditItem: (id: string) => void;
+  onDeleteItem: (id: string) => void;
 }
 
-export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectItem, onEditItem }: CanvasProps) {
+export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectItem, onEditItem, onDeleteItem }: CanvasProps) {
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onSelectItem(null);
@@ -46,6 +47,7 @@ export default function Canvas({ board, onUpdateItem, selectedItemId, onSelectIt
           isSelected={item.id === selectedItemId}
           onSelect={onSelectItem}
           onEdit={onEditItem}
+          onDelete={onDeleteItem}
         />
       ))}
     </div>

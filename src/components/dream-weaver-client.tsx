@@ -137,13 +137,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     handleSelectItem(newItem.id);
   };
   
-  const handleDeleteItem = () => {
-    if (!selectedItemId || !activeBoardId) return;
-    setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: b.items.filter(i => i.id !== selectedItemId) } : b));
-    setSelectedItemId(null);
-    setIsPropertiesPanelOpen(false);
-  }
-  
+  const handleDeleteItem = useCallback((itemIdToDelete: string) => {
+    if (!itemIdToDelete || !activeBoardId) return;
+    setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: b.items.filter(i => i.id !== itemIdToDelete) } : b));
+    if (selectedItemId === itemIdToDelete) {
+        setSelectedItemId(null);
+        setIsPropertiesPanelOpen(false);
+    }
+  }, [activeBoardId, boards, selectedItemId, setBoards]);
+
   const handleClosePanel = () => {
     setIsPropertiesPanelOpen(false);
   }
@@ -156,7 +158,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         key={selectedItemId}
         item={selectedItem}
         onUpdateItem={handleUpdateItem}
-        onDeleteItem={handleDeleteItem}
+        onDeleteItem={() => handleDeleteItem(selectedItem.id)}
         onClose={handleClosePanel}
       />
     );
@@ -191,6 +193,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
             onEditItem={() => setIsPropertiesPanelOpen(true)}
+            onDeleteItem={handleDeleteItem}
           />
         </div>
         {renderPropertiesPanel()}

@@ -5,7 +5,7 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Move, Settings } from 'lucide-react';
+import { Move, Settings, Trash2 } from 'lucide-react';
 
 interface CanvasItemProps {
   item: CanvasItem;
@@ -13,6 +13,7 @@ interface CanvasItemProps {
   isSelected: boolean;
   onSelect: (id: string | null) => void;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -34,7 +35,7 @@ const Shape = ({ item }: { item: CanvasItem }) => {
   }
 };
 
-export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit }: CanvasItemProps) {
+export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete }: CanvasItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef({
     type: null as 'move' | 'resize' | null,
@@ -51,7 +52,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
     // Prevent starting a drag on right-click or on a textarea/input
      if ('button' in e && e.button === 2) return;
-    if (['TEXTAREA', 'INPUT'].includes((e.target as HTMLElement).tagName)) {
+    if ((e.target as HTMLElement).closest('[data-no-drag]')) {
         if (!isSelected) {
             onSelect(item.id);
         }
@@ -154,6 +155,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     e.preventDefault();
     onEdit(item.id);
   }
+  
+  const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onDelete(item.id);
+  }
 
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -168,18 +175,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
       }}
-      onMouseDown={(e) => {
-        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]') || (e.target as HTMLElement).closest('[data-edit-handle]')) {
-            return;
-        }
-        handleInteractionStart(e, 'move');
-      }}
-      onTouchStart={(e) => {
-        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]') || (e.target as HTMLElement).closest('[data-edit-handle]')) {
-            return;
-        }
-        handleInteractionStart(e, 'move');
-      }}
+      onMouseDown={(e) => handleInteractionStart(e, 'move')}
+      onTouchStart={(e) => handleInteractionStart(e, 'move')}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
@@ -196,6 +193,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
+                data-no-drag
              />
           )}
           {item.type === 'post-it' && (
@@ -210,6 +208,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
+                data-no-drag
              />
           )}
           {item.type === 'shape' && (
@@ -223,7 +222,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               {resizeHandles.map(handle => (
                 <div
                   key={handle}
-                  data-resize-handle
+                  data-no-drag
                   className={cn(
                     'absolute w-3 h-3 bg-accent border-2 border-white rounded-full',
                     handle.includes('top') && '-top-1.5',
@@ -236,9 +235,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
                 />
               ))}
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2" data-no-drag>
                 <div
-                    data-move-handle
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
                     onMouseDown={(e) => handleInteractionStart(e, 'move')}
                     onTouchStart={(e) => handleInteractionStart(e, 'move')}
@@ -246,12 +244,18 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
                 <div
-                    data-edit-handle
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
                     onClick={handleEditClick}
                     onTouchStart={handleEditClick}
                 >
                   <Settings className="w-4 h-4 text-accent-foreground" />
+                </div>
+                <div
+                    className="p-1 bg-destructive border-2 border-white rounded-full cursor-pointer"
+                    onClick={handleDeleteClick}
+                    onTouchStart={handleDeleteClick}
+                >
+                  <Trash2 className="w-4 h-4 text-destructive-foreground" />
                 </div>
               </div>
             </>
