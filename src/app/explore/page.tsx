@@ -168,9 +168,11 @@ export default function ExplorePage() {
     if (emblaApi) {
         emblaApi.reInit();
         const newIndex = filteredBoards.length > 0 ? 0 : -1;
-        if(newIndex !== -1) setCurrentIndex(newIndex);
+        if(newIndex !== currentIndex) {
+            setCurrentIndex(newIndex > -1 ? newIndex : 0);
+        }
     }
-}, [searchTerm, filteredBoards.length, emblaApi]);
+}, [searchTerm, filteredBoards.length, emblaApi, currentIndex]);
   
   const CarouselArea = (
       <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
