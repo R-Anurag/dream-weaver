@@ -46,7 +46,17 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { b
               </Badge>
             ))}
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-4">
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
+              <div className="flex flex-wrap gap-2">
+                {board.flairs?.map(flair => (
+                    <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
+                    {flair}
+                    </span>
+                ))}
+              </div>
+            </div>
              <div className="flex items-center gap-4 text-sm font-medium">
                 <div className="flex items-center gap-1.5">
                     <Heart className="h-4 w-4 text-pink-400" />
@@ -56,16 +66,6 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { b
                     <MessageSquare className="h-4 w-4 text-blue-300" />
                     <span>{proposalsCount}</span>
                 </div>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
-              <div className="flex flex-wrap gap-2">
-                {board.flairs?.map(flair => (
-                    <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
-                    {flair}
-                    </span>
-                ))}
-              </div>
             </div>
           </div>
         </div>
