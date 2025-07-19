@@ -67,8 +67,6 @@ export default function ExplorePage() {
     loop: true,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const dragStart = useRef({ x: 0, y: 0 });
-  const isSwiping = useRef(false);
   const isMobile = useIsMobile();
   
   const loadDataFromStorage = useCallback(() => {
@@ -97,23 +95,18 @@ export default function ExplorePage() {
   useEffect(() => {
     loadDataFromStorage();
   }, [loadDataFromStorage]);
-
+  
   const filteredBoards = useMemo(() => {
+    const relevantBoards = allBoards.filter(b => b.published || sampleBoards.some(sb => sb.id === b.id));
     if (!searchTerm) {
-      return allBoards;
+      return relevantBoards;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    return allBoards.filter(board =>
-      (board.published && (
+    return relevantBoards.filter(board =>
         board.name.toLowerCase().includes(lowercasedFilter) ||
         (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
         board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
-      )) || (!board.published && ( // also allow searching sample boards
-        board.name.toLowerCase().includes(lowercasedFilter) ||
-        (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
-        board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
-      ))
-    ).filter(b => b.published || sampleBoards.some(sb => sb.id === b.id)); // only show published or sample
+    );
   }, [searchTerm, allBoards]);
   
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
@@ -135,40 +128,26 @@ export default function ExplorePage() {
     if (!emblaApi) return
     emblaApi.on('select', onSelect);
     
-    const onPointerDown = (e: PointerEvent) => {
-        if (!isMobile) return;
-        dragStart.current = { x: e.clientX, y: e.clientY };
-        isSwiping.current = true;
-    }
-    
-    const onPointerUp = (e: PointerEvent) => {
-        if (!isMobile || !currentBoard || !isSwiping.current) return;
-        
-        const dragEnd = { x: e.clientX, y: e.clientY };
-        const dx = dragEnd.x - dragStart.current.x;
-        const dy = dragEnd.y - dragStart.current.y;
-        
-        if (Math.abs(dx) > Math.abs(dy) + 20) { // Ensure horizontal swipe
-            if (dx > 50) { // Right swipe: next board
-                emblaApi.scrollPrev();
-            } else if (dx < -50) { // Left swipe: view canvas
-                handleOpenBoard(currentBoard.id);
-            }
+    // Differentiate between a click and a drag/swipe
+    const onContainerClick = (e: MouseEvent) => {
+        if (emblaApi.draggedEvents().length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
         }
-        isSwiping.current = false;
+        if (currentBoard) {
+            handleOpenBoard(currentBoard.id);
+        }
     }
     
     const containerNode = emblaApi.containerNode();
-    
-    containerNode.addEventListener('pointerdown', onPointerDown);
-    containerNode.addEventListener('pointerup', onPointerUp);
+    containerNode.addEventListener('click', onContainerClick, true);
 
     return () => {
       emblaApi.off('select', onSelect)
-      containerNode.removeEventListener('pointerdown', onPointerDown);
-      containerNode.removeEventListener('pointerup', onPointerUp);
+      containerNode.removeEventListener('click', onContainerClick, true);
     }
-  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard, handleNextBoard]);
+  }, [emblaApi, onSelect, currentBoard, handleOpenBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -275,5 +254,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
