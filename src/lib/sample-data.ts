@@ -51,7 +51,7 @@ export const sampleBoards: Board[] = [
     description: 'Creating tools for a more connected remote workforce.',
     tags: ['future-of-work', 'saas', 'community'],
     flairs: ['Product', 'Design', 'Marketing'],
-    thumbnailUrl: '/images/remotework.jpg',
+    thumbnailUrl: '/images/remoteworklady.jpg',
      items: [
         { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: 2, content: '/images/remotework.jpg', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 150, width: 300, height: 100, rotation: 0, content: 'The New Remote HQ', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 32, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
