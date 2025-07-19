@@ -11,7 +11,7 @@ interface CanvasItemProps {
   item: CanvasItem;
   onUpdate: (item: CanvasItem) => void;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -36,41 +36,47 @@ const Shape = ({ item }: { item: CanvasItem }) => {
 export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect }: CanvasItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef({
-    type: null as 'move' | 'resize' | 'rotate' | null,
+    type: null as 'move' | 'resize' | null,
     startX: 0,
     startY: 0,
     startItemX: 0,
     startItemY: 0,
     startWidth: 0,
     startHeight: 0,
-    startRotation: 0,
     handle: null as string | null,
     isDragging: false,
   });
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize' | 'rotate', handle?: string) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
     // Prevent starting a drag on right-click
     if (e.button === 2) return;
     
     // Allow text selection in textareas
     if ((e.target as HTMLElement).tagName === 'TEXTAREA') {
-        onSelect(item.id);
+        if (!isSelected) {
+            onSelect(item.id);
+        }
         return;
     }
 
     e.preventDefault();
     e.stopPropagation();
-    onSelect(item.id);
+    
+    if (!isSelected) {
+        onSelect(item.id);
+    } else {
+        // If it's already selected, we want to start moving immediately.
+        interactionRef.current.type = 'move';
+    }
     
     interactionRef.current = {
-      type,
+      type: type,
       startX: e.clientX,
       startY: e.clientY,
       startItemX: item.x,
       startItemY: item.y,
       startWidth: item.width,
       startHeight: item.height,
-      startRotation: item.rotation,
       handle,
       isDragging: false,
     };
@@ -79,7 +85,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    const { type, startX, startY, startWidth, startHeight, handle, startRotation, startItemX, startItemY } = interactionRef.current;
+    const { type, startX, startY, startWidth, startHeight, handle, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
     interactionRef.current.isDragging = true;
@@ -107,16 +113,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         }
         
         onUpdate({ ...item, width: Math.max(newWidth, 20), height: Math.max(newHeight, 20), x: newX, y: newY });
-    } else if (type === 'rotate') {
-        const centerX = item.x + item.width / 2;
-        const centerY = item.y + item.height / 2;
-        const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
-        onUpdate({...item, rotation: angle - 90});
     }
   };
 
   const handleMouseUp = (e: MouseEvent) => {
-    if (!interactionRef.current.isDragging && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+    if (!interactionRef.current.isDragging && (e.target as HTMLElement).tagName !== 'TEXTAREA' && !isSelected) {
         onSelect(item.id);
     }
     interactionRef.current.type = null;
@@ -137,7 +138,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   return (
     <div
       ref={itemRef}
-      className={cn("absolute", isSelected ? "cursor-move" : "cursor-pointer", isSelected && "z-10")}
+      className={cn("absolute", isSelected ? "cursor-default" : "cursor-pointer", isSelected && "z-10")}
       style={{
         left: item.x,
         top: item.y,
@@ -145,9 +146,15 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
       }}
-      onMouseDown={(e) => handleMouseDown(e, 'move')}
+      onMouseDown={(e) => {
+        // We only trigger move from the main div, not from resize handles.
+        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]')) {
+            return;
+        }
+        handleMouseDown(e, 'move');
+      }}
     >
-        <div className={cn("w-full h-full transition-shadow duration-200", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
+        <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
             <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md" data-ai-hint="dream board" />
           )}
@@ -183,31 +190,34 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                 <Shape item={item} />
             </svg>
           )}
-        </div>
-        {isSelected && (
-          <>
-            {resizeHandles.map(handle => (
+
+          {isSelected && (
+            <>
+              {resizeHandles.map(handle => (
+                <div
+                  key={handle}
+                  data-resize-handle
+                  className={cn(
+                    'absolute w-3 h-3 bg-accent border-2 border-white rounded-full',
+                    handle.includes('top') && '-top-1.5',
+                    handle.includes('bottom') && '-bottom-1.5',
+                    handle.includes('left') && '-left-1.5',
+                    handle.includes('right') && '-right-1.5',
+                    (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
+                  )}
+                  onMouseDown={(e) => handleMouseDown(e, 'resize', handle)}
+                />
+              ))}
               <div
-                key={handle}
-                className={cn(
-                  'absolute w-3 h-3 bg-accent border-2 border-white rounded-full',
-                  handle.includes('top') && '-top-1.5',
-                  handle.includes('bottom') && '-bottom-1.5',
-                  handle.includes('left') && '-left-1.5',
-                  handle.includes('right') && '-right-1.5',
-                  (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
-                )}
-                onMouseDown={(e) => handleMouseDown(e, 'resize', handle)}
-              />
-            ))}
-            <div
-                className="absolute -top-7 left-1/2 -translate-x-1/2 p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                onMouseDown={(e) => handleMouseDown(e, 'move')}
-            >
-              <Move className="w-4 h-4 text-accent-foreground" />
-            </div>
-          </>
-        )}
+                  data-move-handle
+                  className="absolute -top-7 left-1/2 -translate-x-1/2 p-1 bg-accent border-2 border-white rounded-full cursor-move"
+                  onMouseDown={(e) => handleMouseDown(e, 'move')}
+              >
+                <Move className="w-4 h-4 text-accent-foreground" />
+              </div>
+            </>
+          )}
+        </div>
     </div>
   );
 }

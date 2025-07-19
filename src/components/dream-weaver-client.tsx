@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -74,6 +75,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId, se
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { toast } = useToast();
   
+  useEffect(() => {
+    // When the active board changes, deselect any selected item.
+    setSelectedItemId(null);
+  }, [activeBoardId]);
+
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     setBoards(prevBoards =>
       prevBoards.map(board =>
@@ -136,6 +142,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId, se
         </div>
         {selectedItem && (
           <PropertiesPanel
+            key={selectedItemId}
             item={selectedItem}
             onUpdateItem={handleUpdateItem}
             onDeleteItem={handleDeleteItem}
