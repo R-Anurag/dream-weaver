@@ -138,7 +138,7 @@ export default function ExplorePage() {
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
 
   const handleNextBoard = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
@@ -255,7 +255,7 @@ export default function ExplorePage() {
                 {CarouselArea}
               </div>
 
-              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
+              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => emblaApi?.scrollNext()}>
                 <Eye className="h-5 w-5 mr-2" />
                 Interested
               </Button>
