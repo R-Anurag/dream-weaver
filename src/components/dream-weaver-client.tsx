@@ -280,26 +280,17 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-          <header className="absolute top-4 left-4 z-10 flex items-center gap-2">
+          <header className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
             <Button
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="bg-card shadow-lg border border-border md:hidden"
+                className="bg-card shadow-lg border border-border"
                 aria-label="Toggle Menu"
             >
                 {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
-            <Button
-                onClick={toggleSidebar}
-                variant="ghost"
-                size="icon"
-                className="bg-card shadow-lg border border-border hidden md:flex"
-                aria-label="Toggle Menu"
-            >
-                {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
-            </Button>
-            <div className="absolute top-0 left-12 right-4 flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-2">
                 {activeBoard?.published && (
                     <Button
                         onClick={() => setIsProposalsPanelOpen(true)}
