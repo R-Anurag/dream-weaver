@@ -36,6 +36,7 @@ export type Board = {
   tags?: string[];
   flairs?: string[];
   published?: boolean;
+  thumbnailUrl?: string;
 };
 
 export type AccessLevel = 'view' | 'comment' | 'edit';

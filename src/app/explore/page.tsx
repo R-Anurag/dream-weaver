@@ -20,7 +20,7 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
     <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
-        src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
+        src={board.thumbnailUrl || board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
         width={800}
         height={600}
@@ -143,6 +143,8 @@ export default function ExplorePage() {
       if (dx < -50) { // Left swipe
         emblaApi.reInit();
         handleOpenBoard(currentBoard.id);
+      } else if (dx > 50) { // Right swipe
+         // Allow carousel's native scroll to handle it
       }
       
       isSwiping.current = false;

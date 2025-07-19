@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,8 +15,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Board } from '@/types';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { Badge } from './ui/badge';
+import Image from 'next/image';
+import { useToast } from './ui/use-toast';
+import { cn } from '@/lib/utils';
+
 
 interface PublishDialogProps {
     isOpen: boolean;
@@ -31,12 +35,16 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish }: Publis
     const [flairs, setFlairs] = useState<string[]>(board.flairs || []);
     const [currentTag, setCurrentTag] = useState('');
     const [currentFlair, setCurrentFlair] = useState('');
+    const [thumbnail, setThumbnail] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (isOpen) {
             setDescription(board.description || '');
             setTags(board.tags || []);
             setFlairs(board.flairs || []);
+            setThumbnail(board.thumbnailUrl || null);
         }
     }, [isOpen, board]);
 
@@ -65,7 +73,29 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish }: Publis
     }
 
     const handlePublishClick = () => {
-        onPublish({ description, tags, flairs });
+        onPublish({ description, tags, flairs, thumbnailUrl: thumbnail || undefined });
+    };
+    
+    const handleThumbnailUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+          if (file.size > 2 * 1024 * 1024) { // 2MB limit
+            toast({
+              title: "Image too large",
+              description: "Please select an image smaller than 2MB.",
+              variant: "destructive",
+            });
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setThumbnail(e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+        if(event.target) {
+            event.target.value = "";
+        }
     };
 
     return (
@@ -78,6 +108,27 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish }: Publis
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                     <div className="grid gap-2">
+                        <Label htmlFor="thumbnail">Thumbnail Image</Label>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleThumbnailUpload} />
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className={cn(
+                                "cursor-pointer aspect-video w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors",
+                                thumbnail && "border-solid"
+                            )}
+                        >
+                            {thumbnail ? (
+                                <Image src={thumbnail} alt="Thumbnail preview" width={160} height={90} className="object-cover w-full h-full rounded-md" />
+                            ) : (
+                                <div className="text-center">
+                                    <Upload className="mx-auto h-8 w-8" />
+                                    <p className="mt-2 text-sm">Click to upload</p>
+                                    <p className="text-xs">Recommended: 16:9 aspect ratio</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your vision board..." />
