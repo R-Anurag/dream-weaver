@@ -106,7 +106,7 @@ export default function ViewBoardPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-background" key={boardId}>
+    <div className="flex flex-col min-h-svh w-screen bg-background" key={boardId}>
          <header className="p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-between gap-4">
             <Button asChild variant={isMobile ? "ghost" : "outline"} size={isMobile ? "icon" : "default"}>
                 <Link href="/explore">

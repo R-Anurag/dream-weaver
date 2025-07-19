@@ -9,6 +9,12 @@ export default {
   ],
   theme: {
     extend: {
+      minHeight: {
+        'svh': '100svh',
+      },
+      height: {
+         'svh': '100svh',
+      },
       fontFamily: {
         body: ['var(--font-alegreya)', 'serif'],
         headline: ['var(--font-alegreya)', 'serif'],

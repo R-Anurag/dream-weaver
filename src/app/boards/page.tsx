@@ -103,7 +103,7 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="flex h-screen w-screen bg-background font-body text-foreground overflow-hidden">
+    <div className="flex min-h-svh w-screen bg-background font-body text-foreground overflow-hidden">
         <Sidebar>
             <BoardsSidebar
               boards={boards}

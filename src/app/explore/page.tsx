@@ -151,7 +151,7 @@ export default function ExplorePage() {
   
   if (isMobile) {
     return (
-      <div className="h-screen w-screen bg-black relative overflow-hidden">
+      <div className="min-h-svh w-screen bg-black relative overflow-hidden">
         <header className="p-4 absolute top-0 left-0 right-0 z-20">
             <div className="flex items-center gap-2 max-w-md mx-auto">
                 <div className="relative flex-1">
@@ -186,7 +186,7 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-background overflow-hidden">
+    <div className="flex min-h-svh flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <Button asChild variant="outline">
