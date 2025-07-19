@@ -68,6 +68,7 @@ export default function ExplorePage() {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const dragStart = useRef({ x: 0, y: 0 });
+  const isSwiping = useRef(false);
   const isMobile = useIsMobile();
   
   const loadDataFromStorage = useCallback(() => {
@@ -137,10 +138,12 @@ export default function ExplorePage() {
     const onPointerDown = (e: PointerEvent) => {
         if (!isMobile) return;
         dragStart.current = { x: e.clientX, y: e.clientY };
+        isSwiping.current = true;
     }
     
     const onPointerUp = (e: PointerEvent) => {
-        if (!isMobile || !currentBoard) return;
+        if (!isMobile || !currentBoard || !isSwiping.current) return;
+        
         const dragEnd = { x: e.clientX, y: e.clientY };
         const dx = dragEnd.x - dragStart.current.x;
         const dy = dragEnd.y - dragStart.current.y;
@@ -153,6 +156,7 @@ export default function ExplorePage() {
                 handleOpenBoard(currentBoard.id);
             }
         }
+        isSwiping.current = false;
     }
     
     const containerNode = emblaApi.containerNode();
