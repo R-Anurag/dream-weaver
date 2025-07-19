@@ -108,12 +108,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   }, [activeBoardId, setBoards]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
-    if (itemId === null) {
-        if(selectedItemId !== null) setIsPropertiesPanelOpen(false);
-    } else if (itemId !== selectedItemId) {
-        setIsPropertiesPanelOpen(false);
-    }
-
     setSelectedItemId(itemId);
     
     if (itemId) {
@@ -132,7 +126,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         })
       );
     }
-  }, [activeBoardId, setBoards, selectedItemId]);
+  }, [activeBoardId, setBoards]);
 
   const activeBoard = boards.find(b => b.id === activeBoardId);
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
@@ -212,20 +206,14 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-           {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              aria-label="Toggle Sidebar"
-              className="absolute top-4 left-4 z-20 bg-card shadow-lg border border-border"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-          <Button onClick={() => setIsPublishing(true)} variant="secondary" size="sm" className="absolute top-4 right-4 z-10 rounded-full h-8 px-4">
-            <UploadCloud className="mr-2 h-4 w-4" />
-            {activeBoard?.published ? "Update" : "Publish"}
+          <Button
+            onClick={() => setIsPublishing(true)}
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 z-10 bg-card shadow-lg border border-border"
+            aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
+          >
+            <UploadCloud className="h-5 w-5" />
           </Button>
           <Toolbar onAddItem={handleAddItem} />
           <Canvas

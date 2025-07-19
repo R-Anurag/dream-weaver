@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { ProposalDialog } from '@/components/proposal-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ViewOnlyCanvasProps {
   board: Board | undefined;
@@ -27,7 +29,7 @@ function ViewOnlyCanvas({ board }: ViewOnlyCanvasProps) {
   return (
     <div
       id="canvas"
-      className="flex-1 w-full h-full bg-background relative overflow-auto"
+      className="flex-1 w-full h-full bg-background relative overflow-auto rounded-lg border shadow-inner"
       style={{
           backgroundSize: '20px 20px',
           backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)',
@@ -54,6 +56,7 @@ export default function ViewBoardPage() {
   const params = useParams();
   const boardId = params.boardId as string;
   const [board, setBoard] = useState<Board | undefined>();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // First, check sample boards
@@ -82,21 +85,22 @@ export default function ViewBoardPage() {
   return (
     <div className="flex flex-col h-screen w-screen bg-background">
          <header className="p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-between">
-            <Button asChild variant="outline">
+            <Button asChild variant={isMobile ? "ghost" : "outline"} size={isMobile ? "icon" : "default"}>
                 <Link href="/explore">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Explore
+                    <ArrowLeft className={cn(!isMobile && "mr-2", "h-4 w-4")} />
+                    {!isMobile && 'Back to Explore'}
                 </Link>
             </Button>
-            <div className="text-center">
-                <h1 className="text-xl font-bold font-headline">{board?.name}</h1>
-                <p className="text-sm text-muted-foreground">{board?.description}</p>
-            </div>
-            <div className="w-56 flex justify-end">
+            <div className="flex-1"></div>
+            <div className="flex justify-end">
                {board && <ProposalDialog board={board} />}
             </div>
         </header>
-        <main className="flex-1 flex flex-row relative">
+        <main className="flex-1 flex flex-col relative p-4 md:p-8 gap-4">
+             <div className="text-center">
+                <h1 className="text-2xl md:text-3xl font-bold font-headline">{board?.name}</h1>
+                <p className="text-sm md:text-base text-muted-foreground mt-1 max-w-2xl mx-auto">{board?.description}</p>
+            </div>
             <ViewOnlyCanvas board={board} />
         </main>
     </div>

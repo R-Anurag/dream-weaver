@@ -18,6 +18,8 @@ import type { Board } from '@/types';
 import { generateProposalHeadings, generateProposalBody } from '@/ai/flows/proposal-flow';
 import { useToast } from './ui/use-toast';
 import { Skeleton } from './ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export function ProposalDialog({ board }: { board: Board }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +29,7 @@ export function ProposalDialog({ board }: { board: Board }) {
     const [isGeneratingHeadings, startHeadingGeneration] = useTransition();
     const [isGeneratingBody, startBodyGeneration] = useTransition();
     const { toast } = useToast();
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         if (isOpen && board) {
@@ -81,9 +84,9 @@ export function ProposalDialog({ board }: { board: Board }) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Collaborate
+                 <Button variant={isMobile ? "ghost" : "default"} size={isMobile ? "icon" : "default"}>
+                    <Sparkles className={cn(!isMobile && "mr-2", "h-4 w-4")} />
+                    {!isMobile && 'Collaborate'}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
@@ -150,4 +153,3 @@ export function ProposalDialog({ board }: { board: Board }) {
         </Dialog>
     );
 }
-

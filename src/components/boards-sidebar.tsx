@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -67,7 +68,7 @@ export default function BoardsSidebar({
             <Brush className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold font-headline">Dream Weaver</h1>
         </Link>
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             <PanelLeft />
         </Button>
       </div>
