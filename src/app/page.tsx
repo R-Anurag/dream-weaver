@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,7 +42,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 max-w-7xl items-center justify-between mx-auto">
+        <div className="container flex h-16 max-w-7xl items-center justify-between mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Brush className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
@@ -63,7 +64,7 @@ export default function HomePage() {
         <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
            <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
-          <div className="container max-w-4xl text-center relative z-10 mx-auto">
+          <div className="container max-w-4xl text-center relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
             <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Weave Your Dreams into Reality
@@ -83,7 +84,7 @@ export default function HomePage() {
         </section>
 
         <section id="features" className="py-16 md:py-24 bg-secondary">
-          <div className="container max-w-6xl mx-auto">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
               <p className="text-muted-foreground mt-2">From personal vision boards to collaborative projects.</p>
@@ -97,7 +98,7 @@ export default function HomePage() {
         </section>
 
         <section id="how-it-works" className="py-16 md:py-24">
-            <div className="container max-w-5xl mx-auto">
+            <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-headline">How It Works</h2>
                     <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
@@ -111,7 +112,7 @@ export default function HomePage() {
         </section>
         
         <section id="faq" className="py-16 md:py-24 bg-secondary">
-            <div className="container max-w-3xl mx-auto">
+            <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
                 </div>
@@ -145,7 +146,7 @@ export default function HomePage() {
         </section>
 
         <section className="py-16 md:py-24">
-            <div className="container max-w-5xl text-center mx-auto">
+            <div className="container max-w-5xl text-center mx-auto px-4 sm:px-6 lg:px-8">
                  <h2 className="text-3xl font-bold font-headline mb-4">Ready to Start Your Journey?</h2>
                  <p className="text-muted-foreground mb-8">Your next big idea is just a vision board away.</p>
                  <Button asChild size="lg">
@@ -158,7 +159,7 @@ export default function HomePage() {
       </main>
 
       <footer className="py-6 border-t bg-secondary">
-        <div className="container mx-auto text-center text-muted-foreground text-sm">
+        <div className="container mx-auto text-center text-muted-foreground text-sm px-4 sm:px-6 lg:px-8">
           &copy; {new Date().getFullYear()} Dream Weaver. All Rights Reserved.
         </div>
       </footer>
