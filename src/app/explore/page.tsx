@@ -16,9 +16,9 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 
-const VisionBoardCard = ({ board }: { board: Board }) => {
+const VisionBoardCard = ({ board, onClick }: { board: Board; onClick: () => void }) => {
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")} onClick={onClick}>
       <Image
         src={board.thumbnailUrl || '/images/placeholder.jpg'}
         alt={board.name}
@@ -180,9 +180,7 @@ export default function ExplorePage() {
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
                         <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                             <Link href={`/boards/view/${board.id}`} className="block w-full h-full cursor-pointer">
-                                <VisionBoardCard board={board} />
-                            </Link>
+                            <VisionBoardCard board={board} onClick={() => handleOpenBoard(board.id)} />
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -258,11 +256,9 @@ export default function ExplorePage() {
               
               {CarouselArea}
 
-              <Button asChild size="default" className="shadow-lg flex-shrink-0">
-                  <Link href={`/boards/view/${currentBoard.id}`}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Interested
-                  </Link>
+              <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Interested
               </Button>
             </>
           ) : (
