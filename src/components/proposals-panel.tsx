@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import type { Board, Proposal, AccessLevel } from '@/types';
 import { Button } from '@/components/ui/button';
-import { X, UserCheck, CirclePause } from 'lucide-react';
+import { X, UserCheck, CirclePause, PenSquare, MessageSquare, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent } from '@/components/ui/card';
