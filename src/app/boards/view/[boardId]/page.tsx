@@ -62,6 +62,8 @@ export default function ViewBoardPage() {
   useEffect(() => {
     if (!boardId) return;
 
+    setHasSentProposal(false); // Reset state on board change
+
     // Check sample boards
     const sampleBoard = sampleBoards.find(b => b.id === boardId);
     if (sampleBoard) {
