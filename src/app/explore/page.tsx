@@ -16,11 +16,12 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 
-const VisionBoardCard = ({ board }: { board: Board }) => {
+const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
 
   return (
     <div 
         className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}
+        onDoubleClick={onDoubleClick}
     >
       <Image
         src={board.thumbnailUrl || '/images/remotework.jpg'}
@@ -71,7 +72,6 @@ export default function ExplorePage() {
     loop: true,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const startPos = useRef(0);
 
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -124,7 +124,7 @@ export default function ExplorePage() {
   }, [router]);
 
   const handleNextBoard = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
@@ -149,30 +149,6 @@ export default function ExplorePage() {
     }
   }, [searchTerm, filteredBoards.length, emblaApi, isMobile]);
   
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (isMobile) {
-      startPos.current = e.clientX;
-    }
-  }, [isMobile]);
-
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (isMobile && emblaApi) {
-      const endPos = e.clientX;
-      const diff = endPos - startPos.current;
-      const swipeThreshold = window.innerWidth / 4;
-
-      if (diff < -swipeThreshold) { // Swipe left
-        if (currentBoard) {
-          handleOpenBoard(currentBoard.id);
-        }
-      } else if (diff > swipeThreshold) { // Swipe right
-        emblaApi.scrollNext();
-      }
-    }
-    startPos.current = 0;
-  }, [isMobile, emblaApi, currentBoard, handleOpenBoard]);
-
-  
   if (isMobile) {
     return (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
@@ -194,16 +170,12 @@ export default function ExplorePage() {
                 </Button>
             </div>
         </header>
-        <div 
-            className={cn("w-full h-full cursor-grab")}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-        >
+        <div className="w-full h-full">
             <div className="overflow-hidden h-full" ref={emblaRef}>
-                <div className="flex h-full">
+                <div className="flex h-full flex-col">
                     {filteredBoards.map((board) => (
                         <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0">
-                           <VisionBoardCard board={board} />
+                           <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)} />
                         </div>
                     ))}
                 </div>
@@ -275,6 +247,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-
-
