@@ -117,62 +117,30 @@ export default function ExplorePage() {
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
-  const handleOpenBoard = useCallback((boardId: string) => {
-    if (boardId) {
-      router.push(`/boards/view/${boardId}`);
-    }
-  }, [router]);
-
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setCurrentIndex(emblaApi.selectedScrollSnap())
   }, []);
 
    useEffect(() => {
-    if (!emblaApi || !isMobile || !currentBoard) return;
-
-    const onPointerDown = (e: PointerEvent) => {
-      isSwiping.current = true;
-      dragStart.current = { x: e.clientX, y: e.clientY };
-    };
-
-    const onPointerUp = (e: PointerEvent) => {
-      if (!isSwiping.current) return;
-
-      const dx = e.clientX - dragStart.current.x;
-
-      if (dx < -50) { // Left swipe
-        emblaApi.reInit();
-        handleOpenBoard(currentBoard.id);
-      } else if (dx > 50) { // Right swipe
-         // Allow carousel's native scroll to handle it
-      }
-      
-      isSwiping.current = false;
-    };
-
-    const containerNode = emblaApi.containerNode();
-    containerNode.addEventListener('pointerdown', onPointerDown, { capture: true });
-    containerNode.addEventListener('pointerup', onPointerUp, { capture: true });
+    if (!emblaApi) return;
     emblaApi.on('select', onSelect);
-
     return () => {
-      containerNode.removeEventListener('pointerdown', onPointerDown, { capture: true });
-      containerNode.removeEventListener('pointerup', onPointerUp, { capture: true });
       if (emblaApi) {
         emblaApi.off('select', onSelect);
       }
     };
-  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
+  }, [emblaApi, onSelect, isMobile]);
   
   useEffect(() => {
     if (emblaApi) {
         emblaApi.reInit();
         const newIndex = filteredBoards.length > 0 ? 0 : -1;
         if(newIndex !== currentIndex) {
+            emblaApi.scrollTo(0, true);
             setCurrentIndex(newIndex > -1 ? newIndex : 0);
         }
     }
-}, [searchTerm, filteredBoards.length, emblaApi, currentIndex]);
+  }, [searchTerm, filteredBoards.length, emblaApi, currentIndex]);
   
   const CarouselArea = (
       <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
@@ -180,7 +148,9 @@ export default function ExplorePage() {
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
                         <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                            <VisionBoardCard board={board} onClick={() => handleOpenBoard(board.id)} />
+                           <Link href={`/boards/view/${board.id}`} className="w-full h-full block">
+                                <VisionBoardCard board={board} onClick={() => {}} />
+                           </Link>
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -256,9 +226,11 @@ export default function ExplorePage() {
               
               {CarouselArea}
 
-              <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Interested
+              <Button asChild size="default" className="shadow-lg flex-shrink-0">
+                  <Link href={`/boards/view/${currentBoard.id}`}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Interested
+                  </Link>
               </Button>
             </>
           ) : (
