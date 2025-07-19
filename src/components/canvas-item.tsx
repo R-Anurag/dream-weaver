@@ -48,8 +48,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   });
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
-    // Prevent starting a drag on right-click or on a textarea
-    if (e.button === 2 || (e.target as HTMLElement).tagName === 'TEXTAREA') {
+    // Prevent starting a drag on right-click or on a textarea/input
+    if (e.button === 2 || ['TEXTAREA', 'INPUT'].includes((e.target as HTMLElement).tagName)) {
         if (!isSelected) {
             onSelect(item.id);
         }
