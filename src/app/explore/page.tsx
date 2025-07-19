@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Sparkles, X, Eye, Heart, ThumbsDown } from 'lucide-react';
+import { Search, Sparkles, X, Eye, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,20 +11,15 @@ import { sampleBoards } from '@/lib/sample-data';
 import type { Board, Proposal } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
-import useEmblaCarousel from 'embla-carousel-react'
+import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal, onCardClick, onLike }: { board: Board, hasSentProposal: boolean, onCardClick: () => void, onLike: () => void }) => {
+const VisionBoardCard = ({ board, onCardClick, hasSentProposal }: { board: Board, onCardClick: () => void, hasSentProposal: boolean }) => {
   const isMobile = useIsMobile();
   
-  const handleLikeClick = (e: React.MouseEvent) => {
-      e.stopPropagation(); // Prevent card click from firing
-      onLike();
-  }
-
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile ? "" : "cursor-pointer")} onClick={isMobile ? onCardClick : undefined}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile && "cursor-pointer")} onClick={!isMobile ? onCardClick : undefined}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -44,11 +39,6 @@ const VisionBoardCard = ({ board, hasSentProposal, onCardClick, onLike }: { boar
                         Proposal Sent
                     </Badge>
                 )}
-                 {isMobile && (
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40" onClick={handleLikeClick}>
-                        <Heart className="h-4 w-4" />
-                    </Button>
-                 )}
             </div>
           </div>
           <p className="mt-2 text-sm text-white/90">{board.description}</p>
@@ -70,6 +60,12 @@ const VisionBoardCard = ({ board, hasSentProposal, onCardClick, onLike }: { boar
                 ))}
               </div>
             </div>
+             {isMobile && (
+                <Button size="lg" className="bg-white/20 text-white border border-white/30 backdrop-blur-sm hover:bg-white/30" onClick={onCardClick}>
+                    <Eye className="mr-2 h-5 w-5" />
+                    Interested
+                </Button>
+            )}
           </div>
         </div>
       </div>
@@ -85,10 +81,10 @@ export default function ExplorePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    axis: 'y',
+    axis: isMobile ? 'x' : 'y',
     skipSnaps: true,
   });
-
+  const dragStart = useRef({ x: 0, y: 0 });
 
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -152,28 +148,53 @@ export default function ExplorePage() {
   }, [searchTerm, allBoards]);
 
   const handleNextBoard = useCallback(() => {
-    if (isMobile) {
-      emblaApi?.scrollNext();
-    } else {
       setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
-    }
-  }, [emblaApi, isMobile, filteredBoards.length]);
+  }, [filteredBoards.length]);
 
 
   const handleOpenBoard = (boardId: string) => {
     router.push(`/boards/view/${boardId}`);
   };
 
+  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+    setCurrentIndex(emblaApi.selectedScrollSnap())
+  }, []);
+
   useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => {
-      setCurrentIndex(emblaApi.selectedScrollSnap());
-    };
+    if (!emblaApi) return
     emblaApi.on('select', onSelect);
+    
+    const onPointerDown = (e: PointerEvent) => {
+        dragStart.current = { x: e.clientX, y: e.clientY };
+    }
+    
+    const onPointerUp = (e: PointerEvent) => {
+        if (!isMobile) return;
+        const dragEnd = { x: e.clientX, y: e.clientY };
+        const dx = dragEnd.x - dragStart.current.x;
+
+        // Check for a short, distinct swipe to the right to navigate
+        if (dx > 50 && Math.abs(dragEnd.y - dragStart.current.y) < 30) {
+            if(emblaApi.canScrollPrev()) {
+                 emblaApi.scrollPrev();
+            } else {
+                 if (currentBoard) {
+                    handleOpenBoard(currentBoard.id);
+                 }
+            }
+        }
+    }
+    
+    const containerNode = emblaApi.containerNode();
+    containerNode.addEventListener('pointerdown', onPointerDown);
+    containerNode.addEventListener('pointerup', onPointerUp);
+
     return () => {
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi]);
+      emblaApi.off('select', onSelect)
+      containerNode.removeEventListener('pointerdown', onPointerDown);
+      containerNode.removeEventListener('pointerup', onPointerUp);
+    }
+  }, [emblaApi, onSelect, isMobile, handleOpenBoard, filteredBoards.length, currentIndex]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -206,19 +227,18 @@ export default function ExplorePage() {
         </header>
 
         <div className="overflow-hidden h-full" ref={emblaRef}>
-            <div className="flex flex-col h-full">
+            <div className="flex h-full">
                 {filteredBoards.map((board) => (
-                    <div key={board.id} className="relative flex-shrink-0 w-full h-full">
+                    <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
                         <VisionBoardCard 
                             board={board} 
                             hasSentProposal={sentProposals[board.id]}
                             onCardClick={() => handleOpenBoard(board.id)}
-                            onLike={() => { /* Like logic removed */ }}
                         />
                     </div>
                 ))}
                 {filteredBoards.length === 0 && (
-                     <div className="flex-shrink-0 w-full h-full flex items-center justify-center text-white">
+                     <div className="flex-[0_0_100%] w-full h-full flex items-center justify-center text-white">
                         <div className="text-center">
                             <h3 className="text-xl font-semibold">No boards found</h3>
                             <p className="text-muted-foreground">Try adjusting your search terms.</p>
@@ -266,9 +286,8 @@ export default function ExplorePage() {
               <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
                  <VisionBoardCard
                     board={currentBoard}
+                    onCardClick={() => handleOpenBoard(currentBoard.id)}
                     hasSentProposal={sentProposals[currentBoard.id]}
-                    onCardClick={() => {}}
-                    onLike={() => { /* Like logic removed */ }}
                  />
               </div>
 
@@ -288,3 +307,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+
