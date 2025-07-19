@@ -149,12 +149,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }, []);
 
   const handleEditClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     onEdit(item.id);
   }
   
   const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     onDelete(item.id);
   }
 
@@ -234,8 +234,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2" data-no-drag>
                 <div
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                    onMouseDown={(e) => { e.stopPropagation(); handleInteractionStart(e, 'move')}}
-                    onTouchStart={(e) => { e.stopPropagation(); handleInteractionStart(e, 'move')}}
+                    onMouseDown={(e) => handleInteractionStart(e, 'move')}
+                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
