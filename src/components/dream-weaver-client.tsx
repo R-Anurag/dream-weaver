@@ -15,7 +15,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
+import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
@@ -144,10 +144,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   }, [activeBoardId, setBoards]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
-    setSelectedItemId(itemId);
-    setActiveTool('select');
-    
     if (itemId) {
+      // If clicking an already selected item, open the properties panel
+      if (selectedItemId === itemId) {
+        setIsPropertiesPanelOpen(true);
+      }
+      
+      setSelectedItemId(itemId);
+      setActiveTool('select');
+      
       setBoards(prevBoards =>
         prevBoards.map(board => {
           if (board.id !== activeBoardId) return board;
@@ -165,8 +170,10 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
           return { ...board, items: newItems };
         })
       );
+    } else {
+        setSelectedItemId(null);
     }
-  }, [activeBoardId, setBoards]);
+  }, [activeBoardId, setBoards, selectedItemId]);
 
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 

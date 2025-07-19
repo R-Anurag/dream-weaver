@@ -128,11 +128,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleInteractionEnd = () => {
-    if (!interactionRef.current.isInteracting && !isSelected) {
-      onSelect(item.id);
+    if (interactionRef.current.type) { // only if an interaction (drag/resize) was in progress
+        interactionRef.current.type = null;
+        interactionRef.current.isInteracting = false;
     }
-    interactionRef.current.type = null;
-    interactionRef.current.isInteracting = false;
+    
     window.removeEventListener('mousemove', handleInteractionMove);
     window.removeEventListener('mouseup', handleInteractionEnd);
     window.removeEventListener('touchmove', handleInteractionMove);
@@ -169,6 +169,17 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     handleInteractionStart(e, 'move');
   };
 
+  const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (interactionRef.current.isInteracting) return;
+    
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-control]')) {
+        return;
+    }
+    
+    onSelect(item.id);
+  };
+
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
   return (
@@ -184,6 +195,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       }}
       onMouseDown={handleItemBodyInteractionStart}
       onTouchStart={handleItemBodyInteractionStart}
+      onClick={handleItemClick}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
