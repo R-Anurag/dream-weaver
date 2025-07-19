@@ -19,7 +19,7 @@ const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: ()
   const isMobile = useIsMobile();
   
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")} onClick={onCardClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile && 'cursor-pointer')} onClick={onCardClick}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -60,7 +60,6 @@ const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: ()
 
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -69,6 +68,7 @@ export default function ExplorePage() {
     skipSnaps: false,
     loop: true,
   });
+  const [currentIndex, setCurrentIndex] = useState(0);
   const dragStart = useRef({ x: 0, y: 0 });
 
   const loadDataFromStorage = useCallback(() => {
@@ -115,8 +115,9 @@ export default function ExplorePage() {
       ))
     ).filter(b => b.published || sampleBoards.some(sb => sb.id === b.id)); // only show published or sample
   }, [searchTerm, allBoards]);
+  
+  const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
 
-  const currentBoard = filteredBoards[currentIndex];
 
   const handleNextBoard = useCallback(() => {
       if(emblaApi) emblaApi.scrollNext();
@@ -144,11 +145,12 @@ export default function ExplorePage() {
         const dx = dragEnd.x - dragStart.current.x;
         const dy = dragEnd.y - dragStart.current.y;
 
-        // Check for a swipe right to navigate
-        if (dx > 50 && Math.abs(dy) < 50) { 
-            handleOpenBoard(currentBoard.id);
-        } else if (dx < -50 && Math.abs(dy) < 50) { // Swipe left
-            emblaApi.scrollNext();
+        if (Math.abs(dx) > 50 && Math.abs(dy) < 50) { // Horizontal swipe
+            if (dx > 0) { // Right swipe
+                handleOpenBoard(currentBoard.id);
+            } else { // Left swipe
+                emblaApi.scrollNext();
+            }
         }
     }
     
