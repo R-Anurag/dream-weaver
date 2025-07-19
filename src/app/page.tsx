@@ -25,15 +25,28 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
   </Card>
 );
 
-const HowItWorksStep = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-    <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
-            <Icon className="h-6 w-6" />
+const HowItWorksStep = ({ icon: Icon, title, description, imageUrl, imageHint }: { icon: React.ElementType, title: string, description: string, imageUrl: string, imageHint: string }) => (
+    <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+        <div className="relative h-48 w-full">
+             <Image src={imageUrl} alt={title} layout="fill" objectFit="cover" data-ai-hint={imageHint} />
         </div>
-        <div>
-            <h3 className="text-lg font-bold font-headline">{title}</h3>
-            <p className="text-muted-foreground mt-1">{description}</p>
-        </div>
+        <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+                    <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                    <h3 className="text-lg font-bold font-headline">{title}</h3>
+                    <p className="text-muted-foreground mt-1">{description}</p>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+const FloatingItem = ({ className, children, delay }: { className: string, children: React.ReactNode, delay: string }) => (
+    <div className={`absolute hidden lg:block animate-fade-in-up ${className}`} style={{ animationDelay: delay }}>
+        {children}
     </div>
 );
 
@@ -64,23 +77,41 @@ export default function HomePage() {
         <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
            <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
-          <div className="container max-w-4xl text-center relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-            <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Weave Your Dreams into Reality
-            </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              Dream Weaver is your personal canvas to visualize goals and a collaborative space to bring them to life. Turn your aspirations into actionable projects.
-            </p>
-            <div className="mt-10 flex justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <Button asChild size="lg">
-                <Link href="/boards">Start Weaving Your Dream</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/explore">Explore Projects</Link>
-              </Button>
+            <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+                <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
+                    <Image src="https://placehold.co/400x300" alt="placeholder image" width={400} height={300} className="rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="astronaut space" />
+                </FloatingItem>
+                <FloatingItem className="top-24 right-1/4 w-40" delay="1s">
+                    <Card className="p-4 bg-[#FFFACD] shadow-xl transform rotate-3">
+                        <p className="font-medium text-sm text-black">Brainstorm new ideas for the pitch deck!</p>
+                    </Card>
+                </FloatingItem>
+                 <FloatingItem className="bottom-10 right-10 w-52 h-40" delay="1.2s">
+                    <Image src="https://placehold.co/400x300" alt="placeholder image" width={400} height={300} className="rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
+                </FloatingItem>
+                 <FloatingItem className="bottom-16 left-1/4" delay="1.4s">
+                    <Badge variant="secondary" className="shadow-lg text-base px-4 py-2 transform -rotate-12">#goals</Badge>
+                </FloatingItem>
+
+
+                <div className="max-w-4xl text-center mx-auto">
+                    <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
+                    <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    Weave Your Dreams into Reality
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                    Dream Weaver is your personal canvas to visualize goals and a collaborative space to bring them to life. Turn your aspirations into actionable projects.
+                    </p>
+                    <div className="mt-10 flex justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                    <Button asChild size="lg">
+                        <Link href="/boards">Start Weaving Your Dream</Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline">
+                        <Link href="/explore">Explore Projects</Link>
+                    </Button>
+                    </div>
+                </div>
             </div>
-          </div>
         </section>
 
         <section id="features" className="py-16 md:py-24 bg-secondary">
@@ -104,9 +135,27 @@ export default function HomePage() {
                     <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-                   <HowItWorksStep icon={PencilRuler} title="1. Create Your Canvas" description="Start with a blank canvas or an inspiring template. This is your personal space to dream big and outline your goals."/>
-                   <HowItWorksStep icon={Zap} title="2. Weave Your Vision" description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."/>
-                   <HowItWorksStep icon={CheckCircle} title="3. Collaborate & Manifest" description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."/>
+                   <HowItWorksStep 
+                        icon={PencilRuler} 
+                        title="1. Create Your Canvas" 
+                        description="Start with a blank canvas. This is your personal space to dream big and outline your goals."
+                        imageUrl="https://placehold.co/600x400"
+                        imageHint="blank canvas"
+                    />
+                   <HowItWorksStep 
+                        icon={Zap} 
+                        title="2. Weave Your Vision" 
+                        description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."
+                        imageUrl="https://placehold.co/600x400"
+                        imageHint="mood board"
+                    />
+                   <HowItWorksStep 
+                        icon={CheckCircle} 
+                        title="3. Collaborate & Manifest" 
+                        description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."
+                        imageUrl="https://placehold.co/600x400"
+                        imageHint="team collaboration"
+                    />
                 </div>
             </div>
         </section>
