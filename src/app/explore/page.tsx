@@ -20,7 +20,7 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
     <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
-        src={board.thumbnailUrl || board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
+        src={board.thumbnailUrl || '/images/placeholder.png'}
         alt={board.name}
         width={800}
         height={600}
