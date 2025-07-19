@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
+    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer">
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -159,8 +159,8 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden">
-      <header className="p-4 md:p-6 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+    <div className="flex h-screen flex-col bg-background overflow-hidden">
+      <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
         <div className="relative max-w-md mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
@@ -174,15 +174,15 @@ export default function ExplorePage() {
           />
         </div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        <div className="w-full flex items-center justify-center gap-6">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
+        <div className="w-full flex items-center justify-center gap-6 h-full">
           {currentBoard ? (
             <>
               <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">
                   <X className="h-8 w-8 text-red-500" />
               </Button>
               
-              <div className="w-full max-w-2xl aspect-[4/3]" onClick={() => handleViewBoard(currentBoard.id)}>
+              <div className="w-full h-full max-w-4xl max-h-[75vh] aspect-[4/3]">
                  <VisionBoardCard board={currentBoard} />
               </div>
 
