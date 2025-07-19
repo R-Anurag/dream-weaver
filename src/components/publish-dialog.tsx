@@ -31,6 +31,7 @@ import Image from 'next/image';
 import { useToast } from './ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea } from './ui/scroll-area';
 
 
 interface PublishDialogProps {
@@ -41,7 +42,7 @@ interface PublishDialogProps {
     children: React.ReactNode;
 }
 
-const PublishForm = ({ board, onPublish }: { board: Board, onPublish: (details: Partial<Board>) => void }) => {
+const PublishForm = ({ board, onFormChange }: { board: Board, onFormChange: (details: Partial<Board>) => void }) => {
     const [description, setDescription] = useState(board.description || '');
     const [tags, setTags] = useState<string[]>(board.tags || []);
     const [flairs, setFlairs] = useState<string[]>(board.flairs || []);
@@ -50,6 +51,14 @@ const PublishForm = ({ board, onPublish }: { board: Board, onPublish: (details: 
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    
+    useEffect(() => {
+        const details: Partial<Board> = { description, tags, flairs };
+        if (thumbnail !== null) {
+            details.thumbnailUrl = thumbnail;
+        }
+        onFormChange(details);
+    }, [description, tags, flairs, thumbnail, onFormChange]);
     
     useEffect(() => {
         setDescription(board.description || '');
@@ -81,10 +90,6 @@ const PublishForm = ({ board, onPublish }: { board: Board, onPublish: (details: 
             setFlairs(flairs.filter((_, i) => i !== index));
         }
     }
-
-    const handlePublishClick = () => {
-        onPublish({ description, tags, flairs, thumbnailUrl: thumbnail || undefined });
-    };
     
     const handleThumbnailUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -161,32 +166,40 @@ const PublishForm = ({ board, onPublish }: { board: Board, onPublish: (details: 
                     </div>
                 </div>
             </div>
-             <DialogFooter className="md:col-span-2">
-                <Button onClick={handlePublishClick} className="w-full md:w-auto">
-                    {board.published ? 'Update & Publish' : 'Publish'}
-                </Button>
-            </DialogFooter>
         </div>
     );
 }
 
 export function PublishDialog({ isOpen, onOpenChange, board, onPublish, children }: PublishDialogProps) {
     const isMobile = useIsMobile();
-    
+    const [formState, setFormState] = useState<Partial<Board>>({});
+
+    const handlePublishClick = () => {
+        onPublish(formState);
+        onOpenChange(false);
+    };
+
     if (isMobile) {
         return (
             <Sheet open={isOpen} onOpenChange={onOpenChange}>
                 <SheetTrigger asChild>{children}</SheetTrigger>
-                <SheetContent side="bottom" className="h-auto max-h-[90vh] flex flex-col">
-                    <SheetHeader className="p-4 text-left">
+                <SheetContent side="bottom" className="h-auto max-h-[90vh] flex flex-col p-0">
+                    <SheetHeader className="p-4 text-left border-b">
                         <SheetTitle>{board.published ? 'Update Board' : 'Publish Board'}</SheetTitle>
                         <SheetDescription>
                            Add details to your board to make it discoverable.
                         </SheetDescription>
                     </SheetHeader>
-                     <div className="flex-1 overflow-y-auto px-4">
-                        <PublishForm board={board} onPublish={(details) => { onPublish(details); onOpenChange(false); }} />
-                    </div>
+                    <ScrollArea className="flex-1">
+                        <div className="p-4">
+                           <PublishForm board={board} onFormChange={setFormState} />
+                        </div>
+                    </ScrollArea>
+                    <SheetFooter className="p-4 border-t">
+                        <Button onClick={handlePublishClick} className="w-full">
+                            {board.published ? 'Update & Publish' : 'Publish'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         );
@@ -202,7 +215,12 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish, children
                        Add details to your board to make it discoverable. What is your vision?
                     </DialogDescription>
                 </DialogHeader>
-                <PublishForm board={board} onPublish={(details) => { onPublish(details); onOpenChange(false); }} />
+                <PublishForm board={board} onFormChange={setFormState} />
+                <DialogFooter>
+                    <Button onClick={handlePublishClick} className="w-full md:w-auto">
+                        {board.published ? 'Update & Publish' : 'Publish'}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
