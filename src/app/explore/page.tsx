@@ -20,7 +20,7 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
     <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}>
       <Image
-        src={board.thumbnailUrl || '/images/placeholder.jpg'}
+        src={board.thumbnailUrl || '/images/remotework.jpg'}
         alt={board.name}
         width={800}
         height={600}
@@ -94,6 +94,11 @@ export default function ExplorePage() {
 
   useEffect(() => {
     loadDataFromStorage();
+    // Add event listener for storage changes
+    window.addEventListener('storage', loadDataFromStorage);
+    return () => {
+        window.removeEventListener('storage', loadDataFromStorage);
+    };
   }, [loadDataFromStorage]);
   
   const filteredBoards = useMemo(() => {
@@ -127,7 +132,7 @@ export default function ExplorePage() {
         emblaApi.off('select', onSelect);
       }
     };
-  }, [emblaApi, onSelect, isMobile]);
+  }, [emblaApi, onSelect]);
   
   useEffect(() => {
     if (emblaApi) {
@@ -165,7 +170,6 @@ export default function ExplorePage() {
       </div>
   )
 
-
   if (isMobile) {
     return (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
@@ -195,21 +199,24 @@ export default function ExplorePage() {
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
-        <div className="flex items-center justify-center gap-4 max-w-2xl mx-auto">
-          <div className="relative flex-1">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <Button asChild variant="outline">
+            <Link href="/boards">
+                <ArrowLeft className="mr-2 h-4 w-4" /> My Boards
+            </Link>
+          </Button>
+          <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Search projects, e.g., sustainability"
+              placeholder="Search projects..."
               className="pl-10 h-11"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Button asChild>
             <Link href="/boards">
-                <Plus className="mr-2 h-4 w-4" /> Create
+                <Plus className="mr-2 h-4 w-4" /> Create Board
             </Link>
           </Button>
         </div>
@@ -218,15 +225,15 @@ export default function ExplorePage() {
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {filteredBoards.length > 0 && currentBoard ? (
             <>
-               <Button onClick={handleNextBoard} variant="outline" size="default" className="shadow-lg hover:bg-muted flex-shrink-0">
-                  <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
+               <Button onClick={handleNextBoard} variant="outline" size="lg" className="shadow-lg hover:bg-muted flex-shrink-0 w-32">
+                  <ThumbsDown className="h-5 w-5 mr-2 text-destructive" />
                   Pass
               </Button>
               
               {CarouselArea}
 
-              <Button size="default" className="shadow-lg flex-shrink-0" onClick={() => handleOpenBoard(currentBoard.id)}>
-                <Eye className="h-4 w-4 mr-2" />
+              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
+                <Eye className="h-5 w-5 mr-2" />
                 Interested
               </Button>
             </>
@@ -241,3 +248,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
