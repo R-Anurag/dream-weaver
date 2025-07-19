@@ -14,6 +14,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useSidebar } from './ui/sidebar';
+import { Button } from './ui/button';
+import { Menu } from 'lucide-react';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -83,6 +86,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
   
   useEffect(() => {
     // When the active board changes, deselect any selected item and close the panel.
@@ -102,8 +106,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId === null) {
-      setIsPropertiesPanelOpen(false);
+        if(selectedItemId !== null) setIsPropertiesPanelOpen(false);
+    } else if (itemId !== selectedItemId) {
+        setIsPropertiesPanelOpen(false);
     }
+
     setSelectedItemId(itemId);
     
     if (itemId) {
@@ -122,7 +129,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         })
       );
     }
-  }, [activeBoardId, setBoards]);
+  }, [activeBoardId, setBoards, selectedItemId]);
 
   const activeBoard = boards.find(b => b.id === activeBoardId);
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
@@ -186,6 +193,17 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
+           {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              aria-label="Toggle Sidebar"
+              className="absolute top-4 left-4 z-10 bg-card shadow-lg border border-border"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
           <Toolbar onAddItem={handleAddItem} />
           <Canvas
             board={activeBoard}

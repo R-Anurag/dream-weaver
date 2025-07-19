@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Menu } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast";
-import { useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +22,6 @@ interface ToolbarProps {
 export default function Toolbar({ onAddItem }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
 
 
@@ -50,11 +48,14 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
     }
   };
 
+  const shapeMenuItems = [
+    { shape: 'rectangle' as ShapeType, icon: Square, label: 'Rectangle' },
+    { shape: 'circle' as ShapeType, icon: Circle, label: 'Circle' },
+    { shape: 'star' as ShapeType, icon: Star, label: 'Star' }
+  ];
+
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-2">
-       <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle Sidebar" className={cn("md:hidden", !isMobile && "hidden")}>
-        <Menu className="h-5 w-5" />
-      </Button>
       <input
         type="file"
         ref={fileInputRef}
@@ -78,18 +79,12 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem onClick={() => onAddItem('shape', '', 'rectangle')}>
-            <Square className="mr-2 h-4 w-4" />
-            <span>Rectangle</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onAddItem('shape', '', 'circle')}>
-            <Circle className="mr-2 h-4 w-4" />
-            <span>Circle</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onAddItem('shape', '', 'star')}>
-            <Star className="mr-2 h-4 w-4" />
-            <span>Star</span>
-          </DropdownMenuItem>
+           {shapeMenuItems.map(({ shape, icon: Icon, label }) => (
+            <DropdownMenuItem key={shape} onClick={() => onAddItem('shape', '', shape)}>
+              <Icon className={cn(!isMobile && "mr-2", "h-4 w-4")} />
+              {!isMobile && <span>{label}</span>}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
