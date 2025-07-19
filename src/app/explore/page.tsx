@@ -18,7 +18,7 @@ import Link from 'next/link';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -68,6 +68,9 @@ export default function ExplorePage() {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const isMobile = useIsMobile();
+  const dragStart = useRef({ x: 0, y: 0 });
+  const isSwiping = useRef(false);
+
   
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -117,37 +120,49 @@ export default function ExplorePage() {
   }, [emblaApi]);
 
   const handleOpenBoard = useCallback((boardId: string) => {
-    router.push(`/boards/view/${boardId}`);
+    if (boardId) {
+      router.push(`/boards/view/${boardId}`);
+    }
   }, [router]);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setCurrentIndex(emblaApi.selectedScrollSnap())
   }, []);
 
-  useEffect(() => {
-    if (!emblaApi) return
-    emblaApi.on('select', onSelect);
-    
-    // Differentiate between a click and a drag/swipe
-    const onContainerClick = (e: MouseEvent) => {
-        if (emblaApi.draggedEvents().length > 0) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-        if (currentBoard) {
-            handleOpenBoard(currentBoard.id);
-        }
-    }
-    
+
+   useEffect(() => {
+    if (!emblaApi || !isMobile) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      dragStart.current = { x: e.clientX, y: e.clientY };
+      isSwiping.current = true;
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (!isSwiping.current || !currentBoard) return;
+      
+      const dx = e.clientX - dragStart.current.x;
+
+      if (dx < -50) { // Left swipe
+        e.preventDefault();
+        e.stopPropagation();
+        handleOpenBoard(currentBoard.id);
+      }
+      
+      isSwiping.current = false;
+    };
+
     const containerNode = emblaApi.containerNode();
-    containerNode.addEventListener('click', onContainerClick, true);
+    containerNode.addEventListener('pointerdown', onPointerDown, true);
+    containerNode.addEventListener('pointerup', onPointerUp, true);
+    emblaApi.on('select', onSelect);
 
     return () => {
-      emblaApi.off('select', onSelect)
-      containerNode.removeEventListener('click', onContainerClick, true);
-    }
-  }, [emblaApi, onSelect, currentBoard, handleOpenBoard]);
+      containerNode.removeEventListener('pointerdown', onPointerDown, true);
+      containerNode.removeEventListener('pointerup', onPointerUp, true);
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -160,9 +175,7 @@ export default function ExplorePage() {
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
                         <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                            <VisionBoardCard 
-                                board={board} 
-                            />
+                             <VisionBoardCard board={board} />
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -231,7 +244,7 @@ export default function ExplorePage() {
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {filteredBoards.length > 0 && currentBoard ? (
             <>
-              <Button onClick={handleNextBoard} variant="outline" size="default" className="shadow-lg hover:bg-muted flex-shrink-0">
+               <Button onClick={handleNextBoard} variant="outline" size="default" className="shadow-lg hover:bg-muted flex-shrink-0">
                   <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                   Pass
               </Button>
