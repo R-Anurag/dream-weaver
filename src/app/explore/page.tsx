@@ -1,5 +1,8 @@
 
-import { Search } from 'lucide-react';
+"use client";
+
+import React, { useState, useMemo } from 'react';
+import { Search, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,8 +14,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Heart, MessageSquare, Share2 } from 'lucide-react';
-
 
 const sampleBoards = [
   {
@@ -53,7 +54,7 @@ const sampleBoards = [
   },
 ];
 
-const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
+const VisionBoardCard = ({ board, onExpressInterest }: { board: (typeof sampleBoards)[0], onExpressInterest: (boardId: string) => void }) => {
   return (
     <div className="relative aspect-[3/4] md:aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-2xl group">
       <Image
@@ -65,32 +66,61 @@ const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
         data-ai-hint={board.dataAiHint}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-        <h2 className="text-2xl font-bold font-headline">{board.title}</h2>
-        <p className="mt-2 text-sm text-white/90">{board.description}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {board.tags.map(tag => (
-            <Badge key={tag} variant="secondary" className="backdrop-blur-sm bg-white/20 text-white border-none">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-         <div className="mt-4 flex flex-wrap gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">Seeking collaboration in:</p>
-          <div className="flex flex-wrap gap-2">
-            {board.flairs.map(flair => (
-                <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
-                {flair}
-                </span>
+      <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
+        <div>
+          <h2 className="text-2xl font-bold font-headline">{board.title}</h2>
+          <p className="mt-2 text-sm text-white/90">{board.description}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {board.tags.map(tag => (
+              <Badge key={tag} variant="secondary" className="backdrop-blur-sm bg-white/20 text-white border-none">
+                {tag}
+              </Badge>
             ))}
           </div>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
+              <div className="flex flex-wrap gap-2">
+                {board.flairs.map(flair => (
+                    <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
+                    {flair}
+                    </span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
+        <div className="mt-6">
+            <Button className="w-full" onClick={() => onExpressInterest(board.id)}>
+              <Sparkles className="mr-2" />
+              Express Interest
+            </Button>
+          </div>
       </div>
     </div>
   );
 };
 
 export default function ExplorePage() {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredBoards = useMemo(() => {
+    if (!searchTerm) {
+      return sampleBoards;
+    }
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return sampleBoards.filter(board =>
+      board.title.toLowerCase().includes(lowercasedFilter) ||
+      board.description.toLowerCase().includes(lowercasedFilter) ||
+      board.tags.some(tag => tag.toLowerCase().includes(lowercasedFilter))
+    );
+  }, [searchTerm]);
+
+  const handleExpressInterest = (boardId: string) => {
+    console.log(`Expressed interest in board: ${boardId}`);
+    // Next step: Implement the view and propose functionality
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <header className="p-4 md:p-6 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
@@ -99,27 +129,36 @@ export default function ExplorePage() {
           <Input
             placeholder="Search projects, e.g., sustainability"
             className="pl-10 h-11"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-         <Carousel
-          opts={{
-            align: "center",
-            loop: true,
-          }}
-          className="w-full max-w-sm md:max-w-2xl"
-        >
-          <CarouselContent>
-            {sampleBoards.map((board) => (
-              <CarouselItem key={board.id}>
-                <VisionBoardCard board={board} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
-          <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
-        </Carousel>
+        {filteredBoards.length > 0 ? (
+          <Carousel
+            opts={{
+              align: "center",
+              loop: true,
+            }}
+            className="w-full max-w-sm md:max-w-2xl"
+          >
+            <CarouselContent>
+              {filteredBoards.map((board) => (
+                <CarouselItem key={board.id}>
+                  <VisionBoardCard board={board} onExpressInterest={handleExpressInterest} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
+          </Carousel>
+        ) : (
+          <div className="text-center">
+            <h3 className="text-xl font-semibold">No boards found</h3>
+            <p className="text-muted-foreground">Try adjusting your search terms.</p>
+          </div>
+        )}
       </main>
     </div>
   );
