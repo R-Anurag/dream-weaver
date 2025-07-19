@@ -255,7 +255,7 @@ export default function ExplorePage() {
                 {CarouselArea}
               </div>
 
-              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => emblaApi?.scrollNext()}>
+              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
                 <Eye className="h-5 w-5 mr-2" />
                 Interested
               </Button>
