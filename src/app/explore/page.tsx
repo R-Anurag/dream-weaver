@@ -57,14 +57,14 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { b
                 ))}
               </div>
             </div>
-             <div className="flex flex-col max-sm:items-end sm:flex-row items-center gap-x-4 gap-y-2 text-sm font-medium">
-                <div className="flex items-center gap-1.5">
-                    <Heart className="h-4 w-4 text-pink-400" />
-                    <span>{board.likes || 0}</span>
+             <div className="flex items-end gap-x-4 text-sm font-medium">
+                <div className="flex flex-col items-center gap-1">
+                    <Heart className="h-5 w-5 text-pink-400" />
+                    <span className="text-xs">{board.likes || 0}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-blue-300" />
-                    <span>{proposalsCount}</span>
+                <div className="flex flex-col items-center gap-1">
+                    <Sparkles className="h-5 w-5 text-blue-300" />
+                    <span className="text-xs">{proposalsCount}</span>
                 </div>
             </div>
           </div>
