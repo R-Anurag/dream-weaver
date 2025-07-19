@@ -247,19 +247,21 @@ export default function ExplorePage() {
         </div>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
-        <div className="w-full flex items-center justify-center gap-6 h-full">
+        <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {currentBoard ? (
             <>
-              <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">
-                  <X className="h-8 w-8 text-red-500" />
+              <Button onClick={handleNextBoard} variant="outline" size="lg" className="bg-white shadow-lg hover:bg-muted flex-shrink-0">
+                  <X className="h-5 w-5 mr-2 text-red-500" />
+                  Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl max-h-[75vh] aspect-[4/3]">
+              <div className="w-full h-full max-w-4xl aspect-[4/3]">
                  <VisionBoardCard board={currentBoard} hasSentProposal={sentProposals[currentBoard.id]} />
               </div>
 
-              <Button onClick={() => handleViewBoard(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">
-                  <Eye className="h-8 w-8 text-primary" />
+              <Button onClick={() => handleViewBoard(currentBoard.id)} size="lg" className="shadow-lg flex-shrink-0">
+                  <Eye className="h-5 w-5 mr-2" />
+                  Express Interest
               </Button>
             </>
           ) : (
