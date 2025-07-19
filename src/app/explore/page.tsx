@@ -15,11 +15,11 @@ import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: () => void }) => {
+const VisionBoardCard = ({ board }: { board: Board }) => {
   const isMobile = useIsMobile();
   
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile && 'cursor-pointer')} onClick={onCardClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -144,12 +144,13 @@ export default function ExplorePage() {
         const dragEnd = { x: e.clientX, y: e.clientY };
         const dx = dragEnd.x - dragStart.current.x;
         const dy = dragEnd.y - dragStart.current.y;
-
-        if (Math.abs(dx) > 50 && Math.abs(dy) < 50) { // Horizontal swipe
-            if (dx > 0) { // Right swipe
-                handleOpenBoard(currentBoard.id);
-            } else { // Left swipe
+        
+        // Ensure it's more of a horizontal swipe than a vertical one
+        if (Math.abs(dx) > Math.abs(dy) + 20) {
+            if (dx > 50) { // Right swipe: next board
                 emblaApi.scrollNext();
+            } else if (dx < -50) { // Left swipe: view canvas
+                handleOpenBoard(currentBoard.id);
             }
         }
     }
@@ -199,7 +200,6 @@ export default function ExplorePage() {
                     <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
                         <VisionBoardCard 
                             board={board} 
-                            onCardClick={() => {}} // Click handled by gestures
                         />
                     </div>
                 ))}
@@ -250,10 +250,11 @@ export default function ExplorePage() {
               </Button>
               
               <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
-                 <VisionBoardCard
-                    board={currentBoard}
-                    onCardClick={() => handleOpenBoard(currentBoard.id)} 
-                 />
+                 <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={() => handleOpenBoard(currentBoard.id)}>
+                   <VisionBoardCard
+                      board={currentBoard}
+                   />
+                </div>
               </div>
 
               <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
