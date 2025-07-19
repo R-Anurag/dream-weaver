@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 require('dotenv').config();
 
@@ -10,7 +11,12 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+    ],
   },
 };
 

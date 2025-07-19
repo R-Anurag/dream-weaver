@@ -10,9 +10,9 @@ export const sampleBoards: Board[] = [
     description: 'A project to bring community gardens to concrete jungles.',
     tags: ['sustainability', 'community', 'urban-farming'],
     flairs: ['Design', 'Funding', 'Engineering'],
-    thumbnailUrl: '/images/urban-farming.png',
+    thumbnailUrl: 'https://placehold.co/800x600',
     items: [
-        { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: -2, content: '/images/urban-farming.png', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
+        { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: -2, content: 'https://placehold.co/400x300', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 80, width: 300, height: 50, rotation: 0, content: 'Community Gardens Initiative', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 24, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'post-it', x: 480, y: 200, width: 250, height: 150, rotation: 5, content: 'Key Goals:\n- 10+ new gardens in 1 year\n- Partner with local schools\n- Secure funding from city grants', style: { backgroundColor: '#FFFACD', color: '#333333', fontFamily: 'Alegreya', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' } }
     ]
@@ -23,9 +23,9 @@ export const sampleBoards: Board[] = [
     description: 'Personalized learning paths for all students.',
     tags: ['education', 'ai', 'technology'],
     flairs: ['Development', 'Research'],
-    thumbnailUrl: '/images/ai-education.png',
+    thumbnailUrl: 'https://placehold.co/800x600',
     items: [
-        { id: generateId(), type: 'image', x: 450, y: 120, width: 400, height: 300, rotation: 3, content: '/images/ai-education.png', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
+        { id: generateId(), type: 'image', x: 450, y: 120, width: 400, height: 300, rotation: 3, content: 'https://placehold.co/400x300', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 50, y: 50, width: 350, height: 50, rotation: 0, content: 'AI-Powered Personalized Learning', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 24, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'left' } },
         { id: generateId(), type: 'post-it', x: 80, y: 150, width: 250, height: 150, rotation: -4, content: 'Seeking ML Engineers and Educators to collaborate on creating an adaptive learning platform.', style: { backgroundColor: '#ADD8E6', color: '#333333', fontFamily: 'Alegreya', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' } }
     ]
@@ -36,9 +36,9 @@ export const sampleBoards: Board[] = [
     description: 'Leveraging drones and AI to clean our oceans.',
     tags: ['environment', 'technology', 'conservation'],
     flairs: ['Engineering', 'Marketing', 'Logistics'],
-    thumbnailUrl: '/images/ocean-cleanup.png',
+    thumbnailUrl: 'https://placehold.co/800x600',
      items: [
-        { id: generateId(), type: 'image', x: 250, y: 20, width: 500, height: 400, rotation: 0, content: '/images/ocean-cleanup.png', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
+        { id: generateId(), type: 'image', x: 250, y: 20, width: 500, height: 400, rotation: 0, content: 'https://placehold.co/500x400', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 50, y: 200, width: 200, height: 100, rotation: -8, content: 'Clean Oceans,\nBlue Future', style: { backgroundColor: 'transparent', color: '#00008B', fontFamily: 'Alegreya', fontSize: 28, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
     ]
   },
@@ -48,9 +48,9 @@ export const sampleBoards: Board[] = [
     description: 'Creating tools for a more connected remote workforce.',
     tags: ['future-of-work', 'saas', 'community'],
     flairs: ['Product', 'Design', 'Marketing'],
-    thumbnailUrl: '/images/remote-work.png',
+    thumbnailUrl: 'https://placehold.co/800x600',
      items: [
-        { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: 2, content: '/images/remote-work.png', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
+        { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: 2, content: 'https://placehold.co/400x300', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 150, width: 300, height: 100, rotation: 0, content: 'The New Remote HQ', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 32, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
     ]
   },
