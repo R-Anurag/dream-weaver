@@ -36,6 +36,7 @@ export type Board = {
   tags?: string[];
   flairs?: string[];
   published?: boolean;
+  likes?: number;
 };
 
 export type AccessLevel = 'view' | 'comment' | 'edit';
@@ -48,4 +49,5 @@ export type Proposal = {
     message: string;
     status: 'pending' | 'accepted' | 'declined' | 'considering';
     accessLevel: AccessLevel | null;
+    createdAt: string;
 };

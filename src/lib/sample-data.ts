@@ -10,6 +10,7 @@ export const sampleBoards: Board[] = [
     description: 'A project to bring community gardens to concrete jungles.',
     tags: ['sustainability', 'community', 'urban-farming'],
     flairs: ['Design', 'Funding', 'Engineering'],
+    likes: 128,
     items: [
         { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: -2, content: 'https://placehold.co/800x600', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 80, width: 300, height: 50, rotation: 0, content: 'Community Gardens Initiative', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 24, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
@@ -22,6 +23,7 @@ export const sampleBoards: Board[] = [
     description: 'Personalized learning paths for all students.',
     tags: ['education', 'ai', 'technology'],
     flairs: ['Development', 'Research'],
+    likes: 256,
     items: [
         { id: generateId(), type: 'image', x: 450, y: 120, width: 400, height: 300, rotation: 3, content: 'https://placehold.co/800x600', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 50, y: 50, width: 350, height: 50, rotation: 0, content: 'AI-Powered Personalized Learning', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 24, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'left' } },
@@ -34,6 +36,7 @@ export const sampleBoards: Board[] = [
     description: 'Leveraging drones and AI to clean our oceans.',
     tags: ['environment', 'technology', 'conservation'],
     flairs: ['Engineering', 'Marketing', 'Logistics'],
+    likes: 312,
      items: [
         { id: generateId(), type: 'image', x: 250, y: 20, width: 500, height: 400, rotation: 0, content: 'https://placehold.co/800x600', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 50, y: 200, width: 200, height: 100, rotation: -8, content: 'Clean Oceans,\nBlue Future', style: { backgroundColor: 'transparent', color: '#00008B', fontFamily: 'Alegreya', fontSize: 28, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
@@ -45,6 +48,7 @@ export const sampleBoards: Board[] = [
     description: 'Creating tools for a more connected remote workforce.',
     tags: ['future-of-work', 'saas', 'community'],
     flairs: ['Product', 'Design', 'Marketing'],
+    likes: 98,
      items: [
         { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: 2, content: 'https://placehold.co/800x600', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 150, width: 300, height: 100, rotation: 0, content: 'The New Remote HQ', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 32, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
@@ -61,6 +65,7 @@ export const sampleProposals: Proposal[] = [
     message: "I'm a UI/UX designer with 5 years of experience in sustainable tech. I love your vision for urban farming and have some ideas for a companion app. Let's connect!",
     status: 'pending',
     accessLevel: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
   },
     {
     id: 'prop-1-accepted',
@@ -70,6 +75,7 @@ export const sampleProposals: Proposal[] = [
     message: "I'm a seasoned horticulturalist and can provide valuable insights into crop selection and sustainable practices. I've managed three community gardens in the past and would love to help your project succeed.",
     status: 'accepted',
     accessLevel: 'edit',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(), // 5 days ago
   },
   {
     id: 'prop-2',
@@ -79,6 +85,7 @@ export const sampleProposals: Proposal[] = [
     message: "I'm a software engineer and can help build out the backend for your AI education platform. My background is in machine learning and data science.",
     status: 'pending',
     accessLevel: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
   },
   {
     id: 'prop-3',
@@ -88,6 +95,7 @@ export const sampleProposals: Proposal[] = [
     message: "Your ocean cleanup initiative is inspiring! I have a background in logistics and grant writing and would love to contribute to the project management.",
     status: 'considering',
     accessLevel: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
   },
     {
     id: 'prop-3-declined',
@@ -97,5 +105,6 @@ export const sampleProposals: Proposal[] = [
     message: "I'm a marketing specialist and would love to help get the word out about your amazing project!",
     status: 'declined',
     accessLevel: null,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(), // 10 days ago
   },
 ];

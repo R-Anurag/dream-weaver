@@ -175,13 +175,14 @@ export function ProposalDialog({ board, disabled }: { board: Board, disabled?: b
             userAvatar: `https://i.pravatar.cc/150?u=${generateId()}`, // Placeholder avatar
             message: proposalBody,
             status: 'pending',
-            accessLevel: null
+            accessLevel: null,
+            createdAt: new Date().toISOString(),
         };
 
         try {
             const key = `proposals_${board.id}`;
             const existingProposalsRaw = localStorage.getItem(key);
-            const existingProposals = existingProposalsRaw ? JSON.parse(existingProposalsRaw) : [];
+            const existingProposals: Proposal[] = existingProposalsRaw ? JSON.parse(existingProposalsRaw) : [];
             const updatedProposals = [...existingProposals, newProposal];
             localStorage.setItem(key, JSON.stringify(updatedProposals));
             

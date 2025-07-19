@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import type { Board, Proposal, AccessLevel } from '@/types';
 import { Button } from '@/components/ui/button';
-import { X, UserCheck, CirclePause, PenSquare, MessageSquare, Eye } from 'lucide-react';
+import { X, UserCheck, CirclePause, PenSquare, MessageSquare, Eye, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProposalDetailDialog } from './proposal-detail-dialog';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 
 interface ProposalsPanelProps {
@@ -60,6 +61,8 @@ const ProposalStatusBadge = ({ status, accessLevel }: { status: Proposal['status
 };
 
 const ProposalCard = ({ proposal, onSelect }: { proposal: Proposal, onSelect: () => void }) => {
+    const timeAgo = proposal.createdAt ? formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true }) : '';
+    
     return (
         <Card className="bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer" onClick={onSelect}>
             <CardContent className="p-4">
@@ -74,6 +77,12 @@ const ProposalCard = ({ proposal, onSelect }: { proposal: Proposal, onSelect: ()
                            <ProposalStatusBadge status={proposal.status} accessLevel={proposal.accessLevel} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{proposal.message}</p>
+                        {timeAgo && (
+                            <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{timeAgo}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </CardContent>
@@ -85,12 +94,16 @@ export default function ProposalsPanel({ board, proposals, onUpdateProposal, onC
     const isMobile = useIsMobile();
     const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 
+    const sortedProposals = [...proposals].sort((a, b) => 
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+
     const content = (
         <>
             <ScrollArea className="flex-1">
                 <div className="space-y-2 p-4">
-                    {proposals.length > 0 ? (
-                        proposals.map(proposal => <ProposalCard key={proposal.id} proposal={proposal} onSelect={() => setSelectedProposal(proposal)} />)
+                    {sortedProposals.length > 0 ? (
+                        sortedProposals.map(proposal => <ProposalCard key={proposal.id} proposal={proposal} onSelect={() => setSelectedProposal(proposal)} />)
                     ) : (
                         <div className="text-center text-muted-foreground py-8">
                             <p>No proposals yet.</p>

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle } from 'lucide-react';
+import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle, Heart, MessageSquare, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal }: { board: Board, hasSentProposal: boolean }) => {
+const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: () => void }) => {
   return (
     <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer">
       <Image
@@ -47,6 +47,16 @@ const VisionBoardCard = ({ board, hasSentProposal }: { board: Board, hasSentProp
             ))}
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-4">
+             <div className="flex items-center gap-4 text-sm font-medium">
+                <div className="flex items-center gap-1.5">
+                    <Heart className="h-4 w-4 text-pink-400" />
+                    <span>{board.likes || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <MessageSquare className="h-4 w-4 text-blue-300" />
+                    <span>{proposalsCount}</span>
+                </div>
+            </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
               <div className="flex flex-wrap gap-2">
@@ -69,6 +79,7 @@ export default function ExplorePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const [sentProposals, setSentProposals] = useState<Record<string, boolean>>({});
+  const [proposalsCount, setProposalsCount] = useState<Record<string, number>>({});
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -101,21 +112,26 @@ export default function ExplorePage() {
 
     setAllBoards(combinedBoards);
 
-    // Check localStorage for sent proposals for all boards
-    const proposalsMap: Record<string, boolean> = {};
+    // Check localStorage for sent proposals and counts for all boards
+    const proposalsSentMap: Record<string, boolean> = {};
+    const proposalsCountMap: Record<string, number> = {};
     combinedBoards.forEach(board => {
         try {
             const key = `proposals_${board.id}`;
             const existingProposalsRaw = localStorage.getItem(key);
             if (existingProposalsRaw) {
                 const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
+                proposalsCountMap[board.id] = proposals.length;
                 if (proposals.some(p => p.userName === 'Local User')) {
-                    proposalsMap[board.id] = true;
+                    proposalsSentMap[board.id] = true;
                 }
+            } else {
+                proposalsCountMap[board.id] = 0;
             }
         } catch (e) {}
     });
-    setSentProposals(proposalsMap);
+    setSentProposals(proposalsSentMap);
+    setProposalsCount(proposalsCountMap);
 
   }, []);
 
@@ -145,7 +161,27 @@ export default function ExplorePage() {
     }
   }, [emblaApi, isMobile, filteredBoards.length]);
 
-  const handleViewBoard = (boardId: string) => {
+  const handleLikeAndOpenBoard = (boardId: string) => {
+    let updatedBoards: Board[] = [];
+    setAllBoards(prevBoards => {
+      updatedBoards = prevBoards.map(b => 
+        b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
+      );
+      return updatedBoards;
+    });
+
+    try {
+        const savedBoardsRaw = localStorage.getItem('dreamWeaverBoards');
+        if (savedBoardsRaw) {
+            let localBoards: Board[] = JSON.parse(savedBoardsRaw);
+            localBoards = localBoards.map(b => 
+                b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
+            );
+            localStorage.setItem('dreamWeaverBoards', JSON.stringify(localBoards));
+        }
+    } catch (e) {
+        console.error("Failed to update likes in localStorage", e);
+    }
     router.push(`/boards/view/${boardId}`);
   };
 
@@ -156,7 +192,7 @@ export default function ExplorePage() {
     }, 300); // 300ms window for double tap
 
     if (tapCount === 1) {
-        handleViewBoard(boardId);
+        router.push(`/boards/view/${boardId}`);
     }
   };
 
@@ -206,7 +242,7 @@ export default function ExplorePage() {
             <div className="flex flex-col h-full">
                 {filteredBoards.map((board) => (
                     <div key={board.id} className="relative flex-shrink-0 w-full h-full" onClick={() => handleTap(board.id)}>
-                        <VisionBoardCard board={board} hasSentProposal={sentProposals[board.id]} />
+                        <VisionBoardCard board={board} hasSentProposal={sentProposals[board.id]} proposalsCount={proposalsCount[board.id] || 0} onLike={() => {}} />
                     </div>
                 ))}
                 {filteredBoards.length === 0 && (
@@ -251,17 +287,17 @@ export default function ExplorePage() {
           {currentBoard ? (
             <>
               <Button onClick={handleNextBoard} variant="outline" className="bg-white shadow-lg hover:bg-muted flex-shrink-0">
-                  <X className="h-4 w-4 mr-2 text-red-500" />
+                  <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                   Pass
               </Button>
               
               <div className="w-full h-full max-w-4xl aspect-[4/3]">
-                 <VisionBoardCard board={currentBoard} hasSentProposal={sentProposals[currentBoard.id]} />
+                 <VisionBoardCard board={currentBoard} hasSentProposal={sentProposals[currentBoard.id]} proposalsCount={proposalsCount[currentBoard.id] || 0} onLike={() => handleLikeAndOpenBoard(currentBoard.id)} />
               </div>
 
-              <Button onClick={() => handleViewBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Express Interest
+              <Button onClick={() => handleLikeAndOpenBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Interested
               </Button>
             </>
           ) : (
