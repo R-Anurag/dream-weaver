@@ -28,7 +28,7 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
 const HowItWorksStep = ({ icon: Icon, title, description, imageUrl, imageHint }: { icon: React.ElementType, title: string, description: string, imageUrl: string, imageHint: string }) => (
     <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
         <div className="relative h-48 w-full">
-             <Image src={imageUrl} alt={title} layout="fill" objectFit="cover" data-ai-hint={imageHint} />
+             <Image src={imageUrl} alt={title} fill className="object-cover" data-ai-hint={imageHint} />
         </div>
         <CardContent className="p-6">
             <div className="flex items-start gap-4">
