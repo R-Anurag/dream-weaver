@@ -18,7 +18,7 @@ import type { Board, Proposal } from '@/types';
 import { generateProposalHeadings, generateProposalBody } from '@/ai/flows/proposal-flow';
 import { useToast } from './ui/use-toast';
 import { Skeleton } from './ui/skeleton';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
@@ -176,7 +176,6 @@ export function ProposalDialog({ board, disabled }: { board: Board, disabled?: b
             message: proposalBody,
             status: 'pending',
             accessLevel: null,
-            createdAt: new Date().toISOString(),
         };
 
         try {

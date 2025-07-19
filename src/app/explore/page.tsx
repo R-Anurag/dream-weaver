@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle, Heart, MessageSquare, ThumbsDown } from 'lucide-react';
+import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle, Heart, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,12 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board, Proposal } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showLikeAnimation, onCardClick }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: (e: React.MouseEvent) => void, showLikeAnimation: boolean, onCardClick: () => void }) => {
+const VisionBoardCard = ({ board, hasSentProposal, onCardClick }: { board: Board, hasSentProposal: boolean, onCardClick: () => void }) => {
   return (
     <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onCardClick}>
       <Image
@@ -26,11 +26,6 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showL
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         data-ai-hint="vision board"
       />
-      {showLikeAnimation && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
-            <Heart className="h-32 w-32 text-white animate-scale-in-out" fill="currentColor" />
-        </div>
-      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
         <div>
@@ -62,16 +57,6 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showL
                 ))}
               </div>
             </div>
-             <div className="flex items-end gap-x-4 text-sm font-medium max-sm:flex-row max-sm:items-end">
-                <button onClick={onLike} className="flex flex-col items-center gap-1 z-20 p-2 -m-2">
-                    <Heart className="h-6 w-6 text-pink-400" />
-                    <span className="text-xs">{board.likes || 0}</span>
-                </button>
-                <div className="flex flex-col items-center gap-1">
-                    <Sparkles className="h-6 w-6 text-blue-300" />
-                    <span className="text-xs">{proposalsCount}</span>
-                </div>
-            </div>
           </div>
         </div>
       </div>
@@ -84,7 +69,6 @@ export default function ExplorePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const [sentProposals, setSentProposals] = useState<Record<string, boolean>>({});
-  const [proposalsCount, setProposalsCount] = useState<Record<string, number>>({});
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -92,8 +76,6 @@ export default function ExplorePage() {
     skipSnaps: true,
   });
   
-  const [likedBoardId, setLikedBoardId] = useState<string | null>(null);
-  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
 
   useEffect(() => {
     let publishedBoards: Board[] = [];
@@ -118,26 +100,21 @@ export default function ExplorePage() {
 
     setAllBoards(combinedBoards);
 
-    // Check localStorage for sent proposals and counts for all boards
+    // Check localStorage for sent proposals for all boards
     const proposalsSentMap: Record<string, boolean> = {};
-    const proposalsCountMap: Record<string, number> = {};
     combinedBoards.forEach(board => {
         try {
             const key = `proposals_${board.id}`;
             const existingProposalsRaw = localStorage.getItem(key);
             if (existingProposalsRaw) {
                 const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
-                proposalsCountMap[board.id] = proposals.length;
                 if (proposals.some(p => p.userName === 'Local User')) {
                     proposalsSentMap[board.id] = true;
                 }
-            } else {
-                proposalsCountMap[board.id] = 0;
             }
         } catch (e) {}
     });
     setSentProposals(proposalsSentMap);
-    setProposalsCount(proposalsCountMap);
 
   }, []);
 
@@ -168,48 +145,12 @@ export default function ExplorePage() {
   }, [emblaApi, isMobile, filteredBoards.length]);
 
 
-  const handleLike = useCallback((boardId: string) => {
-    setLikedBoardId(boardId);
-    setShowLikeAnimation(true);
-    setAllBoards(prevBoards => {
-      const updatedBoards = prevBoards.map(b =>
-        b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
-      );
-      try {
-        const savedBoardsRaw = localStorage.getItem('dreamWeaverBoards');
-        if (savedBoardsRaw) {
-            let localBoards: Board[] = JSON.parse(savedBoardsRaw);
-            localBoards = localBoards.map(b =>
-                b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
-            );
-            localStorage.setItem('dreamWeaverBoards', JSON.stringify(localBoards));
-        }
-      } catch (e) {
-          console.error("Failed to update likes in localStorage", e);
-      }
-      return updatedBoards;
-    });
-
-    setTimeout(() => {
-      setShowLikeAnimation(false);
-      setLikedBoardId(null);
-    }, 800); // Duration of the animation
-  }, []);
-
-  const handleLikeAndOpenBoard = (boardId: string) => {
-    handleLike(boardId);
-    setTimeout(() => {
-        router.push(`/boards/view/${boardId}`);
-    }, 300); // Delay navigation slightly
+  const handleOpenBoard = (boardId: string) => {
+    router.push(`/boards/view/${boardId}`);
   };
 
   const handleCardClick = (boardId: string) => {
     router.push(`/boards/view/${boardId}`);
-  };
-
-  const handleLikeClick = (e: React.MouseEvent, boardId: string) => {
-    e.stopPropagation(); // Prevent card click from firing
-    handleLike(boardId);
   };
 
   useEffect(() => {
@@ -259,11 +200,8 @@ export default function ExplorePage() {
                     <div key={board.id} className="relative flex-shrink-0 w-full h-full">
                         <VisionBoardCard 
                             board={board} 
-                            hasSentProposal={sentProposals[board.id]} 
-                            proposalsCount={proposalsCount[board.id] || 0} 
-                            onLike={(e) => handleLikeClick(e, board.id)}
+                            hasSentProposal={sentProposals[board.id]}
                             onCardClick={() => handleCardClick(board.id)}
-                            showLikeAnimation={likedBoardId === board.id && showLikeAnimation}
                         />
                     </div>
                 ))}
@@ -317,14 +255,11 @@ export default function ExplorePage() {
                  <VisionBoardCard
                     board={currentBoard}
                     hasSentProposal={sentProposals[currentBoard.id]}
-                    proposalsCount={proposalsCount[currentBoard.id] || 0}
-                    onLike={(e) => { e.stopPropagation(); handleLike(currentBoard.id); }}
                     onCardClick={() => handleCardClick(currentBoard.id)}
-                    showLikeAnimation={likedBoardId === currentBoard.id && showLikeAnimation}
                  />
               </div>
 
-              <Button onClick={() => handleLikeAndOpenBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
+              <Button onClick={() => handleOpenBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
                   <Heart className="h-4 w-4 mr-2" />
                   Interested
               </Button>

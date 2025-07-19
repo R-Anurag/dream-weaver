@@ -4,15 +4,14 @@
 import React, { useState } from 'react';
 import type { Board, Proposal, AccessLevel } from '@/types';
 import { Button } from '@/components/ui/button';
-import { X, UserCheck, CirclePause, PenSquare, MessageSquare, Eye, Clock } from 'lucide-react';
+import { X, UserCheck, CirclePause, PenSquare, MessageSquare, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProposalDetailDialog } from './proposal-detail-dialog';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
 
 
 interface ProposalsPanelProps {
@@ -61,8 +60,6 @@ const ProposalStatusBadge = ({ status, accessLevel }: { status: Proposal['status
 };
 
 const ProposalCard = ({ proposal, onSelect }: { proposal: Proposal, onSelect: () => void }) => {
-    const timeAgo = proposal.createdAt ? formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true }) : '';
-    
     return (
         <Card className="bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer" onClick={onSelect}>
             <CardContent className="p-4">
@@ -77,12 +74,6 @@ const ProposalCard = ({ proposal, onSelect }: { proposal: Proposal, onSelect: ()
                            <ProposalStatusBadge status={proposal.status} accessLevel={proposal.accessLevel} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{proposal.message}</p>
-                        {timeAgo && (
-                            <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{timeAgo}</span>
-                            </div>
-                        )}
                     </div>
                 </div>
             </CardContent>
@@ -94,9 +85,12 @@ export default function ProposalsPanel({ board, proposals, onUpdateProposal, onC
     const isMobile = useIsMobile();
     const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 
-    const sortedProposals = [...proposals].sort((a, b) => 
-        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-    );
+    const sortedProposals = [...proposals].sort((a, b) => {
+        // Simple sort: pending first, then by name
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status !== 'pending' && b.status === 'pending') return 1;
+        return a.userName.localeCompare(b.userName);
+    });
 
     const content = (
         <>
