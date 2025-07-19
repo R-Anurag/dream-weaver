@@ -54,7 +54,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 max-w-7xl items-center justify-between mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
-            <LottiePlayer animationData={animationData} className="h-10 w-10" />
+            
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
           </Link>
           <nav className="flex items-center gap-4">
@@ -92,6 +92,9 @@ export default function HomePage() {
 
                 <div className="max-w-4xl text-center mx-auto">
                     <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
+                    <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                        <LottiePlayer animationData={animationData} className="h-40 w-40" />
+                    </div>
                     <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                     Weave Your Dreams into Reality
                     </h1>
