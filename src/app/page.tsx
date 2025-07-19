@@ -71,7 +71,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
+        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden">
            <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
@@ -93,9 +93,9 @@ export default function HomePage() {
                 <div className="max-w-4xl text-center mx-auto">
                     <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
                     <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                        <LottiePlayer animationData={animationData} className="h-40 w-40" />
+                        <LottiePlayer animationData={animationData} className="h-52 w-52" />
                     </div>
-                    <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    <h1 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                     Weave Your Dreams into Reality
                     </h1>
                     <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
