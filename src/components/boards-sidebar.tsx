@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush, Inbox } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -21,8 +21,6 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import LottiePlayer from './lottie-player';
-import animationData from '@/lib/animation-data.json';
 import { cn } from '@/lib/utils';
 
 
@@ -81,6 +79,12 @@ export default function BoardsSidebar({
       handleCancelEditing();
     }
   };
+  
+  const handleViewProposals = (e: React.MouseEvent, boardId: string) => {
+    e.stopPropagation();
+    console.log(`Viewing proposals for board ${boardId}`);
+    // Future: Open proposals panel
+  };
 
   return (
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
@@ -128,6 +132,11 @@ export default function BoardsSidebar({
                 <>
                   <span className="truncate font-medium">{board.name}</span>
                   <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {board.published && (
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => handleViewProposals(e, board.id)}>
+                        <Inbox className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleStartEditing(board); }}><Edit2 className="h-4 w-4" /></Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
