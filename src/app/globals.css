@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 240 20% 98%; /* Light Pastel Gray */
+    --background: 240 20% 98%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 67% 97%; /* Soft Lavender */
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 240 50% 65%; /* A richer, more saturated blue */
+    --primary-foreground: 0 0% 100%; /* White text for high contrast */
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 28 100% 75%; /* Peach */
+    --accent: 28 95% 60%; /* A more vibrant peach/orange */
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 75% 55%; /* A slightly more saturated red */
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 67% 97%;
+    --ring: 240 50% 65%;
     --radius: 0.8rem;
     --pastel-pink: 340 100% 97%;
     --pastel-green: 140 70% 97%;
@@ -35,19 +35,21 @@
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --primary: 240 20% 15%;
-    --primary-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 40% 55%; /* A solid blue for dark mode */
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 28 90% 60%;
+    --accent: 28 85% 55%; /* A punchy orange for dark mode */
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 240 20% 15%;
+    --ring: 240 40% 55%;
     --pastel-pink: 340 20% 12%;
     --pastel-green: 140 20% 12%;
     --pastel-blue: 200 20% 12%;
