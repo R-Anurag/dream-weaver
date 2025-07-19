@@ -20,6 +20,7 @@ import { useToast } from './ui/use-toast';
 import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 export function ProposalDialog({ board }: { board: Board }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -89,7 +90,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                     {!isMobile && 'Collaborate'}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="w-[90vw] max-w-[90vw] rounded-lg sm:max-w-2xl">
+            <DialogContent className="w-[90vw] max-w-[90vw] rounded-lg sm:max-w-3xl">
                 <DialogHeader>
                     <DialogTitle>Propose Collaboration</DialogTitle>
                     <DialogDescription>
@@ -97,24 +98,27 @@ export function ProposalDialog({ board }: { board: Board }) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
+                <div className="grid md:grid-cols-2 md:gap-8 py-4">
+                    {/* Step 1: Idea Generation */}
+                    <div className="space-y-4">
                         <h4 className="font-semibold text-sm">1. Choose a Proposal Idea</h4>
                         {isGeneratingHeadings ? (
-                            <div className="flex items-center justify-between p-4 border rounded-lg h-[68px]">
+                            <div className="flex items-center justify-between p-4 border rounded-lg min-h-[100px]">
                                 <Skeleton className="h-4 w-10" />
                                 <Skeleton className="h-5 w-[200px]" />
                                 <Skeleton className="h-4 w-10" />
                             </div>
                         ) : (
-                            <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/50">
-                                <Button variant="ghost" size="icon" onClick={handlePrevHeading} disabled={headings.length === 0}>
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
+                            <div className="flex flex-col items-center justify-center p-4 border rounded-lg bg-secondary/50 min-h-[100px]">
                                 <p className="text-center font-medium flex-1 px-4">{headings[currentHeadingIndex] || "No ideas yet..."}</p>
-                                <Button variant="ghost" size="icon" onClick={handleNextHeading} disabled={headings.length === 0}>
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center justify-center mt-2">
+                                    <Button variant="ghost" size="icon" onClick={handlePrevHeading} disabled={headings.length === 0}>
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={handleNextHeading} disabled={headings.length === 0}>
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         )}
                          <Button onClick={handleGenerateBody} disabled={isGeneratingBody || headings.length === 0} className="w-full">
@@ -123,10 +127,13 @@ export function ProposalDialog({ board }: { board: Board }) {
                         </Button>
                     </div>
                     
-                    <div className="space-y-2">
+                    <Separator className="my-4 md:hidden" />
+
+                    {/* Step 2: Refine and Send */}
+                    <div className="space-y-4">
                         <h4 className="font-semibold text-sm">2. Refine & Send</h4>
                          {isGeneratingBody ? (
-                            <div className="space-y-2">
+                            <div className="space-y-2 border rounded-lg p-4 min-h-[200px]">
                                 <Skeleton className="h-4 w-1/4" />
                                 <Skeleton className="h-4 w-full" />
                                 <Skeleton className="h-4 w-full" />
@@ -137,7 +144,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                                 placeholder="Your proposal will be generated here. You can edit it before sending."
                                 value={proposalBody}
                                 onChange={(e) => setProposalBody(e.target.value)}
-                                rows={8}
+                                className="min-h-[200px]"
                             />
                          )}
                     </div>
