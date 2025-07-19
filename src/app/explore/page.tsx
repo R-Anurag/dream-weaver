@@ -2,20 +2,20 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Sparkles, X, Eye, PlusSquare } from 'lucide-react';
+import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
-import type { Board } from '@/types';
+import type { Board, Proposal } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board }: { board: Board }) => {
+const VisionBoardCard = ({ board, hasSentProposal }: { board: Board, hasSentProposal: boolean }) => {
   return (
     <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer">
       <Image
@@ -29,7 +29,15 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
         <div>
-          <h2 className="text-2xl font-bold font-headline">{board.name}</h2>
+          <div className="flex justify-between items-start">
+            <h2 className="text-2xl font-bold font-headline">{board.name}</h2>
+            {hasSentProposal && (
+                <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
+                    <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                    Proposal Sent
+                </Badge>
+            )}
+          </div>
           <p className="mt-2 text-sm text-white/90">{board.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             {board.tags?.map(tag => (
@@ -60,6 +68,7 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
+  const [sentProposals, setSentProposals] = useState<Record<string, boolean>>({});
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -91,6 +100,23 @@ export default function ExplorePage() {
     });
 
     setAllBoards(combinedBoards);
+
+    // Check localStorage for sent proposals for all boards
+    const proposalsMap: Record<string, boolean> = {};
+    combinedBoards.forEach(board => {
+        try {
+            const key = `proposals_${board.id}`;
+            const existingProposalsRaw = localStorage.getItem(key);
+            if (existingProposalsRaw) {
+                const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
+                if (proposals.some(p => p.userName === 'Local User')) {
+                    proposalsMap[board.id] = true;
+                }
+            }
+        } catch (e) {}
+    });
+    setSentProposals(proposalsMap);
+
   }, []);
 
   const filteredBoards = useMemo(() => {
@@ -180,7 +206,7 @@ export default function ExplorePage() {
             <div className="flex flex-col h-full">
                 {filteredBoards.map((board) => (
                     <div key={board.id} className="relative flex-shrink-0 w-full h-full" onClick={() => handleTap(board.id)}>
-                        <VisionBoardCard board={board} />
+                        <VisionBoardCard board={board} hasSentProposal={sentProposals[board.id]} />
                     </div>
                 ))}
                 {filteredBoards.length === 0 && (
@@ -229,7 +255,7 @@ export default function ExplorePage() {
               </Button>
               
               <div className="w-full h-full max-w-4xl max-h-[75vh] aspect-[4/3]">
-                 <VisionBoardCard board={currentBoard} />
+                 <VisionBoardCard board={currentBoard} hasSentProposal={sentProposals[currentBoard.id]} />
               </div>
 
               <Button onClick={() => handleViewBoard(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">

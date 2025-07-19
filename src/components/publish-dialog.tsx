@@ -85,7 +85,7 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish }: Publis
                     <div className="grid gap-2">
                          <Label htmlFor="tags">Tags (comma-separated)</Label>
                          <Input id="tags" placeholder="e.g., sustainability, art, tech" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'tag')} />
-                         <div className="flex flex-wrap gap-2 mt-2">
+                         <div className="flex flex-wrap gap-2 mt-2 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                             {tags.map((tag, index) => (
                                 <Badge key={index} variant="secondary">
                                     {tag}
@@ -97,7 +97,7 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish }: Publis
                      <div className="grid gap-2">
                          <Label htmlFor="flairs">Seeking Skills (comma-separated)</Label>
                          <Input id="flairs" placeholder="e.g., Design, Funding, Engineering" value={currentFlair} onChange={(e) => setCurrentFlair(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'flair')} />
-                         <div className="flex flex-wrap gap-2 mt-2">
+                         <div className="flex flex-wrap gap-2 mt-2 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                             {flairs.map((flair, index) => (
                                 <Badge key={index} variant="default" className="bg-accent text-accent-foreground">
                                     {flair}

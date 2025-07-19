@@ -60,7 +60,7 @@ const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void
 };
 
 
-export function ProposalDialog({ board }: { board: Board }) {
+export function ProposalDialog({ board, disabled }: { board: Board, disabled?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
     const [headings, setHeadings] = useState<string[]>([]);
     const [currentHeadingIndex, setCurrentHeadingIndex] = useState(0);
@@ -207,7 +207,7 @@ export function ProposalDialog({ board }: { board: Board }) {
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                 <Button variant={isMobile ? "ghost" : "default"} size={isMobile ? "icon" : "default"}>
+                 <Button disabled={disabled} variant={isMobile ? "ghost" : "default"} size={isMobile ? "icon" : "default"}>
                     <Sparkles className={cn(!isMobile && "mr-2", "h-4 w-4")} />
                     {!isMobile && 'Collaborate'}
                 </Button>

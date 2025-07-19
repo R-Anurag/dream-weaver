@@ -2,12 +2,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import type { Board, CanvasItem } from '@/types';
+import type { Board, CanvasItem, Proposal } from '@/types';
 import CanvasItemComponent from '@/components/canvas-item';
 import { sampleBoards } from '@/lib/sample-data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { ProposalDialog } from '@/components/proposal-dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -56,29 +56,47 @@ export default function ViewBoardPage() {
   const params = useParams();
   const boardId = params.boardId as string;
   const [board, setBoard] = useState<Board | undefined>();
+  const [hasSentProposal, setHasSentProposal] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    // First, check sample boards
+    if (!boardId) return;
+
+    // Check sample boards
     const sampleBoard = sampleBoards.find(b => b.id === boardId);
     if (sampleBoard) {
       setBoard(sampleBoard);
-      return;
+    } else {
+      // If not in sample, check local storage
+      try {
+        const savedBoards = localStorage.getItem('dreamWeaverBoards');
+        if (savedBoards) {
+          const localBoards: Board[] = JSON.parse(savedBoards);
+          const userBoard = localBoards.find(b => b.id === boardId);
+          if (userBoard) {
+            setBoard(userBoard);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load board from localStorage", error);
+      }
     }
 
-    // If not in sample, check local storage
+    // Check if a proposal has been sent for this board
     try {
-      const savedBoards = localStorage.getItem('dreamWeaverBoards');
-      if (savedBoards) {
-        const localBoards: Board[] = JSON.parse(savedBoards);
-        const userBoard = localBoards.find(b => b.id === boardId);
-        if (userBoard) {
-          setBoard(userBoard);
+        const key = `proposals_${boardId}`;
+        const existingProposalsRaw = localStorage.getItem(key);
+        if (existingProposalsRaw) {
+            const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
+            // Simple check if any proposal exists for this board from "Local User"
+            if (proposals.some(p => p.userName === 'Local User')) {
+                setHasSentProposal(true);
+            }
         }
-      }
     } catch (error) {
-      console.error("Failed to load board from localStorage", error);
+        console.error("Failed to check proposals in localStorage", error);
     }
+
   }, [boardId]);
 
 
@@ -96,7 +114,16 @@ export default function ViewBoardPage() {
                 <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
             </div>
             <div className="flex justify-end">
-               {board && <ProposalDialog board={board} />}
+               {board && (
+                  hasSentProposal ? (
+                    <Button variant="outline" disabled>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Proposal Sent
+                    </Button>
+                  ) : (
+                    <ProposalDialog board={board} />
+                  )
+               )}
             </div>
         </header>
         <main className="flex-1 flex flex-col relative p-4 md:p-8">
@@ -105,4 +132,3 @@ export default function ViewBoardPage() {
     </div>
   );
 }
-
