@@ -45,48 +45,65 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     startWidth: 0,
     startHeight: 0,
     handle: null as string | null,
-    isDragging: false,
+    isInteracting: false,
   });
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
+  const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
     // Prevent starting a drag on right-click or on a textarea/input
-    if (e.button === 2 || ['TEXTAREA', 'INPUT'].includes((e.target as HTMLElement).tagName)) {
+     if ('button' in e && e.button === 2) return;
+    if (['TEXTAREA', 'INPUT'].includes((e.target as HTMLElement).tagName)) {
         if (!isSelected) {
             onSelect(item.id);
         }
         return;
     }
 
-    e.preventDefault();
     e.stopPropagation();
+    
+    // For touch events, we want to prevent default to avoid scrolling, etc.
+    if ('touches' in e) {
+      e.preventDefault();
+    }
     
     if (!isSelected) {
       onSelect(item.id);
     }
     
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
     interactionRef.current = {
       type: type,
-      startX: e.clientX,
-      startY: e.clientY,
+      startX: clientX,
+      startY: clientY,
       startItemX: item.x,
       startItemY: item.y,
       startWidth: item.width,
       startHeight: item.height,
       handle,
-      isDragging: false,
+      isInteracting: false,
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+
+    window.addEventListener('mousemove', handleInteractionMove);
+    window.addEventListener('mouseup', handleInteractionEnd);
+    window.addEventListener('touchmove', handleInteractionMove, { passive: false });
+    window.addEventListener('touchend', handleInteractionEnd);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
+    if ('touches' in e) {
+      e.preventDefault();
+    }
     const { type, startX, startY, startWidth, startHeight, handle, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
-    interactionRef.current.isDragging = true;
+    interactionRef.current.isInteracting = true;
 
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
 
     if (type === 'move') {
       onUpdate({ ...item, x: startItemX + dx, y: startItemY + dy });
@@ -111,24 +128,28 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     }
   };
 
-  const handleMouseUp = (e: MouseEvent) => {
-    if (!interactionRef.current.isDragging && !isSelected) {
+  const handleInteractionEnd = () => {
+    if (!interactionRef.current.isInteracting && !isSelected) {
       onSelect(item.id);
     }
     interactionRef.current.type = null;
-    interactionRef.current.isDragging = false;
-    window.removeEventListener('mousemove', handleMouseMove);
-    window.removeEventListener('mouseup', handleMouseUp);
+    interactionRef.current.isInteracting = false;
+    window.removeEventListener('mousemove', handleInteractionMove);
+    window.removeEventListener('mouseup', handleInteractionEnd);
+    window.removeEventListener('touchmove', handleInteractionMove);
+    window.removeEventListener('touchend', handleInteractionEnd);
   };
   
   useEffect(() => {
     return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('mousemove', handleInteractionMove);
+        window.removeEventListener('mouseup', handleInteractionEnd);
+        window.removeEventListener('touchmove', handleInteractionMove);
+        window.removeEventListener('touchend', handleInteractionEnd);
     }
   }, []);
 
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleEditClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
     onEdit(item.id);
@@ -151,7 +172,13 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]') || (e.target as HTMLElement).closest('[data-edit-handle]')) {
             return;
         }
-        handleMouseDown(e, 'move');
+        handleInteractionStart(e, 'move');
+      }}
+      onTouchStart={(e) => {
+        if ((e.target as HTMLElement).closest('[data-resize-handle]') || (e.target as HTMLElement).closest('[data-move-handle]') || (e.target as HTMLElement).closest('[data-edit-handle]')) {
+            return;
+        }
+        handleInteractionStart(e, 'move');
       }}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
@@ -205,14 +232,16 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     handle.includes('right') && '-right-1.5',
                     (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
                   )}
-                  onMouseDown={(e) => handleMouseDown(e, 'resize', handle)}
+                  onMouseDown={(e) => handleInteractionStart(e, 'resize', handle)}
+                  onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
                 />
               ))}
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
                 <div
                     data-move-handle
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                    onMouseDown={(e) => handleMouseDown(e, 'move')}
+                    onMouseDown={(e) => handleInteractionStart(e, 'move')}
+                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
@@ -220,6 +249,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     data-edit-handle
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
                     onClick={handleEditClick}
+                    onTouchStart={handleEditClick}
                 >
                   <Settings className="w-4 h-4 text-accent-foreground" />
                 </div>
