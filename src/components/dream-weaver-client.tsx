@@ -14,9 +14,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
-import { Menu, UploadCloud, Inbox } from 'lucide-react';
+import { UploadCloud, Inbox } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
@@ -106,7 +105,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { toggleSidebar, isMobile: sidebarIsMobile } = useSidebar();
   
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
@@ -280,18 +278,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-          <header className="absolute top-4 left-4 z-10 flex items-center gap-2">
-             <Button
-                onClick={toggleSidebar}
-                variant="ghost"
-                size="icon"
-                className="bg-card shadow-lg border border-border"
-                aria-label="Toggle Menu"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-          </header>
-
           <header className="absolute top-4 right-4 z-10 flex items-center gap-2">
             {activeBoard?.published && (
                 <Button

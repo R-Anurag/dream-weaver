@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush, Inbox } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, Compass, Brush, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -61,6 +61,7 @@ export default function BoardsSidebar({
 }: BoardsSidebarProps) {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const { toggleSidebar, state } = useSidebar();
   
   const handleStartEditing = (board: Board) => {
     setEditingBoardId(board.id);
@@ -86,6 +87,15 @@ export default function BoardsSidebar({
             <Brush className="h-8 w-8 text-accent" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
         </Link>
+         <Button
+            onClick={toggleSidebar}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            aria-label="Toggle Menu"
+          >
+            {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+          </Button>
       </div>
        <div className="flex flex-col gap-1 px-2">
          <MenuItem href="/explore" icon={Compass}>Explore</MenuItem>
