@@ -175,20 +175,20 @@ export default function ExplorePage() {
         </div>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-sm h-[60vh] md:max-w-md md:h-[70vh] flex flex-col items-center justify-center gap-6">
+        <div className="w-full flex items-center justify-center gap-6">
           {currentBoard ? (
             <>
-              <div className="w-full h-full" onClick={() => handleViewBoard(currentBoard.id)}>
+              <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">
+                  <X className="h-8 w-8 text-red-500" />
+              </Button>
+              
+              <div className="w-full max-w-2xl aspect-[4/3]" onClick={() => handleViewBoard(currentBoard.id)}>
                  <VisionBoardCard board={currentBoard} />
               </div>
-              <div className="flex items-center justify-center gap-4">
-                 <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
-                    <X className="h-8 w-8 text-red-500" />
-                 </Button>
-                 <Button onClick={() => handleViewBoard(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
-                    <Eye className="h-8 w-8 text-primary" />
-                 </Button>
-              </div>
+
+              <Button onClick={() => handleViewBoard(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted flex-shrink-0">
+                  <Eye className="h-8 w-8 text-primary" />
+              </Button>
             </>
           ) : (
             <div className="text-center">
