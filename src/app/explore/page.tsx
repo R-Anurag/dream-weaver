@@ -24,7 +24,7 @@ const VisionBoardCard = ({ board, hasSentProposal, onCardClick, onLike }: { boar
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onCardClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile ? "" : "cursor-pointer")} onClick={isMobile ? onCardClick : undefined}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -89,7 +89,6 @@ export default function ExplorePage() {
     skipSnaps: true,
   });
 
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -268,13 +267,13 @@ export default function ExplorePage() {
                  <VisionBoardCard
                     board={currentBoard}
                     hasSentProposal={sentProposals[currentBoard.id]}
-                    onCardClick={() => handleOpenBoard(currentBoard.id)}
+                    onCardClick={() => {}}
                     onLike={() => { /* Like logic removed */ }}
                  />
               </div>
 
               <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
-                  <Heart className="h-4 w-4 mr-2" />
+                  <Eye className="h-4 w-4 mr-2" />
                   Interested
               </Button>
             </>
