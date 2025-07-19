@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, Sparkles, ThumbsDown } from 'lucide-react';
+import { Search, Eye, Sparkles, ThumbsDown, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -114,9 +114,8 @@ export default function ExplorePage() {
   
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
 
-
   const handleNextBoard = useCallback(() => {
-      if(emblaApi) emblaApi.scrollPrev();
+    if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   const handleOpenBoard = useCallback((boardId: string) => {
@@ -129,7 +128,6 @@ export default function ExplorePage() {
     setCurrentIndex(emblaApi.selectedScrollSnap())
   }, []);
 
-
    useEffect(() => {
     if (!emblaApi || !isMobile) return;
 
@@ -140,15 +138,14 @@ export default function ExplorePage() {
 
     const onPointerUp = (e: PointerEvent) => {
       if (!isSwiping.current || !currentBoard) return;
-      
+
       const dx = e.clientX - dragStart.current.x;
 
       if (dx < -50) { // Left swipe
-        e.preventDefault();
-        e.stopPropagation();
+        emblaApi.reInit(); // Cancel the swipe back animation
         handleOpenBoard(currentBoard.id);
       } else if (dx > 50) { // Right swipe
-         emblaApi.scrollPrev();
+        emblaApi.scrollPrev();
       }
       
       isSwiping.current = false;
@@ -162,14 +159,19 @@ export default function ExplorePage() {
     return () => {
       containerNode.removeEventListener('pointerdown', onPointerDown, { capture: true });
       containerNode.removeEventListener('pointerup', onPointerUp, { capture: true });
-      emblaApi.off('select', onSelect);
+      if (emblaApi) {
+        emblaApi.off('select', onSelect);
+      }
     };
   }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
-
+  
   useEffect(() => {
-    emblaApi?.reInit();
-    setCurrentIndex(0);
-  }, [searchTerm, emblaApi]);
+    if (emblaApi) {
+        emblaApi.reInit();
+        const newIndex = filteredBoards.length > 0 ? 0 : -1;
+        if(newIndex !== -1) setCurrentIndex(newIndex);
+    }
+}, [searchTerm, filteredBoards.length, emblaApi]);
   
   const CarouselArea = (
       <div className={cn("w-full h-full cursor-pointer", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
