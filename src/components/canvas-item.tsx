@@ -253,6 +253,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               ))}
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
                 <div
+                    data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
                     onMouseDown={(e) => handleInteractionStart(e, 'move')}
                     onTouchStart={(e) => handleInteractionStart(e, 'move')}
