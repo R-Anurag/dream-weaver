@@ -151,33 +151,20 @@ export default function ExplorePage() {
             handleOpenBoard(currentBoard.id);
         } else if (dx < -50) { // Swipe left
             emblaApi.scrollNext();
-        } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { // Tap
-            handleOpenBoard(currentBoard.id);
         }
     }
     
     const containerNode = emblaApi.containerNode();
-    // Prevent default click behavior on the container if we are swiping
-    const onContainerClick = (e: MouseEvent) => {
-        const dx = Math.abs(e.clientX - dragStart.current.x);
-        const dy = Math.abs(e.clientY - dragStart.current.y);
-        if (dx > 10 || dy > 10) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }
-
+    
     containerNode.addEventListener('pointerdown', onPointerDown);
     containerNode.addEventListener('pointerup', onPointerUp);
-    containerNode.addEventListener('click', onContainerClick, true); // Use capture phase
 
     return () => {
       emblaApi.off('select', onSelect)
       containerNode.removeEventListener('pointerdown', onPointerDown);
       containerNode.removeEventListener('pointerup', onPointerUp);
-      containerNode.removeEventListener('click', onContainerClick, true);
     }
-  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
+  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard, handleNextBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
