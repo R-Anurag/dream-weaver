@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, Sparkles, ThumbsDown, ArrowLeft } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -71,7 +71,6 @@ export default function ExplorePage() {
   const dragStart = useRef({ x: 0, y: 0 });
   const isSwiping = useRef(false);
 
-  
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
     try {
@@ -129,7 +128,7 @@ export default function ExplorePage() {
   }, []);
 
    useEffect(() => {
-    if (!emblaApi || !isMobile) return;
+    if (!emblaApi || !isMobile || !currentBoard) return;
 
     const onPointerDown = (e: PointerEvent) => {
       isSwiping.current = true;
@@ -137,12 +136,12 @@ export default function ExplorePage() {
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      if (!isSwiping.current || !currentBoard) return;
+      if (!isSwiping.current) return;
 
       const dx = e.clientX - dragStart.current.x;
 
       if (dx < -50) { // Left swipe
-        emblaApi.reInit(); // Cancel the swipe back animation
+        emblaApi.reInit();
         handleOpenBoard(currentBoard.id);
       }
       
@@ -210,7 +209,7 @@ export default function ExplorePage() {
                 </div>
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
-                        <Sparkles className="h-5 w-5" />
+                        <Plus className="h-5 w-5" />
                     </Link>
                 </Button>
             </div>
@@ -237,7 +236,7 @@ export default function ExplorePage() {
           </div>
           <Button asChild>
             <Link href="/boards">
-                <Sparkles className="mr-2 h-4 w-4" /> Create
+                <Plus className="mr-2 h-4 w-4" /> Create
             </Link>
           </Button>
         </div>
