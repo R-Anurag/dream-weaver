@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle, Heart, ThumbsDown } from 'lucide-react';
+import { Search, Sparkles, X, Eye, Heart, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,19 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board, Proposal } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal, onCardClick }: { board: Board, hasSentProposal: boolean, onCardClick: () => void }) => {
+const VisionBoardCard = ({ board, hasSentProposal, onCardClick, onLike }: { board: Board, hasSentProposal: boolean, onCardClick: () => void, onLike: () => void }) => {
+  const isMobile = useIsMobile();
+  
+  const handleLikeClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent card click from firing
+      onLike();
+  }
+
   return (
     <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onCardClick}>
       <Image
@@ -31,12 +38,18 @@ const VisionBoardCard = ({ board, hasSentProposal, onCardClick }: { board: Board
         <div>
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold font-headline">{board.name}</h2>
-            {hasSentProposal && (
-                <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
-                    <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-                    Proposal Sent
-                </Badge>
-            )}
+            <div className="flex items-center gap-2">
+                {hasSentProposal && (
+                    <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
+                        Proposal Sent
+                    </Badge>
+                )}
+                 {isMobile && (
+                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40" onClick={handleLikeClick}>
+                        <Heart className="h-4 w-4" />
+                    </Button>
+                 )}
+            </div>
           </div>
           <p className="mt-2 text-sm text-white/90">{board.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -75,9 +88,10 @@ export default function ExplorePage() {
     axis: 'y',
     skipSnaps: true,
   });
-  
 
-  useEffect(() => {
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
     try {
         const savedBoards = localStorage.getItem('dreamWeaverBoards');
@@ -89,7 +103,6 @@ export default function ExplorePage() {
         console.error("Failed to load published boards from localStorage", error);
     }
     
-    // Combine sample boards and user's published boards, avoiding duplicates
     const combinedBoards = [...sampleBoards];
     const sampleBoardIds = new Set(sampleBoards.map(b => b.id));
     publishedBoards.forEach(pBoard => {
@@ -100,7 +113,6 @@ export default function ExplorePage() {
 
     setAllBoards(combinedBoards);
 
-    // Check localStorage for sent proposals for all boards
     const proposalsSentMap: Record<string, boolean> = {};
     combinedBoards.forEach(board => {
         try {
@@ -115,8 +127,12 @@ export default function ExplorePage() {
         } catch (e) {}
     });
     setSentProposals(proposalsSentMap);
-
   }, []);
+
+  useEffect(() => {
+    loadDataFromStorage();
+  }, [loadDataFromStorage]);
+
 
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
@@ -146,10 +162,6 @@ export default function ExplorePage() {
 
 
   const handleOpenBoard = (boardId: string) => {
-    router.push(`/boards/view/${boardId}`);
-  };
-
-  const handleCardClick = (boardId: string) => {
     router.push(`/boards/view/${boardId}`);
   };
 
@@ -188,7 +200,7 @@ export default function ExplorePage() {
                 </div>
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
-                        <PlusSquare className="h-5 w-5" />
+                        <Sparkles className="h-5 w-5" />
                     </Link>
                 </Button>
             </div>
@@ -201,7 +213,8 @@ export default function ExplorePage() {
                         <VisionBoardCard 
                             board={board} 
                             hasSentProposal={sentProposals[board.id]}
-                            onCardClick={() => handleCardClick(board.id)}
+                            onCardClick={() => handleOpenBoard(board.id)}
+                            onLike={() => { /* Like logic removed */ }}
                         />
                     </div>
                 ))}
@@ -237,7 +250,7 @@ export default function ExplorePage() {
           </div>
           <Button asChild>
             <Link href="/boards">
-                <PlusSquare className="mr-2 h-4 w-4" /> Create
+                <Sparkles className="mr-2 h-4 w-4" /> Create
             </Link>
           </Button>
         </div>
@@ -246,20 +259,21 @@ export default function ExplorePage() {
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {currentBoard ? (
             <>
-              <Button onClick={handleNextBoard} variant="outline" className="shadow-lg hover:bg-muted flex-shrink-0">
+              <Button onClick={handleNextBoard} variant="outline" size="default" className="shadow-lg hover:bg-muted flex-shrink-0">
                   <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                   Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl aspect-[4/3]">
+              <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
                  <VisionBoardCard
                     board={currentBoard}
                     hasSentProposal={sentProposals[currentBoard.id]}
-                    onCardClick={() => handleCardClick(currentBoard.id)}
+                    onCardClick={() => handleOpenBoard(currentBoard.id)}
+                    onLike={() => { /* Like logic removed */ }}
                  />
               </div>
 
-              <Button onClick={() => handleOpenBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
+              <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
                   <Heart className="h-4 w-4 mr-2" />
                   Interested
               </Button>
