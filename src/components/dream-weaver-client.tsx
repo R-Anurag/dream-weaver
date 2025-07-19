@@ -71,7 +71,7 @@ export const WelcomeBoard: Board = {
   ]
 };
 
-export default function DreamWeaverClient({ boards, setBoards, activeBoardId, setActiveBoardId }: { boards: Board[], setBoards: (boards: Board[]) => void, activeBoardId: string | null, setActiveBoardId: (id: string | null) => void}) {
+export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { toast } = useToast();
   
@@ -119,7 +119,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId, se
         return;
     }
     const newItem = createNewItem(type, content, shape);
-    setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, newItem] } : b));
+    setBoards(prevBoards => prevBoards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, newItem] } : b));
     handleSelectItem(newItem.id);
   };
   
