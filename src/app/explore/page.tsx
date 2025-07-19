@@ -144,8 +144,6 @@ export default function ExplorePage() {
       if (dx < -50) { // Left swipe
         emblaApi.reInit(); // Cancel the swipe back animation
         handleOpenBoard(currentBoard.id);
-      } else if (dx > 50) { // Right swipe
-        emblaApi.scrollPrev();
       }
       
       isSwiping.current = false;
