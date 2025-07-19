@@ -206,6 +206,17 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
+          {isMobile && (
+            <Button
+              onClick={toggleSidebar}
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 left-4 z-10 bg-card shadow-lg border border-border"
+              aria-label="Toggle Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             onClick={() => setIsPublishing(true)}
             variant="ghost"
