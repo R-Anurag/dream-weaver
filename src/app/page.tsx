@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/accordion";
 import LottiePlayer from '@/components/lottie-player';
 import animationData from '@/lib/animation-data.json';
+import { cn } from '@/lib/utils';
 
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
@@ -42,7 +43,7 @@ const HowItWorksStep = ({ icon: Icon, title, description }: { icon: React.Elemen
 );
 
 const FloatingItem = ({ className, children, delay }: { className: string, children: React.ReactNode, delay: string }) => (
-    <div className={`absolute hidden lg:block animate-fade-in-up ${className}`} style={{ animationDelay: delay }}>
+    <div className={cn("absolute hidden lg:block animate-fade-in-up filter grayscale", className)} style={{ animationDelay: delay }}>
         {children}
     </div>
 );
@@ -71,14 +72,14 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative w-full py-16 md:py-20 lg:py-24 overflow-hidden">
-           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
+        <section className="relative w-full py-16 md:py-20 lg:py-24 overflow-hidden bg-[#1C1C1C] text-white">
+           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-[#1C1C1C]"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
                     <Image src="https://placehold.co/400x300" alt="placeholder image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="astronaut space" />
                 </FloatingItem>
                 <FloatingItem className="top-24 right-1/4 w-40" delay="1s">
-                    <Card className="p-4 bg-[#FFFACD]/80 backdrop-blur-sm shadow-xl transform rotate-3">
+                    <Card className="p-4 bg-gray-300/80 backdrop-blur-sm shadow-xl transform rotate-3">
                         <p className="font-medium text-sm text-black">Brainstorm new ideas for the pitch deck!</p>
                     </Card>
                 </FloatingItem>
@@ -86,26 +87,25 @@ export default function HomePage() {
                     <Image src="https://placehold.co/400x300" alt="placeholder image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
                 </FloatingItem>
                  <FloatingItem className="bottom-16 left-1/4" delay="1.4s">
-                    <Badge variant="secondary" className="shadow-lg text-base px-4 py-2 transform -rotate-12">#goals</Badge>
+                    <Badge variant="outline" className="shadow-lg text-base px-4 py-2 transform -rotate-12 border-white text-white">#goals</Badge>
                 </FloatingItem>
 
-
                 <div className="max-w-4xl text-center mx-auto">
-                    <Badge variant="outline" className="mb-4 bg-background/50 border-primary/50 text-primary animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
-                    <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                    <Badge variant="outline" className="mb-4 bg-transparent border-white/50 text-white/90 animate-fade-in-up">Visualize. Collaborate. Manifest.</Badge>
+                    <div className="flex justify-center animate-fade-in-up filter grayscale" style={{ animationDelay: '0.1s' }}>
                         <LottiePlayer animationData={animationData} className="h-52 w-52" />
                     </div>
                     <h1 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-headline animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                     Weave Your Dreams into Reality
                     </h1>
-                    <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-300 sm:text-xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                     Dream Weaver is your personal canvas to visualize goals and a collaborative space to bring them to life. Turn your aspirations into actionable projects.
                     </p>
                     <div className="mt-10 flex justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="bg-white text-black hover:bg-gray-200">
                         <Link href="/boards">Start Weaving Your Dream</Link>
                     </Button>
-                    <Button asChild size="lg" variant="outline">
+                    <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black">
                         <Link href="/explore">Explore Projects</Link>
                     </Button>
                     </div>
