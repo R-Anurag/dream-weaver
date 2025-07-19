@@ -173,12 +173,14 @@ export default function ExplorePage() {
 }, [searchTerm, filteredBoards.length, emblaApi]);
   
   const CarouselArea = (
-      <div className={cn("w-full h-full cursor-pointer", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
+      <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
             <div className="overflow-hidden h-full" ref={emblaRef}>
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
                         <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                             <VisionBoardCard board={board} />
+                             <Link href={`/boards/view/${board.id}`} className="block w-full h-full cursor-pointer">
+                                <VisionBoardCard board={board} />
+                            </Link>
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -254,9 +256,11 @@ export default function ExplorePage() {
               
               {CarouselArea}
 
-              <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Interested
+              <Button asChild size="default" className="shadow-lg flex-shrink-0">
+                  <Link href={`/boards/view/${currentBoard.id}`}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Interested
+                  </Link>
               </Button>
             </>
           ) : (
