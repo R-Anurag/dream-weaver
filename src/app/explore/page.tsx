@@ -15,9 +15,9 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showLikeAnimation }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: () => void, showLikeAnimation: boolean }) => {
+const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showLikeAnimation, onCardClick }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: (e: React.MouseEvent) => void, showLikeAnimation: boolean, onCardClick: () => void }) => {
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onLike}>
+    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onCardClick}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -62,13 +62,13 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showL
                 ))}
               </div>
             </div>
-             <div className="flex items-end gap-x-4 text-sm font-medium max-sm:flex-col max-sm:items-end">
-                <div className="flex flex-col items-center gap-1">
-                    <Heart className="h-5 w-5 text-pink-400" />
+             <div className="flex items-end gap-x-4 text-sm font-medium max-sm:flex-row max-sm:items-end">
+                <button onClick={onLike} className="flex flex-col items-center gap-1 z-20 p-2 -m-2">
+                    <Heart className="h-6 w-6 text-pink-400" />
                     <span className="text-xs">{board.likes || 0}</span>
-                </div>
+                </button>
                 <div className="flex flex-col items-center gap-1">
-                    <Sparkles className="h-5 w-5 text-blue-300" />
+                    <Sparkles className="h-6 w-6 text-blue-300" />
                     <span className="text-xs">{proposalsCount}</span>
                 </div>
             </div>
@@ -94,7 +94,6 @@ export default function ExplorePage() {
   
   const [likedBoardId, setLikedBoardId] = useState<string | null>(null);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let publishedBoards: Board[] = [];
@@ -204,21 +203,14 @@ export default function ExplorePage() {
     }, 300); // Delay navigation slightly
   };
 
-  const handleTap = (boardId: string) => {
-    if (tapTimeoutRef.current) {
-        // Double tap
-        clearTimeout(tapTimeoutRef.current);
-        tapTimeoutRef.current = null;
-        handleLike(boardId);
-    } else {
-        // Single tap
-        tapTimeoutRef.current = setTimeout(() => {
-            router.push(`/boards/view/${boardId}`);
-            tapTimeoutRef.current = null;
-        }, 300); // 300ms window for double tap
-    }
+  const handleCardClick = (boardId: string) => {
+    router.push(`/boards/view/${boardId}`);
   };
 
+  const handleLikeClick = (e: React.MouseEvent, boardId: string) => {
+    e.stopPropagation(); // Prevent card click from firing
+    handleLike(boardId);
+  };
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -269,7 +261,8 @@ export default function ExplorePage() {
                             board={board} 
                             hasSentProposal={sentProposals[board.id]} 
                             proposalsCount={proposalsCount[board.id] || 0} 
-                            onLike={() => handleTap(board.id)}
+                            onLike={(e) => handleLikeClick(e, board.id)}
+                            onCardClick={() => handleCardClick(board.id)}
                             showLikeAnimation={likedBoardId === board.id && showLikeAnimation}
                         />
                     </div>
@@ -325,7 +318,8 @@ export default function ExplorePage() {
                     board={currentBoard}
                     hasSentProposal={sentProposals[currentBoard.id]}
                     proposalsCount={proposalsCount[currentBoard.id] || 0}
-                    onLike={() => {}} // Desktop view click is handled by the "Interested" button
+                    onLike={(e) => { e.stopPropagation(); handleLike(currentBoard.id); }}
+                    onCardClick={() => handleCardClick(currentBoard.id)}
                     showLikeAnimation={likedBoardId === currentBoard.id && showLikeAnimation}
                  />
               </div>
