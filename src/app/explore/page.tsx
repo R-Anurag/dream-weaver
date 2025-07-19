@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Search, Sparkles, X, Eye, PlusSquare, CheckCircle, Heart, MessageSquare, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,9 +15,9 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: () => void }) => {
+const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike, showLikeAnimation }: { board: Board, hasSentProposal: boolean, proposalsCount: number, onLike: () => void, showLikeAnimation: boolean }) => {
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer">
+    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={onLike}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -26,6 +26,11 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { b
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         data-ai-hint="vision board"
       />
+      {showLikeAnimation && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
+            <Heart className="h-32 w-32 text-white animate-scale-in-out" fill="currentColor" />
+        </div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
         <div>
@@ -57,7 +62,7 @@ const VisionBoardCard = ({ board, hasSentProposal, proposalsCount, onLike }: { b
                 ))}
               </div>
             </div>
-             <div className="flex items-end gap-x-4 text-sm font-medium">
+             <div className="flex items-end gap-x-4 text-sm font-medium max-sm:flex-col max-sm:items-end">
                 <div className="flex flex-col items-center gap-1">
                     <Heart className="h-5 w-5 text-pink-400" />
                     <span className="text-xs">{board.likes || 0}</span>
@@ -87,7 +92,9 @@ export default function ExplorePage() {
     skipSnaps: true,
   });
   
-  const [tapCount, setTapCount] = useState(0);
+  const [likedBoardId, setLikedBoardId] = useState<string | null>(null);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let publishedBoards: Board[] = [];
@@ -161,38 +168,54 @@ export default function ExplorePage() {
     }
   }, [emblaApi, isMobile, filteredBoards.length]);
 
-  const handleLikeAndOpenBoard = (boardId: string) => {
-    let updatedBoards: Board[] = [];
+
+  const handleLike = useCallback((boardId: string) => {
+    setLikedBoardId(boardId);
+    setShowLikeAnimation(true);
     setAllBoards(prevBoards => {
-      updatedBoards = prevBoards.map(b => 
+      const updatedBoards = prevBoards.map(b =>
         b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
       );
-      return updatedBoards;
-    });
-
-    try {
+      try {
         const savedBoardsRaw = localStorage.getItem('dreamWeaverBoards');
         if (savedBoardsRaw) {
             let localBoards: Board[] = JSON.parse(savedBoardsRaw);
-            localBoards = localBoards.map(b => 
+            localBoards = localBoards.map(b =>
                 b.id === boardId ? { ...b, likes: (b.likes || 0) + 1 } : b
             );
             localStorage.setItem('dreamWeaverBoards', JSON.stringify(localBoards));
         }
-    } catch (e) {
-        console.error("Failed to update likes in localStorage", e);
-    }
-    router.push(`/boards/view/${boardId}`);
+      } catch (e) {
+          console.error("Failed to update likes in localStorage", e);
+      }
+      return updatedBoards;
+    });
+
+    setTimeout(() => {
+      setShowLikeAnimation(false);
+      setLikedBoardId(null);
+    }, 800); // Duration of the animation
+  }, []);
+
+  const handleLikeAndOpenBoard = (boardId: string) => {
+    handleLike(boardId);
+    setTimeout(() => {
+        router.push(`/boards/view/${boardId}`);
+    }, 300); // Delay navigation slightly
   };
 
   const handleTap = (boardId: string) => {
-    setTapCount(prev => prev + 1);
-    setTimeout(() => {
-        setTapCount(0);
-    }, 300); // 300ms window for double tap
-
-    if (tapCount === 1) {
-        router.push(`/boards/view/${boardId}`);
+    if (tapTimeoutRef.current) {
+        // Double tap
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+        handleLike(boardId);
+    } else {
+        // Single tap
+        tapTimeoutRef.current = setTimeout(() => {
+            router.push(`/boards/view/${boardId}`);
+            tapTimeoutRef.current = null;
+        }, 300); // 300ms window for double tap
     }
   };
 
@@ -241,8 +264,14 @@ export default function ExplorePage() {
         <div className="overflow-hidden h-full" ref={emblaRef}>
             <div className="flex flex-col h-full">
                 {filteredBoards.map((board) => (
-                    <div key={board.id} className="relative flex-shrink-0 w-full h-full" onClick={() => handleTap(board.id)}>
-                        <VisionBoardCard board={board} hasSentProposal={sentProposals[board.id]} proposalsCount={proposalsCount[board.id] || 0} onLike={() => {}} />
+                    <div key={board.id} className="relative flex-shrink-0 w-full h-full">
+                        <VisionBoardCard 
+                            board={board} 
+                            hasSentProposal={sentProposals[board.id]} 
+                            proposalsCount={proposalsCount[board.id] || 0} 
+                            onLike={() => handleTap(board.id)}
+                            showLikeAnimation={likedBoardId === board.id && showLikeAnimation}
+                        />
                     </div>
                 ))}
                 {filteredBoards.length === 0 && (
@@ -286,13 +315,19 @@ export default function ExplorePage() {
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {currentBoard ? (
             <>
-              <Button onClick={handleNextBoard} variant="outline" className="bg-white shadow-lg hover:bg-muted flex-shrink-0">
+              <Button onClick={handleNextBoard} variant="outline" className="shadow-lg hover:bg-muted flex-shrink-0">
                   <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                   Pass
               </Button>
               
               <div className="w-full h-full max-w-4xl aspect-[4/3]">
-                 <VisionBoardCard board={currentBoard} hasSentProposal={sentProposals[currentBoard.id]} proposalsCount={proposalsCount[currentBoard.id] || 0} onLike={() => handleLikeAndOpenBoard(currentBoard.id)} />
+                 <VisionBoardCard
+                    board={currentBoard}
+                    hasSentProposal={sentProposals[currentBoard.id]}
+                    proposalsCount={proposalsCount[currentBoard.id] || 0}
+                    onLike={() => {}} // Desktop view click is handled by the "Interested" button
+                    showLikeAnimation={likedBoardId === currentBoard.id && showLikeAnimation}
+                 />
               </div>
 
               <Button onClick={() => handleLikeAndOpenBoard(currentBoard.id)} className="shadow-lg flex-shrink-0">
