@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Sparkles, X, Eye, ThumbsDown } from 'lucide-react';
+import { Search, ThumbsDown, Eye, Heart, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -285,3 +285,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
