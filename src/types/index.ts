@@ -1,5 +1,6 @@
 
 
+
 export type ItemType = 'text' | 'image' | 'shape' | 'post-it';
 
 export type ShapeType = 'rectangle' | 'circle' | 'star';
@@ -35,6 +36,8 @@ export type Board = {
   published?: boolean;
 };
 
+export type AccessLevel = 'view' | 'comment' | 'edit';
+
 export type Proposal = {
     id: string;
     boardId: string;
@@ -42,4 +45,5 @@ export type Proposal = {
     userAvatar: string;
     message: string;
     status: 'pending' | 'accepted' | 'declined' | 'considering';
+    accessLevel: AccessLevel | null;
 };

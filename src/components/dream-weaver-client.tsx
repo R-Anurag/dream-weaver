@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import type { Board, CanvasItem, ItemType, ShapeType } from '@/types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { Board, CanvasItem, ItemType, ShapeType, Proposal } from '@/types';
 import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
@@ -19,6 +19,8 @@ import { Button } from './ui/button';
 import { Menu, UploadCloud, Inbox } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 import ProposalsPanel from './proposals-panel';
+import { sampleProposals } from '@/lib/sample-data';
+import { Badge } from './ui/badge';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -89,9 +91,12 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { toggleSidebar } = useSidebar();
+  
+  const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
   useEffect(() => {
     // When the active board changes, deselect any selected item and close the panels.
@@ -99,6 +104,21 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
   }, [activeBoardId]);
+
+  useEffect(() => {
+    if (activeBoard?.published) {
+        const storedProposals = localStorage.getItem(`proposals_${activeBoard.id}`);
+        const localProposals = storedProposals ? JSON.parse(storedProposals) : [];
+        const combinedProposals = [...localProposals, ...sampleProposals.filter(sp => sp.boardId === activeBoard.id && !localProposals.some((lp: Proposal) => lp.id === sp.id))];
+        setProposals(combinedProposals);
+    } else {
+        setProposals([]);
+    }
+  }, [activeBoard, boards]);
+
+  const pendingProposalsCount = useMemo(() => {
+    return proposals.filter(p => p.status === 'pending').length;
+  }, [proposals]);
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     setBoards(prevBoards =>
@@ -131,7 +151,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     }
   }, [activeBoardId, setBoards]);
 
-  const activeBoard = boards.find(b => b.id === activeBoardId);
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
   const handleAddItem = (type: ItemType, content?: string, shape?: ShapeType) => {
@@ -169,6 +188,13 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setIsPublishing(false);
   };
 
+  const handleUpdateProposal = (updatedProposal: Proposal) => {
+    const updatedProposals = proposals.map(p => p.id === updatedProposal.id ? updatedProposal : p);
+    setProposals(updatedProposals);
+    localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals));
+  };
+
+
   const renderPanels = () => {
     if (isMobile) {
       return (
@@ -194,7 +220,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                 <SheetHeader className="p-4 border-b">
                     <SheetTitle>Proposals Inbox</SheetTitle>
                 </SheetHeader>
-                {activeBoard && <ProposalsPanel board={activeBoard} onClose={() => setIsProposalsPanelOpen(false)} />}
+                {activeBoard && <ProposalsPanel board={activeBoard} proposals={proposals} onUpdateProposal={handleUpdateProposal} onClose={() => setIsProposalsPanelOpen(false)} />}
             </SheetContent>
           </Sheet>
         </>
@@ -217,6 +243,8 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
       return (
         <ProposalsPanel
           board={activeBoard}
+          proposals={proposals}
+          onUpdateProposal={handleUpdateProposal}
           onClose={() => setIsProposalsPanelOpen(false)}
         />
       );
@@ -245,10 +273,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                     onClick={() => setIsProposalsPanelOpen(true)}
                     variant="ghost"
                     size="icon"
-                    className="bg-card shadow-lg border border-border"
+                    className="bg-card shadow-lg border border-border relative"
                     aria-label="View Proposals"
                 >
                     <Inbox className="h-5 w-5" />
+                    {pendingProposalsCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                            {pendingProposalsCount}
+                        </Badge>
+                    )}
                 </Button>
             )}
             <Button

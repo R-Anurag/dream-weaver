@@ -60,6 +60,16 @@ export const sampleProposals: Proposal[] = [
     userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
     message: "I'm a UI/UX designer with 5 years of experience in sustainable tech. I love your vision for urban farming and have some ideas for a companion app. Let's connect!",
     status: 'pending',
+    accessLevel: null,
+  },
+    {
+    id: 'prop-1-accepted',
+    boardId: 'sample-1',
+    userName: 'Dave Smith',
+    userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a',
+    message: "I'm a seasoned horticulturalist and can provide valuable insights into crop selection and sustainable practices. I've managed three community gardens in the past and would love to help your project succeed.",
+    status: 'accepted',
+    accessLevel: 'edit',
   },
   {
     id: 'prop-2',
@@ -68,6 +78,7 @@ export const sampleProposals: Proposal[] = [
     userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e',
     message: "I'm a software engineer and can help build out the backend for your AI education platform. My background is in machine learning and data science.",
     status: 'pending',
+    accessLevel: null,
   },
   {
     id: 'prop-3',
@@ -75,6 +86,16 @@ export const sampleProposals: Proposal[] = [
     userName: 'Charlie Brown',
     userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f',
     message: "Your ocean cleanup initiative is inspiring! I have a background in logistics and grant writing and would love to contribute to the project management.",
-    status: 'pending',
+    status: 'considering',
+    accessLevel: null,
+  },
+    {
+    id: 'prop-3-declined',
+    boardId: 'sample-3',
+    userName: 'Eve Davis',
+    userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704b',
+    message: "I'm a marketing specialist and would love to help get the word out about your amazing project!",
+    status: 'declined',
+    accessLevel: null,
   },
 ];
