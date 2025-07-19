@@ -1,11 +1,18 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Brush, Lightbulb, Users } from 'lucide-react';
+import { ArrowRight, Brush, Lightbulb, Users, CheckCircle, PencilRuler, Zap } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+
+const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
   <Card className="flex-1 min-w-[280px] bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
     <CardContent className="p-6 text-center">
       <div className="inline-block p-4 bg-primary/20 text-primary rounded-full mb-4">
@@ -16,6 +23,19 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
     </CardContent>
   </Card>
 );
+
+const HowItWorksStep = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+    <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+            <Icon className="h-6 w-6" />
+        </div>
+        <div>
+            <h3 className="text-lg font-bold font-headline">{title}</h3>
+            <p className="text-muted-foreground mt-1">{description}</p>
+        </div>
+    </div>
+);
+
 
 export default function HomePage() {
   return (
@@ -62,10 +82,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="py-16 md:py-24 bg-secondary">
+        <section id="features" className="py-16 md:py-24 bg-secondary">
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold font-headline">A New Way to Achieve Your Goals</h2>
+              <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
               <p className="text-muted-foreground mt-2">From personal vision boards to collaborative projects.</p>
             </div>
             <div className="flex flex-wrap justify-center gap-8">
@@ -74,6 +94,54 @@ export default function HomePage() {
               <FeatureCard icon={Users} title="Collaborate & Connect" description="Share your vision and find partners with the skills you need to make your dream a reality." />
             </div>
           </div>
+        </section>
+
+        <section id="how-it-works" className="py-16 md:py-24">
+            <div className="container max-w-5xl">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold font-headline">How It Works</h2>
+                    <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+                   <HowItWorksStep icon={PencilRuler} title="1. Create Your Canvas" description="Start with a blank canvas or an inspiring template. This is your personal space to dream big and outline your goals."/>
+                   <HowItWorksStep icon={Zap} title="2. Weave Your Vision" description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."/>
+                   <HowItWorksStep icon={CheckCircle} title="3. Collaborate & Manifest" description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."/>
+                </div>
+            </div>
+        </section>
+        
+        <section id="faq" className="py-16 md:py-24 bg-secondary">
+            <div className="container max-w-3xl">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
+                </div>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger>Is Dream Weaver free to use?</AccordionTrigger>
+                    <AccordionContent>
+                      Yes, the core features of Dream Weaver—creating and managing your personal vision boards—are completely free. We may introduce premium features for teams and advanced collaboration in the future.
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-2">
+                    <AccordionTrigger>Can I share my vision boards with others?</AccordionTrigger>
+                    <AccordionContent>
+                      Absolutely! You can share your boards with specific people or make them public on the Explore page to find collaborators and partners for your projects.
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-3">
+                    <AccordionTrigger>What kind of projects can I create?</AccordionTrigger>
+                    <AccordionContent>
+                      Anything you can dream of! From personal goals like fitness journeys and travel plans to large-scale projects like starting a business, launching a community initiative, or creating art.
+                    </AccordionContent>
+                  </AccordionItem>
+                   <AccordionItem value="item-4">
+                    <AccordionTrigger>How is this different from other productivity tools?</AccordionTrigger>
+                    <AccordionContent>
+                      Dream Weaver focuses on the creative, visual-first stage of idea development. It's less about tasks and deadlines and more about inspiration, visualization, and finding the right people to bring your ideas to life.
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+            </div>
         </section>
 
         <section className="py-16 md:py-24">
