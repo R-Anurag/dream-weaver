@@ -24,7 +24,7 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
         onDoubleClick={onDoubleClick}
     >
       <Image
-        src={board.thumbnailUrl || `/images/remotework.jpg?v=${Date.now()}`}
+        src={board.thumbnailUrl || `/images/remotework.jpg`}
         alt={board.name}
         width={800}
         height={600}
