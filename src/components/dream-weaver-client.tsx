@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/sheet";
 import { useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
-import { Menu, UploadCloud } from 'lucide-react';
+import { Menu, UploadCloud, Inbox } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
+import { cn } from '@/lib/utils';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -206,26 +207,39 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-          {isMobile && (
+          <header className="absolute top-4 right-4 z-10 flex items-center gap-2">
+            {isMobile && (
+              <Button
+                onClick={toggleSidebar}
+                variant="ghost"
+                size="icon"
+                className="fixed top-4 left-4 bg-card shadow-lg border border-border"
+                aria-label="Toggle Menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
+            {activeBoard?.published && (
+                <Button
+                    onClick={() => console.log('Inbox clicked')}
+                    variant="ghost"
+                    size="icon"
+                    className="bg-card shadow-lg border border-border"
+                    aria-label="View Proposals"
+                >
+                    <Inbox className="h-5 w-5" />
+                </Button>
+            )}
             <Button
-              onClick={toggleSidebar}
+              onClick={() => setIsPublishing(true)}
               variant="ghost"
               size="icon"
-              className="absolute top-4 left-4 z-10 bg-card shadow-lg border border-border"
-              aria-label="Toggle Menu"
+              className="bg-card shadow-lg border border-border"
+              aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
             >
-              <Menu className="h-5 w-5" />
+              <UploadCloud className="h-5 w-5" />
             </Button>
-          )}
-          <Button
-            onClick={() => setIsPublishing(true)}
-            variant="ghost"
-            size="icon"
-            className="absolute top-4 right-4 z-10 bg-card shadow-lg border border-border"
-            aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
-          >
-            <UploadCloud className="h-5 w-5" />
-          </Button>
+          </header>
           <Toolbar onAddItem={handleAddItem} />
           <Canvas
             board={activeBoard}
