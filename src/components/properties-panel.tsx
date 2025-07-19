@@ -54,7 +54,7 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
             <ScrollArea className="flex-1">
                 <div className="space-y-4 p-4">
                     {(item.type === 'text' || item.type === 'post-it' || item.type === 'shape') && (
-                        <div className="flex items-center justify-between">
+                         item.type !== 'post-it' && <div className="flex items-center justify-between">
                             <Label>Background</Label>
                             <ColorPicker color={item.style.backgroundColor} onChange={(c) => updateStyle('backgroundColor', c)} />
                         </div>

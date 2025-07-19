@@ -18,7 +18,7 @@ import { useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
 import { Menu, UploadCloud, Inbox } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
-import { cn } from '@/lib/utils';
+import ProposalsPanel from './proposals-panel';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -87,15 +87,17 @@ export const WelcomeBoard: Board = {
 export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
+  const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { toggleSidebar } = useSidebar();
   
   useEffect(() => {
-    // When the active board changes, deselect any selected item and close the panel.
+    // When the active board changes, deselect any selected item and close the panels.
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
+    setIsProposalsPanelOpen(false);
   }, [activeBoardId]);
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
@@ -151,10 +153,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     }
   }, [activeBoardId, boards, selectedItemId, setBoards]);
 
-  const handleClosePanel = () => {
-    setIsPropertiesPanelOpen(false);
-  }
-
   const handlePublish = (details: Partial<Board>) => {
     if (!activeBoardId) return;
     setBoards(prevBoards =>
@@ -171,36 +169,59 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setIsPublishing(false);
   };
 
-  const renderPropertiesPanel = () => {
-    if (!selectedItem) return null;
-    
-    const panel = (
-      <PropertiesPanel
-        key={selectedItemId}
-        item={selectedItem}
-        onUpdateItem={handleUpdateItem}
-        onDeleteItem={() => handleDeleteItem(selectedItem.id)}
-        onClose={handleClosePanel}
-      />
-    );
-
+  const renderPanels = () => {
     if (isMobile) {
       return (
-        <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
-          <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
-            <SheetHeader className="p-4 border-b">
-                <SheetTitle className="capitalize text-lg">{selectedItem.type} Properties</SheetTitle>
-            </SheetHeader>
-            {panel}
-          </SheetContent>
-        </Sheet>
-      )
+        <>
+          <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
+            <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="capitalize text-lg">{selectedItem?.type} Properties</SheetTitle>
+              </SheetHeader>
+              {selectedItem && (
+                 <PropertiesPanel
+                    key={selectedItem.id}
+                    item={selectedItem}
+                    onUpdateItem={handleUpdateItem}
+                    onDeleteItem={() => handleDeleteItem(selectedItem.id)}
+                    onClose={() => setIsPropertiesPanelOpen(false)}
+                  />
+              )}
+            </SheetContent>
+          </Sheet>
+          <Sheet open={isProposalsPanelOpen} onOpenChange={setIsProposalsPanelOpen}>
+            <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Proposals Inbox</SheetTitle>
+                </SheetHeader>
+                {activeBoard && <ProposalsPanel board={activeBoard} onClose={() => setIsProposalsPanelOpen(false)} />}
+            </SheetContent>
+          </Sheet>
+        </>
+      );
     }
 
-    if (isPropertiesPanelOpen) {
-       return panel;
+    if (isPropertiesPanelOpen && selectedItem) {
+      return (
+        <PropertiesPanel
+          key={selectedItem.id}
+          item={selectedItem}
+          onUpdateItem={handleUpdateItem}
+          onDeleteItem={() => handleDeleteItem(selectedItem.id)}
+          onClose={() => setIsPropertiesPanelOpen(false)}
+        />
+      );
     }
 
+    if (isProposalsPanelOpen && activeBoard) {
+      return (
+        <ProposalsPanel
+          board={activeBoard}
+          onClose={() => setIsProposalsPanelOpen(false)}
+        />
+      );
+    }
+    
     return null;
   }
 
@@ -221,7 +242,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             )}
             {activeBoard?.published && (
                 <Button
-                    onClick={() => console.log('Inbox clicked')}
+                    onClick={() => setIsProposalsPanelOpen(true)}
                     variant="ghost"
                     size="icon"
                     className="bg-card shadow-lg border border-border"
@@ -250,7 +271,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onDeleteItem={handleDeleteItem}
           />
         </div>
-        {renderPropertiesPanel()}
+        {renderPanels()}
         {activeBoard && <PublishDialog
             isOpen={isPublishing}
             onOpenChange={setIsPublishing}
