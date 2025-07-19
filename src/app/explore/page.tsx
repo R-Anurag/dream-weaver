@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Sparkles, X, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,9 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import useEmblaCarousel from 'embla-carousel-react'
+import { cn } from '@/lib/utils';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
@@ -56,6 +59,13 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    axis: 'y',
+    skipSnaps: true,
+  });
+  
+  const [tapCount, setTapCount] = useState(0);
 
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
@@ -69,15 +79,84 @@ export default function ExplorePage() {
     );
   }, [searchTerm]);
 
-  const handleNextBoard = () => {
-    setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
-  };
-  
+  const handleNextBoard = useCallback(() => {
+    if (isMobile) {
+      emblaApi?.scrollNext();
+    } else {
+      setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
+    }
+  }, [emblaApi, isMobile, filteredBoards.length]);
+
   const handleViewBoard = (boardId: string) => {
     router.push(`/boards/view/${boardId}`);
   };
 
+  const handleTap = (boardId: string) => {
+    setTapCount(prev => prev + 1);
+    setTimeout(() => {
+        setTapCount(0);
+    }, 300); // 300ms window for double tap
+
+    if (tapCount === 1) {
+        handleViewBoard(boardId);
+    }
+  };
+
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setCurrentIndex(emblaApi.selectedScrollSnap());
+    };
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi]);
+
+  useEffect(() => {
+    emblaApi?.reInit();
+    setCurrentIndex(0);
+  }, [searchTerm, emblaApi]);
+
+
   const currentBoard = filteredBoards[currentIndex];
+
+  if (isMobile) {
+    return (
+      <div className="h-screen w-screen bg-black relative overflow-hidden">
+        <header className="p-4 absolute top-0 left-0 right-0 z-20">
+            <div className="relative max-w-md mx-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Search projects..."
+                    className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </header>
+
+        <div className="overflow-hidden h-full" ref={emblaRef}>
+            <div className="flex flex-col h-full">
+                {filteredBoards.map((board) => (
+                    <div key={board.id} className="relative flex-shrink-0 w-full h-full" onClick={() => handleTap(board.id)}>
+                        <VisionBoardCard board={board} />
+                    </div>
+                ))}
+                {filteredBoards.length === 0 && (
+                     <div className="flex-shrink-0 w-full h-full flex items-center justify-center text-white">
+                        <div className="text-center">
+                            <h3 className="text-xl font-semibold">No boards found</h3>
+                            <p className="text-muted-foreground">Try adjusting your search terms.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
@@ -90,7 +169,7 @@ export default function ExplorePage() {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentIndex(0); // Reset index on new search
+              setCurrentIndex(0);
             }}
           />
         </div>
@@ -99,7 +178,7 @@ export default function ExplorePage() {
         <div className="w-full max-w-sm h-[60vh] md:max-w-md md:h-[70vh] flex flex-col items-center justify-center gap-6">
           {currentBoard ? (
             <>
-              <div className="w-full h-full">
+              <div className="w-full h-full" onClick={() => handleViewBoard(currentBoard.id)}>
                  <VisionBoardCard board={currentBoard} />
               </div>
               <div className="flex items-center justify-center gap-4">
