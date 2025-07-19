@@ -18,7 +18,7 @@ import Link from 'next/link';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -134,8 +134,8 @@ export default function ExplorePage() {
     if (!emblaApi || !isMobile) return;
 
     const onPointerDown = (e: PointerEvent) => {
-      dragStart.current = { x: e.clientX, y: e.clientY };
       isSwiping.current = true;
+      dragStart.current = { x: e.clientX, y: e.clientY };
     };
 
     const onPointerUp = (e: PointerEvent) => {
@@ -147,19 +147,21 @@ export default function ExplorePage() {
         e.preventDefault();
         e.stopPropagation();
         handleOpenBoard(currentBoard.id);
+      } else if (dx > 50) { // Right swipe
+         emblaApi.scrollPrev();
       }
       
       isSwiping.current = false;
     };
 
     const containerNode = emblaApi.containerNode();
-    containerNode.addEventListener('pointerdown', onPointerDown, true);
-    containerNode.addEventListener('pointerup', onPointerUp, true);
+    containerNode.addEventListener('pointerdown', onPointerDown, { capture: true });
+    containerNode.addEventListener('pointerup', onPointerUp, { capture: true });
     emblaApi.on('select', onSelect);
 
     return () => {
-      containerNode.removeEventListener('pointerdown', onPointerDown, true);
-      containerNode.removeEventListener('pointerup', onPointerUp, true);
+      containerNode.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      containerNode.removeEventListener('pointerup', onPointerUp, { capture: true });
       emblaApi.off('select', onSelect);
     };
   }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
@@ -170,7 +172,7 @@ export default function ExplorePage() {
   }, [searchTerm, emblaApi]);
   
   const CarouselArea = (
-      <div className={cn("w-full h-full", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
+      <div className={cn("w-full h-full cursor-pointer", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
             <div className="overflow-hidden h-full" ref={emblaRef}>
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
