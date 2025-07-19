@@ -44,12 +44,23 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     startHeight: 0,
     startRotation: 0,
     handle: null as string | null,
+    isDragging: false,
   });
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, type: 'move' | 'resize' | 'rotate', handle?: string) => {
+    // Prevent starting a drag on right-click
+    if (e.button === 2) return;
+    
+    // Allow text selection in textareas
+    if ((e.target as HTMLElement).tagName === 'TEXTAREA') {
+        onSelect(item.id);
+        return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     onSelect(item.id);
+    
     interactionRef.current = {
       type,
       startX: e.clientX,
@@ -60,15 +71,17 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       startHeight: item.height,
       startRotation: item.rotation,
       handle,
+      isDragging: false,
     };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    e.preventDefault();
     const { type, startX, startY, startWidth, startHeight, handle, startRotation, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
+
+    interactionRef.current.isDragging = true;
 
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
@@ -101,8 +114,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: MouseEvent) => {
+    if (!interactionRef.current.isDragging && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+        onSelect(item.id);
+    }
     interactionRef.current.type = null;
+    interactionRef.current.isDragging = false;
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
   };
@@ -137,7 +154,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                onMouseDown={(e) => e.stopPropagation()}
                 className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
                 style={{
                   color: item.style.color,
@@ -151,7 +167,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                onMouseDown={(e) => e.stopPropagation()}
                 className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
                 style={{
                   backgroundColor: item.style.backgroundColor,

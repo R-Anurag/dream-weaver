@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2 } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useSidebar } from '@/components/ui/sidebar';
+
 
 interface BoardsSidebarProps {
   boards: Board[];
@@ -37,6 +39,7 @@ export default function BoardsSidebar({
 }: BoardsSidebarProps) {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const { toggleSidebar } = useSidebar();
 
   const handleStartEditing = (board: Board) => {
     setEditingBoardId(board.id);
@@ -56,9 +59,12 @@ export default function BoardsSidebar({
   };
 
   return (
-    <aside className="w-64 bg-card border-r border-border flex flex-col p-4 shadow-md z-20">
+    <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold font-headline">Dream Weaver</h1>
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
+            <PanelLeft />
+        </Button>
       </div>
       <Button onClick={onAddBoard} variant="outline" className="w-full mb-4">
         <PlusSquare className="mr-2 h-4 w-4" />
@@ -122,6 +128,6 @@ export default function BoardsSidebar({
       <div className="text-xs text-muted-foreground mt-4 text-center">
         Visualize your goals. Manifest your dreams.
       </div>
-    </aside>
+    </div>
   );
 }

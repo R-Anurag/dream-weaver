@@ -7,6 +7,7 @@ import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
 import { useToast } from "@/hooks/use-toast";
+import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -140,7 +141,10 @@ export default function DreamWeaverClient() {
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
   const handleAddItem = (type: ItemType, content?: string, shape?: ShapeType) => {
-    if (!activeBoardId) return;
+    if (!activeBoardId) {
+        toast({ title: "No board selected", description: "Please select or create a board first.", variant: "destructive" });
+        return;
+    }
     const newItem = createNewItem(type, content, shape);
     setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, newItem] } : b));
     handleSelectItem(newItem.id);
@@ -160,13 +164,16 @@ export default function DreamWeaverClient() {
     };
     setBoards([...boards, newBoard]);
     setActiveBoardId(newBoard.id);
+    setSelectedItemId(null);
   };
 
   const handleDeleteBoard = (boardId: string) => {
     const newBoards = boards.filter(b => b.id !== boardId);
     setBoards(newBoards);
     if (activeBoardId === boardId) {
-      setActiveBoardId(newBoards.length > 0 ? newBoards[0].id : null);
+      const newActiveId = newBoards.length > 0 ? newBoards[0].id : null;
+      setActiveBoardId(newActiveId);
+      setSelectedItemId(null);
     }
     if (newBoards.length === 0) {
       localStorage.removeItem('dreamWeaverBoards');
@@ -176,34 +183,47 @@ export default function DreamWeaverClient() {
   const handleRenameBoard = (boardId: string, newName: string) => {
     setBoards(boards.map(b => b.id === boardId ? {...b, name: newName} : b));
   }
+  
+  const handleSelectBoard = (boardId: string) => {
+    setActiveBoardId(boardId);
+    setSelectedItemId(null);
+  }
 
   return (
-    <div className="flex h-screen w-screen bg-background font-body text-foreground overflow-hidden">
-      <BoardsSidebar
-        boards={boards}
-        activeBoardId={activeBoardId}
-        onSelectBoard={setActiveBoardId}
-        onAddBoard={handleAddBoard}
-        onDeleteBoard={handleDeleteBoard}
-        onRenameBoard={handleRenameBoard}
-      />
-      <main className="flex-1 flex flex-col relative">
-        <Toolbar onAddItem={handleAddItem} />
-        <Canvas
-          board={activeBoard}
-          onUpdateItem={handleUpdateItem}
-          selectedItemId={selectedItemId}
-          onSelectItem={handleSelectItem}
-        />
-        {selectedItem && (
-          <PropertiesPanel
-            item={selectedItem}
-            onUpdateItem={handleUpdateItem}
-            onDeleteItem={handleDeleteItem}
-            onClose={() => setSelectedItemId(null)}
+    <SidebarProvider>
+      <div className="flex h-screen w-screen bg-background font-body text-foreground overflow-hidden">
+        <Sidebar>
+          <BoardsSidebar
+            boards={boards}
+            activeBoardId={activeBoardId}
+            onSelectBoard={handleSelectBoard}
+            onAddBoard={handleAddBoard}
+            onDeleteBoard={handleDeleteBoard}
+            onRenameBoard={handleRenameBoard}
           />
-        )}
-      </main>
-    </div>
+        </Sidebar>
+        <SidebarInset>
+          <main className="flex-1 flex flex-row relative">
+            <div className="flex-1 flex flex-col relative">
+              <Toolbar onAddItem={handleAddItem} />
+              <Canvas
+                board={activeBoard}
+                onUpdateItem={handleUpdateItem}
+                selectedItemId={selectedItemId}
+                onSelectItem={handleSelectItem}
+              />
+            </div>
+            {selectedItem && (
+              <PropertiesPanel
+                item={selectedItem}
+                onUpdateItem={handleUpdateItem}
+                onDeleteItem={handleDeleteItem}
+                onClose={() => setSelectedItemId(null)}
+              />
+            )}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
