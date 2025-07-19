@@ -50,23 +50,18 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   });
 
   const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
+    // Prevent interaction on right-click
     if ('button' in e && e.button === 2) return;
 
-    const target = e.target as HTMLElement;
-
-    // This block handles clicks on controls (edit, delete) vs. drag handles (move, resize)
-    if (target.closest('[data-control]')) {
-      // It's a control button, don't start a drag interaction.
-      return;
-    }
-
+    // Stop the event from propagating to parent elements (like the canvas)
     e.stopPropagation();
     
     // Prevent default touch behavior like scrolling
-    if (e.nativeEvent instanceof TouchEvent) {
+    if ('touches' in e) {
       e.preventDefault();
     }
     
+    // Select the item if it's not already selected
     if (!isSelected) {
       onSelect(item.id);
     }
@@ -128,57 +123,62 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleInteractionEnd = () => {
-    if (interactionRef.current.type) { // only if an interaction (drag/resize) was in progress
-        interactionRef.current.type = null;
-        interactionRef.current.isInteracting = false;
-    }
-    
     window.removeEventListener('mousemove', handleInteractionMove);
     window.removeEventListener('mouseup', handleInteractionEnd);
     window.removeEventListener('touchmove', handleInteractionMove);
     window.removeEventListener('touchend', handleInteractionEnd);
+    
+    // Use a timeout to reset the interaction state,
+    // which prevents the click event from firing immediately after a drag.
+    setTimeout(() => {
+        if (interactionRef.current) {
+            interactionRef.current.isInteracting = false;
+            interactionRef.current.type = null;
+        }
+    }, 0);
   };
   
   useEffect(() => {
+    // Cleanup event listeners when the component unmounts
     return () => {
-        window.removeEventListener('mousemove', handleInteractionMove);
-        window.removeEventListener('mouseup', handleInteractionEnd);
-        window.removeEventListener('touchmove', handleInteractionMove);
-        window.removeEventListener('touchend', handleInteractionEnd);
+        handleInteractionEnd();
     }
   }, []);
 
-  const handleEditClick = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit(item.id);
   }
   
-  const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(item.id);
   }
-
-  const handleItemBodyInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-    // If clicking on a textarea, don't initiate a drag.
-    if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
-      if (!isSelected) {
-        onSelect(item.id);
-      }
-      return;
-    }
-    handleInteractionStart(e, 'move');
-  };
-
+  
   const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If an interaction (drag/resize) just finished, don't process the click.
     if (interactionRef.current.isInteracting) return;
     
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-control]')) {
+    // If the click is on a control button, let that button's onClick handle it.
+    if ((e.target as HTMLElement).closest('[data-control]')) {
         return;
     }
     
+    // Otherwise, select the item.
     onSelect(item.id);
   };
+
+  const handleItemMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't start a drag if clicking on a textarea.
+    if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
+      onSelect(item.id);
+      return;
+    }
+    // Start move interaction only if not clicking a resize handle
+    if (!(e.target as HTMLElement).closest('[data-resize-handle]')) {
+        handleInteractionStart(e, 'move');
+    }
+  }
 
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -193,9 +193,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
       }}
-      onMouseDown={handleItemBodyInteractionStart}
-      onTouchStart={handleItemBodyInteractionStart}
       onClick={handleItemClick}
+      onMouseDown={handleItemMouseDown}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
@@ -204,6 +203,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           {item.type === 'text' && (
              <textarea
                 value={item.content}
+                onMouseDown={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
                 style={{
@@ -217,6 +217,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           {item.type === 'post-it' && (
              <textarea
                 value={item.content}
+                onMouseDown={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
                 style={{
@@ -239,6 +240,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               {resizeHandles.map(handle => (
                 <div
                   key={handle}
+                  data-resize-handle
                   className={cn(
                     'absolute w-3 h-3 bg-accent border-2 border-white rounded-full',
                     handle.includes('top') && '-top-1.5',
@@ -248,7 +250,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
                   )}
                   onMouseDown={(e) => handleInteractionStart(e, 'resize', handle)}
-                  onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
                 />
               ))}
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
@@ -256,7 +257,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
                     onMouseDown={(e) => handleInteractionStart(e, 'move')}
-                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
@@ -264,7 +264,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
                     onClick={handleEditClick}
-                    onTouchEnd={handleEditClick}
                 >
                   <Settings className="w-4 h-4 text-accent-foreground" />
                 </div>
@@ -272,7 +271,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     data-control
                     className="p-1 bg-destructive border-2 border-white rounded-full cursor-pointer"
                     onClick={handleDeleteClick}
-                    onTouchEnd={handleDeleteClick}
                 >
                   <Trash2 className="w-4 h-4 text-destructive-foreground" />
                 </div>
