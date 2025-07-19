@@ -5,6 +5,7 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { Move } from 'lucide-react';
 
 interface CanvasItemProps {
   item: CanvasItem;
@@ -136,7 +137,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   return (
     <div
       ref={itemRef}
-      className={cn("absolute cursor-move", isSelected && "z-10")}
+      className={cn("absolute", isSelected ? "cursor-move" : "cursor-pointer", isSelected && "z-10")}
       style={{
         left: item.x,
         top: item.y,
@@ -200,9 +201,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               />
             ))}
             <div
-                className="absolute -top-6 left-1/2 -translate-x-1/2 w-4 h-4 bg-accent border-2 border-white rounded-full cursor-alias"
-                onMouseDown={(e) => handleMouseDown(e, 'rotate')}
-            />
+                className="absolute -top-7 left-1/2 -translate-x-1/2 p-1 bg-accent border-2 border-white rounded-full cursor-move"
+                onMouseDown={(e) => handleMouseDown(e, 'move')}
+            >
+              <Move className="w-4 h-4 text-accent-foreground" />
+            </div>
           </>
         )}
     </div>
