@@ -20,7 +20,7 @@ const sampleBoards = [
     title: 'Sustainable Urban Farming',
     description: 'A project to bring community gardens to concrete jungles.',
     tags: ['sustainability', 'community', 'urban-farming'],
-    thumbnail: 'https://placehold.co/600x800',
+    thumbnail: 'https://placehold.co/800x600',
     dataAiHint: 'urban farming',
     flairs: ['Design', 'Funding', 'Engineering'],
   },
@@ -29,7 +29,7 @@ const sampleBoards = [
     title: 'AI for Education',
     description: 'Personalized learning paths for all students.',
     tags: ['education', 'ai', 'technology'],
-    thumbnail: 'https://placehold.co/600x800',
+    thumbnail: 'https://placehold.co/800x600',
     dataAiHint: 'education technology',
     flairs: ['Development', 'Research'],
   },
@@ -38,7 +38,7 @@ const sampleBoards = [
     title: 'Ocean Cleanup Initiative',
     description: 'Leveraging drones and AI to clean our oceans.',
     tags: ['environment', 'technology', 'conservation'],
-    thumbnail: 'https://placehold.co/600x800',
+    thumbnail: 'https://placehold.co/800x600',
     dataAiHint: 'ocean cleanup',
     flairs: ['Engineering', 'Marketing', 'Logistics'],
   },
@@ -47,7 +47,7 @@ const sampleBoards = [
     title: 'Future of Remote Work',
     description: 'Creating tools for a more connected remote workforce.',
     tags: ['future-of-work', 'saas', 'community'],
-    thumbnail: 'https://placehold.co/600x800',
+    thumbnail: 'https://placehold.co/800x600',
     dataAiHint: 'remote work',
     flairs: ['Product', 'Design', 'Marketing'],
   },
@@ -55,12 +55,12 @@ const sampleBoards = [
 
 const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
   return (
-    <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl group">
+    <div className="relative aspect-[3/4] md:aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-2xl group">
       <Image
         src={board.thumbnail}
         alt={board.title}
-        width={600}
-        height={800}
+        width={800}
+        height={600}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         data-ai-hint={board.dataAiHint}
       />
@@ -108,7 +108,7 @@ export default function ExplorePage() {
             align: "center",
             loop: true,
           }}
-          className="w-full max-w-sm"
+          className="w-full max-w-sm md:max-w-2xl"
         >
           <CarouselContent>
             {sampleBoards.map((board) => (
