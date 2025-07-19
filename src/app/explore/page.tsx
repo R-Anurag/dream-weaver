@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, ThumbsDown, Eye, Heart, Sparkles } from 'lucide-react';
+import { Search, ThumbsDown, Eye, Heart, Sparkles, MessageSquare, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: ()
   const isMobile = useIsMobile();
   
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", isMobile ? 'cursor-pointer' : '')} onClick={onCardClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")} onClick={onCardClick}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -65,8 +65,8 @@ export default function ExplorePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    axis: isMobile ? 'x' : 'y',
-    skipSnaps: true,
+    axis: 'x',
+    skipSnaps: false,
     loop: true,
   });
   const dragStart = useRef({ x: 0, y: 0 });
@@ -98,7 +98,6 @@ export default function ExplorePage() {
     loadDataFromStorage();
   }, [loadDataFromStorage]);
 
-
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
       return allBoards;
@@ -122,7 +121,6 @@ export default function ExplorePage() {
   const handleNextBoard = useCallback(() => {
       if(emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
-
 
   const handleOpenBoard = useCallback((boardId: string) => {
     router.push(`/boards/view/${boardId}`);
@@ -149,7 +147,7 @@ export default function ExplorePage() {
         // Check for a swipe right to navigate
         if (dx > 50 && Math.abs(dy) < 50) { 
             handleOpenBoard(currentBoard.id);
-        } else if (dx < -50) { // Swipe left
+        } else if (dx < -50 && Math.abs(dy) < 50) { // Swipe left
             emblaApi.scrollNext();
         }
     }
@@ -199,7 +197,7 @@ export default function ExplorePage() {
                     <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
                         <VisionBoardCard 
                             board={board} 
-                            onCardClick={() => {}} // Pass empty function as navigation is handled by gestures
+                            onCardClick={() => {}} // Click handled by gestures
                         />
                     </div>
                 ))}
@@ -252,7 +250,7 @@ export default function ExplorePage() {
               <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
                  <VisionBoardCard
                     board={currentBoard}
-                    onCardClick={() => {}} // Pass empty function on desktop too
+                    onCardClick={() => handleOpenBoard(currentBoard.id)} 
                  />
               </div>
 
@@ -272,5 +270,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
