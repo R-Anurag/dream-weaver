@@ -27,11 +27,8 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
   </Card>
 );
 
-const HowItWorksStep = ({ icon: Icon, title, description, imageUrl, imageHint }: { icon: React.ElementType, title: string, description: string, imageUrl: string, imageHint: string }) => (
+const HowItWorksStep = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
     <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-        <div className="relative h-48 w-full">
-             <Image src={imageUrl} alt={title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" data-ai-hint={imageHint} />
-        </div>
         <CardContent className="p-6">
             <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
@@ -140,22 +137,16 @@ export default function HomePage() {
                         icon={PencilRuler} 
                         title="1. Create Your Canvas" 
                         description="Start with a blank canvas. This is your personal space to dream big and outline your goals."
-                        imageUrl="https://placehold.co/600x400"
-                        imageHint="blank canvas"
                     />
                    <HowItWorksStep 
                         icon={Zap} 
                         title="2. Weave Your Vision" 
                         description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."
-                        imageUrl="https://placehold.co/600x400"
-                        imageHint="mood board"
                     />
                    <HowItWorksStep 
                         icon={CheckCircle} 
                         title="3. Collaborate & Manifest" 
                         description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."
-                        imageUrl="https://placehold.co/600x400"
-                        imageHint="team collaboration"
                     />
                 </div>
             </div>
