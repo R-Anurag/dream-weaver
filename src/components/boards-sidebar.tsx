@@ -67,6 +67,7 @@ export default function BoardsSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
         <Link href="/" className="flex items-center gap-2">
+            <LottiePlayer animationData={animationData} className="h-10 w-10" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
         </Link>
         <Button variant="ghost" size="icon" onClick={toggleSidebar}>
