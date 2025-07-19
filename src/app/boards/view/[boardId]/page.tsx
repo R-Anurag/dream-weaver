@@ -8,6 +8,7 @@ import { sampleBoards } from '@/lib/sample-data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
 interface ViewOnlyCanvasProps {
   board: Board | undefined;
@@ -46,8 +47,9 @@ function ViewOnlyCanvas({ board }: ViewOnlyCanvasProps) {
 }
 
 
-export default function ViewBoardPage({ params }: { params: { boardId: string } }) {
-  const { boardId } = params;
+export default function ViewBoardPage() {
+  const params = useParams();
+  const boardId = params.boardId as string;
   const board = sampleBoards.find(b => b.id === boardId);
 
   return (
