@@ -10,10 +10,10 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
@@ -135,6 +135,7 @@ export default function ExplorePage() {
     emblaApi.on('select', onSelect);
     
     const onPointerDown = (e: PointerEvent) => {
+        if (!isMobile) return;
         dragStart.current = { x: e.clientX, y: e.clientY };
     }
     
@@ -170,6 +171,31 @@ export default function ExplorePage() {
     emblaApi?.reInit();
     setCurrentIndex(0);
   }, [searchTerm, emblaApi]);
+  
+  const CarouselArea = (
+      <div className={cn("w-full h-full", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
+            <div className="overflow-hidden h-full" ref={emblaRef}>
+                <div className="flex h-full">
+                    {filteredBoards.map((board) => (
+                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
+                            <VisionBoardCard 
+                                board={board} 
+                            />
+                        </div>
+                    ))}
+                    {filteredBoards.length === 0 && (
+                        <div className="flex-[0_0_100%] w-full h-full flex items-center justify-center text-foreground">
+                            <div className="text-center">
+                                <h3 className="text-xl font-semibold">No boards found</h3>
+                                <p className="text-muted-foreground">Try adjusting your search terms.</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+      </div>
+  )
+
 
   if (isMobile) {
     return (
@@ -192,26 +218,7 @@ export default function ExplorePage() {
                 </Button>
             </div>
         </header>
-
-        <div className="overflow-hidden h-full" ref={emblaRef}>
-            <div className="flex h-full">
-                {filteredBoards.map((board) => (
-                    <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                        <VisionBoardCard 
-                            board={board} 
-                        />
-                    </div>
-                ))}
-                {filteredBoards.length === 0 && (
-                     <div className="flex-[0_0_100%] w-full h-full flex items-center justify-center text-white">
-                        <div className="text-center">
-                            <h3 className="text-xl font-semibold">No boards found</h3>
-                            <p className="text-muted-foreground">Try adjusting your search terms.</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+        {CarouselArea}
       </div>
     );
   }
@@ -228,7 +235,6 @@ export default function ExplorePage() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentIndex(0);
               }}
             />
           </div>
@@ -241,20 +247,14 @@ export default function ExplorePage() {
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
-          {currentBoard ? (
+          {filteredBoards.length > 0 && currentBoard ? (
             <>
               <Button onClick={handleNextBoard} variant="outline" size="default" className="shadow-lg hover:bg-muted flex-shrink-0">
                   <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                   Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
-                 <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
-                   <VisionBoardCard
-                      board={currentBoard}
-                   />
-                </div>
-              </div>
+              {CarouselArea}
 
               <Button onClick={() => handleOpenBoard(currentBoard.id)} size="default" className="shadow-lg flex-shrink-0">
                   <Eye className="h-4 w-4 mr-2" />
