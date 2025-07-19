@@ -84,25 +84,25 @@ export default function ViewBoardPage() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-background">
-         <header className="p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-between">
+         <header className="p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-between gap-4">
             <Button asChild variant={isMobile ? "ghost" : "outline"} size={isMobile ? "icon" : "default"}>
                 <Link href="/explore">
                     <ArrowLeft className={cn(!isMobile && "mr-2", "h-4 w-4")} />
                     {!isMobile && 'Back to Explore'}
                 </Link>
             </Button>
-            <div className="flex-1"></div>
+            <div className="flex-1 text-center">
+                 <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name}</h1>
+                <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
+            </div>
             <div className="flex justify-end">
                {board && <ProposalDialog board={board} />}
             </div>
         </header>
-        <main className="flex-1 flex flex-col relative p-4 md:p-8 gap-4">
-             <div className="text-center">
-                <h1 className="text-2xl md:text-3xl font-bold font-headline">{board?.name}</h1>
-                <p className="text-sm md:text-base text-muted-foreground mt-1 max-w-2xl mx-auto">{board?.description}</p>
-            </div>
+        <main className="flex-1 flex flex-col relative p-4 md:p-8">
             <ViewOnlyCanvas board={board} />
         </main>
     </div>
   );
 }
+
