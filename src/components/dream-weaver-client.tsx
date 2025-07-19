@@ -283,6 +283,19 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     
     return null;
   }
+  
+  const PublishTrigger = (
+      <Button
+          onClick={() => setIsPublishing(true)}
+          variant="ghost"
+          size="icon"
+          className="bg-card shadow-lg border border-border"
+          aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
+          >
+          <UploadCloud className="h-5 w-5" />
+      </Button>
+  );
+
 
   return (
       <main className="flex-1 flex flex-row relative">
@@ -314,15 +327,16 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                         )}
                     </Button>
                 )}
-                <Button
-                onClick={() => setIsPublishing(true)}
-                variant="ghost"
-                size="icon"
-                className="bg-card shadow-lg border border-border"
-                aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
-                >
-                <UploadCloud className="h-5 w-5" />
-                </Button>
+                 {activeBoard && (
+                     <PublishDialog
+                        board={activeBoard}
+                        onPublish={handlePublish}
+                        isOpen={isPublishing}
+                        onOpenChange={setIsPublishing}
+                    >
+                       {PublishTrigger}
+                    </PublishDialog>
+                 )}
             </div>
           </header>
 
@@ -339,12 +353,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
           />
         </div>
         {renderPanels()}
-        {activeBoard && <PublishDialog
-            isOpen={isPublishing}
-            onOpenChange={setIsPublishing}
-            board={activeBoard}
-            onPublish={handlePublish}
-         />}
       </main>
   );
 }
