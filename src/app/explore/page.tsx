@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
@@ -247,7 +249,7 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl aspect-[4/3] relative cursor-pointer" onClick={() => handleOpenBoard(currentBoard.id)}>
+              <div className="w-full h-full max-w-4xl aspect-[4/3] relative" onClick={() => handleOpenBoard(currentBoard.id)}>
                  <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
                    <VisionBoardCard
                       board={currentBoard}
