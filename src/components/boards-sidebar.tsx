@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import LottiePlayer from './lottie-player';
 import animationData from '@/lib/animation-data.json';
+import { cn } from '@/lib/utils';
 
 
 interface BoardsSidebarProps {
@@ -32,6 +33,24 @@ interface BoardsSidebarProps {
   onAddBoard: () => void;
   onDeleteBoard: (id: string) => void;
   onRenameBoard: (id: string, newName: string) => void;
+}
+
+const MenuItem = ({ href, onClick, icon: Icon, children }: { href?: string, onClick?: () => void, icon: React.ElementType, children: React.ReactNode }) => {
+    const content = (
+        <div 
+         className="flex items-center gap-3 text-sm font-medium p-2 rounded-md hover:bg-secondary cursor-pointer"
+         onClick={onClick}
+        >
+            <Icon className="h-5 w-5 text-muted-foreground" />
+            <span>{children}</span>
+        </div>
+    );
+
+    if (href) {
+        return <Link href={href} legacyBehavior passHref><a>{content}</a></Link>;
+    }
+
+    return content;
 }
 
 export default function BoardsSidebar({
@@ -67,24 +86,16 @@ export default function BoardsSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
         <Link href="/" className="flex items-center gap-2">
-            <LottiePlayer animationData={animationData} className="h-10 w-10" />
+            <Brush className="h-8 w-8 text-accent" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
         </Link>
         <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             <PanelLeft />
         </Button>
       </div>
-       <div className="flex flex-col gap-2">
-         <Button asChild variant="outline">
-          <Link href="/explore">
-            <Compass className="mr-2 h-4 w-4" />
-            Explore
-          </Link>
-        </Button>
-        <Button onClick={onAddBoard} variant="outline">
-          <PlusSquare className="mr-2 h-4 w-4" />
-          New Board
-        </Button>
+       <div className="flex flex-col gap-1 px-2">
+         <MenuItem href="/explore" icon={Compass}>Explore</MenuItem>
+         <MenuItem onClick={onAddBoard} icon={PlusSquare}>New Board</MenuItem>
       </div>
       
       <Separator className="my-4" />
@@ -96,9 +107,9 @@ export default function BoardsSidebar({
             <div
               key={board.id}
               onClick={() => onSelectBoard(board.id)}
-              className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors mb-2 ${
-                activeBoardId === board.id ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20'
-              }`}
+              className={cn(`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors mb-1`, 
+                activeBoardId === board.id ? 'bg-accent/20' : 'hover:bg-secondary'
+              )}
             >
               {editingBoardId === board.id ? (
                 <div className="flex-1 flex items-center gap-1">

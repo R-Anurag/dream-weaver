@@ -113,12 +113,12 @@ export default function HomePage() {
         </section>
 
         <section id="features" className="py-16 md:py-24 bg-pastel-pink">
-          <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-            <div className="text-center mb-12">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 animate-fade-in-up">
               <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
               <p className="text-muted-foreground mt-2">From personal vision boards to collaborative projects.</p>
             </div>
-            <div className="flex flex-wrap justify-center gap-8">
+            <div className="flex flex-wrap justify-center gap-8 animate-fade-in-up">
               <FeatureCard icon={Brush} title="Intuitive Canvas" description="Effortlessly drag and drop images, notes, and text to create your perfect vision board." />
               <FeatureCard icon={Lightbulb} title="Find Inspiration" description="Explore a universe of public projects, get inspired, and see what others are dreaming up." />
               <FeatureCard icon={Users} title="Collaborate & Connect" description="Share your vision and find partners with the skills you need to make your dream a reality." />
@@ -127,12 +127,12 @@ export default function HomePage() {
         </section>
 
         <section id="how-it-works" className="py-16 md:py-24 bg-pastel-blue">
-            <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-                <div className="text-center mb-12">
+            <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12 animate-fade-in-up">
                     <h2 className="text-3xl font-bold font-headline">How It Works</h2>
                     <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
                 </div>
-                <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+                <div className="grid md:grid-cols-3 gap-8 md:gap-12 animate-fade-in-up">
                    <HowItWorksStep 
                         icon={PencilRuler} 
                         title="1. Create Your Canvas" 
@@ -153,11 +153,11 @@ export default function HomePage() {
         </section>
         
         <section id="faq" className="py-16 md:py-24 bg-pastel-green">
-            <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-                <div className="text-center mb-12">
+            <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12 animate-fade-in-up">
                     <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
                 </div>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="single" collapsible className="w-full animate-fade-in-up">
                   <AccordionItem value="item-1">
                     <AccordionTrigger>Is Dream Weaver free to use?</AccordionTrigger>
                     <AccordionContent>
