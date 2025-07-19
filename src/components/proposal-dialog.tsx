@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, ArrowLeft, ArrowRight, Wand2 } from 'lucide-react';
+import { Loader2, Sparkles, ArrowLeft, ArrowRight, Wand2, Plus } from 'lucide-react';
 import type { Board, Proposal } from '@/types';
 import { generateProposalHeadings, generateProposalBody } from '@/ai/flows/proposal-flow';
 import { useToast } from './ui/use-toast';
@@ -60,7 +60,7 @@ const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void
 };
 
 
-export function ProposalDialog({ board, disabled }: { board: Board, disabled?: boolean }) {
+export function ProposalDialog({ board, disabled, onProposalSent }: { board: Board, disabled?: boolean, onProposalSent?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [headings, setHeadings] = useState<string[]>([]);
     const [currentHeadingIndex, setCurrentHeadingIndex] = useState(0);
@@ -184,6 +184,9 @@ export function ProposalDialog({ board, disabled }: { board: Board, disabled?: b
             localStorage.setItem(key, JSON.stringify(updatedProposals));
             
             toast({ title: "Proposal Sent!", description: "Your collaboration request has been sent." });
+            if (onProposalSent) {
+                onProposalSent();
+            }
             handleOpenChange(false);
         } catch (error) {
             console.error("Failed to save proposal to localStorage", error);

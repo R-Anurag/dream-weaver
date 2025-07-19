@@ -99,6 +99,9 @@ export default function ViewBoardPage() {
 
   }, [boardId]);
 
+  const handleProposalSent = () => {
+    setHasSentProposal(true);
+  };
 
   return (
     <div className="flex flex-col h-screen w-screen bg-background">
@@ -121,7 +124,7 @@ export default function ViewBoardPage() {
                         Proposal Sent
                     </Button>
                   ) : (
-                    <ProposalDialog board={board} />
+                    <ProposalDialog board={board} onProposalSent={handleProposalSent} />
                   )
                )}
             </div>
