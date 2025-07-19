@@ -75,7 +75,7 @@ export default function HomePage() {
         <section className="relative w-full py-16 md:py-20 lg:py-24 overflow-hidden bg-background">
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
-                    <Image src="/images/landinghero1.jpg" alt="Astronaut in space" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="design quote" />
+                    <Image src="/images/followYourDreams.jpg" alt="Astronaut in space" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="design quote" />
                 </FloatingItem>
                 <FloatingItem className="top-24 right-1/4 w-40" delay="1s">
                     <Card className="p-4 bg-gray-300/80 backdrop-blur-sm shadow-xl transform rotate-3">
@@ -83,7 +83,7 @@ export default function HomePage() {
                     </Card>
                 </FloatingItem>
                  <FloatingItem className="bottom-10 right-10 w-52 h-40" delay="1.2s">
-                    <Image src="/images/landinghero2.jpg" alt="Serene landscape" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
+                    <Image src="/images/designQuote.png" alt="Serene landscape" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
                 </FloatingItem>
                  <FloatingItem className="bottom-16 left-1/4" delay="1.4s">
                     <Badge variant="outline" className="shadow-lg text-base px-4 py-2 transform -rotate-12">#goals</Badge>

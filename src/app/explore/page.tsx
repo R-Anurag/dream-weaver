@@ -20,7 +20,7 @@ const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
     <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
-        src={board.thumbnailUrl || '/images/placeholder.png'}
+        src={board.thumbnailUrl || '/images/placeholder.jpg'}
         alt={board.name}
         width={800}
         height={600}
@@ -204,7 +204,7 @@ export default function ExplorePage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         placeholder="Search projects..."
-                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm"
+                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
