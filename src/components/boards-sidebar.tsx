@@ -133,7 +133,7 @@ export default function BoardsSidebar({
               ) : (
                 <>
                   <span className="flex-1 truncate font-medium">{board.name}</span>
-                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center">
                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleStartEditing(board); }}><Edit2 className="h-4 w-4" /></Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
