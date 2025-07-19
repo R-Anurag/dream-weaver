@@ -8,19 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
-import type { Board, Proposal } from '@/types';
+import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
 
 const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: () => void }) => {
   const isMobile = useIsMobile();
   
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")} onClick={onCardClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", isMobile ? 'cursor-pointer' : '')} onClick={onCardClick}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -118,14 +117,16 @@ export default function ExplorePage() {
     ).filter(b => b.published || sampleBoards.some(sb => sb.id === b.id)); // only show published or sample
   }, [searchTerm, allBoards]);
 
+  const currentBoard = filteredBoards[currentIndex];
+
   const handleNextBoard = useCallback(() => {
       if(emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
 
-  const handleOpenBoard = (boardId: string) => {
+  const handleOpenBoard = useCallback((boardId: string) => {
     router.push(`/boards/view/${boardId}`);
-  };
+  }, [router]);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setCurrentIndex(emblaApi.selectedScrollSnap())
@@ -182,9 +183,6 @@ export default function ExplorePage() {
     emblaApi?.reInit();
     setCurrentIndex(0);
   }, [searchTerm, emblaApi]);
-
-
-  const currentBoard = filteredBoards[currentIndex];
 
   if (isMobile) {
     return (
