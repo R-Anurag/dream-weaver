@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from 'react';
@@ -37,6 +38,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     type: null as 'move' | 'resize' | 'rotate' | null,
     startX: 0,
     startY: 0,
+    startItemX: 0,
+    startItemY: 0,
     startWidth: 0,
     startHeight: 0,
     startRotation: 0,
@@ -51,6 +54,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       type,
       startX: e.clientX,
       startY: e.clientY,
+      startItemX: item.x,
+      startItemY: item.y,
       startWidth: item.width,
       startHeight: item.height,
       startRotation: item.rotation,
@@ -62,34 +67,31 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
 
   const handleMouseMove = (e: MouseEvent) => {
     e.preventDefault();
-    const { type, startX, startY, startWidth, startHeight, handle, startRotation } = interactionRef.current;
+    const { type, startX, startY, startWidth, startHeight, handle, startRotation, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
 
     if (type === 'move') {
-      onUpdate({ ...item, x: item.x + dx, y: item.y + dy });
-      interactionRef.current.startX = e.clientX;
-      interactionRef.current.startY = e.clientY;
-
+      onUpdate({ ...item, x: startItemX + dx, y: startItemY + dy });
     } else if (type === 'resize' && handle) {
         let newWidth = startWidth;
         let newHeight = startHeight;
-        let newX = item.x;
-        let newY = item.y;
+        let newX = startItemX;
+        let newY = startItemY;
 
         if (handle.includes('right')) newWidth = startWidth + dx;
         if (handle.includes('left')) {
             newWidth = startWidth - dx;
-            newX = item.x + dx;
+            newX = startItemX + dx;
         }
         if (handle.includes('bottom')) newHeight = startHeight + dy;
         if (handle.includes('top')) {
             newHeight = startHeight - dy;
-            newY = item.y + dy;
+            newY = startItemY + dy;
         }
-
+        
         onUpdate({ ...item, width: Math.max(newWidth, 20), height: Math.max(newHeight, 20), x: newX, y: newY });
     } else if (type === 'rotate') {
         const centerX = item.x + item.width / 2;
@@ -135,7 +137,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
                 style={{
                   color: item.style.color,
                   fontFamily: item.style.fontFamily,
@@ -148,7 +151,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
                 style={{
                   backgroundColor: item.style.backgroundColor,
                   color: item.style.color,
