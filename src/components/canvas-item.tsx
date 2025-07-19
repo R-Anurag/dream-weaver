@@ -88,6 +88,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
+    // Prevent scroll on touch devices
+    if ('touches' in e) {
+      e.preventDefault();
+    }
+      
     const { type, startX, startY, startWidth, startHeight, handle, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
@@ -180,6 +185,17 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     }
   }
 
+  const handleItemTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
+      onSelect(item.id);
+      e.stopPropagation();
+      return;
+    }
+    if (!(e.target as HTMLElement).closest('[data-resize-handle]')) {
+        handleInteractionStart(e, 'move');
+    }
+  }
+
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
   return (
@@ -192,9 +208,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         width: item.width,
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
+        touchAction: 'none', // Prevents default browser touch actions like scrolling
       }}
       onClick={handleItemClick}
       onMouseDown={handleItemMouseDown}
+      onTouchStart={handleItemTouchStart}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
@@ -204,6 +222,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
                 style={{
@@ -218,6 +237,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
                 style={{
@@ -250,6 +270,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
                   )}
                   onMouseDown={(e) => handleInteractionStart(e, 'resize', handle)}
+                  onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
                 />
               ))}
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
@@ -257,6 +278,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
                     onMouseDown={(e) => handleInteractionStart(e, 'move')}
+                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
