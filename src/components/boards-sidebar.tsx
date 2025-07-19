@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush, Inbox } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -78,12 +78,6 @@ export default function BoardsSidebar({
       onRenameBoard(editingBoardId, renameValue.trim());
       handleCancelEditing();
     }
-  };
-  
-  const handleViewProposals = (e: React.MouseEvent, boardId: string) => {
-    e.stopPropagation();
-    console.log(`Viewing proposals for board ${boardId}`);
-    // Future: Open proposals panel
   };
 
   return (
