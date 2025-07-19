@@ -112,7 +112,7 @@ export default function HomePage() {
             </div>
         </section>
 
-        <section id="features" className="py-16 md:py-24 bg-secondary">
+        <section id="features" className="py-16 md:py-24 bg-pastel-pink">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
@@ -126,7 +126,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="how-it-works" className="py-16 md:py-24">
+        <section id="how-it-works" className="py-16 md:py-24 bg-pastel-blue">
             <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-headline">How It Works</h2>
@@ -152,7 +152,7 @@ export default function HomePage() {
             </div>
         </section>
         
-        <section id="faq" className="py-16 md:py-24 bg-secondary">
+        <section id="faq" className="py-16 md:py-24 bg-pastel-green">
             <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
@@ -186,7 +186,7 @@ export default function HomePage() {
             </div>
         </section>
 
-        <section className="py-16 md:py-24">
+        <section className="py-16 md:py-24 bg-pastel-yellow">
             <div className="container max-w-5xl text-center mx-auto px-4 sm:px-6 lg:px-8">
                  <h2 className="text-3xl font-bold font-headline mb-4">Ready to Start Your Journey?</h2>
                  <p className="text-muted-foreground mb-8">Your next big idea is just a vision board away.</p>
