@@ -32,30 +32,31 @@ interface PublishDialogProps {
     children: React.ReactNode;
 }
 
-const PublishForm = ({ board, onFormChange }: { board: Board, onFormChange: (details: Partial<Board>) => void }) => {
+const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChange: (details: Partial<Board>) => void, isOpen: boolean }) => {
     const [description, setDescription] = useState(board.description || '');
     const [tags, setTags] = useState<string[]>(board.tags || []);
     const [flairs, setFlairs] = useState<string[]>(board.flairs || []);
     const [currentTag, setCurrentTag] = useState('');
     const [currentFlair, setCurrentFlair] = useState('');
-    const [thumbnail, setThumbnail] = useState<string | null>(null);
+    const [thumbnail, setThumbnail] = useState<string | null>(board.thumbnailUrl || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
     
     useEffect(() => {
-        const details: Partial<Board> = { description, tags, flairs };
-        if (thumbnail !== null) {
-            details.thumbnailUrl = thumbnail;
+        // This effect now resets the form state whenever the dialog is opened.
+        if (isOpen) {
+            setDescription(board.description || '');
+            setTags(board.tags || []);
+            setFlairs(board.flairs || []);
+            setThumbnail(board.thumbnailUrl || null);
         }
+    }, [isOpen, board]);
+
+    useEffect(() => {
+        // This effect syncs changes back to the parent component.
+        const details: Partial<Board> = { description, tags, flairs, thumbnailUrl: thumbnail };
         onFormChange(details);
     }, [description, tags, flairs, thumbnail, onFormChange]);
-    
-    useEffect(() => {
-        setDescription(board.description || '');
-        setTags(board.tags || []);
-        setFlairs(board.flairs || []);
-        setThumbnail(board.thumbnailUrl || null);
-    }, [board]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: 'tag' | 'flair') => {
         if (e.key === 'Enter' || e.key === ',') {
@@ -116,7 +117,7 @@ const PublishForm = ({ board, onFormChange }: { board: Board, onFormChange: (det
                     )}
                 >
                     {thumbnail ? (
-                        <Image src={thumbnail} alt="Thumbnail preview" width={320} height={180} className="object-cover w-full h-full rounded-md" />
+                        <Image src={thumbnail} alt="Thumbnail preview" width={320} height={180} className="object-cover w-full h-full rounded-md" data-ai-hint="vision board" />
                     ) : (
                         <div className="text-center p-4">
                             <Upload className="mx-auto h-8 w-8" />
@@ -179,10 +180,11 @@ export function PublishDialog({ isOpen, onOpenChange, board, onPublish, children
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="pr-4 -mr-6">
-                    <PublishForm board={board} onFormChange={setFormState} />
+                    <PublishForm board={board} onFormChange={setFormState} isOpen={isOpen} />
                 </ScrollArea>
-                <DialogFooter className="mt-auto pt-4">
-                    <Button onClick={handlePublishClick} className="w-full md:w-auto">
+                <DialogFooter className="mt-auto pt-4 border-t">
+                    <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handlePublishClick} className="w-full sm:w-auto">
                         {board.published ? 'Update & Publish' : 'Publish'}
                     </Button>
                 </DialogFooter>
