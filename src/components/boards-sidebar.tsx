@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass, Brush } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -63,7 +63,10 @@ export default function BoardsSidebar({
   return (
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold font-headline">Dream Weaver</h1>
+        <Link href="/" className="flex items-center gap-2">
+            <Brush className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold font-headline">Dream Weaver</h1>
+        </Link>
         <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
             <PanelLeft />
         </Button>

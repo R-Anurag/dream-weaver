@@ -1,11 +1,10 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
   title: 'Dream Weaver',
-  description: 'A creative digital vision board to help you visualize your goals.',
+  description: 'A creative digital vision board to help you visualize your goals and collaborate with others.',
 };
 
 export default function RootLayout({
@@ -21,9 +20,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-            {children}
-        </SidebarProvider>
+        {children}
         <Toaster />
       </body>
     </html>
