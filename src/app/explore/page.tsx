@@ -16,9 +16,9 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 
-const VisionBoardCard = ({ board, onClick }: { board: Board; onClick: () => void }) => {
+const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")} onClick={onClick}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}>
       <Image
         src={board.thumbnailUrl || '/images/placeholder.jpg'}
         alt={board.name}
@@ -142,15 +142,17 @@ export default function ExplorePage() {
     }
   }, [searchTerm, filteredBoards.length, emblaApi, currentIndex]);
   
+  const handleOpenBoard = (boardId: string) => {
+    router.push(`/boards/view/${boardId}`);
+  };
+
   const CarouselArea = (
       <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
             <div className="overflow-hidden h-full" ref={emblaRef}>
                 <div className="flex h-full">
                     {filteredBoards.map((board) => (
-                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
-                           <Link href={`/boards/view/${board.id}`} className="w-full h-full block">
-                                <VisionBoardCard board={board} onClick={() => {}} />
-                           </Link>
+                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full" onClick={() => handleOpenBoard(board.id)}>
+                           <VisionBoardCard board={board} />
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -226,11 +228,9 @@ export default function ExplorePage() {
               
               {CarouselArea}
 
-              <Button asChild size="default" className="shadow-lg flex-shrink-0">
-                  <Link href={`/boards/view/${currentBoard.id}`}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Interested
-                  </Link>
+              <Button size="default" className="shadow-lg flex-shrink-0" onClick={() => handleOpenBoard(currentBoard.id)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Interested
               </Button>
             </>
           ) : (
