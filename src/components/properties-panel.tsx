@@ -49,13 +49,8 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
     };
     const isMobile = useIsMobile();
 
-    return (
-        <aside className="w-full md:w-72 bg-card md:border-l md:border-border flex flex-col md:shadow-md z-20">
-            <div className="flex justify-between items-center p-4 border-b">
-                <h3 className="font-bold font-headline text-lg capitalize">{item.type} Properties</h3>
-                <Button variant="ghost" size="icon" onClick={onClose} className={cn(isMobile && 'hidden')}><X className="h-4 w-4" /></Button>
-            </div>
-            
+    const content = (
+        <>
             <ScrollArea className="flex-1">
                 <div className="space-y-4 p-4">
                     {(item.type === 'text' || item.type === 'post-it' || item.type === 'shape') && (
@@ -109,6 +104,20 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                     Delete Item
                 </Button>
             </div>
+        </>
+    );
+
+    if (isMobile) {
+        return <div className="flex-1 flex flex-col">{content}</div>
+    }
+
+    return (
+        <aside className="w-full md:w-72 bg-card md:border-l md:border-border flex flex-col md:shadow-md z-20">
+            <div className="flex justify-between items-center p-4 border-b">
+                <h3 className="font-bold font-headline text-lg capitalize">{item.type} Properties</h3>
+                <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+            </div>
+            {content}
         </aside>
     );
 }

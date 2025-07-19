@@ -11,6 +11,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -151,8 +153,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     if (isMobile) {
       return (
         <Sheet open={!!selectedItemId} onOpenChange={(open) => !open && setSelectedItemId(null)}>
-          <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0">
-             {panel}
+          <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
+            <SheetHeader className="p-4 border-b">
+                <SheetTitle className="capitalize text-lg">{selectedItem.type} Properties</SheetTitle>
+            </SheetHeader>
+            {panel}
           </SheetContent>
         </Sheet>
       )
