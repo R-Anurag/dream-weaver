@@ -13,7 +13,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import ParticleBackground from '@/components/particle-background';
 
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
@@ -78,7 +77,6 @@ export default function HomePage() {
 
       <main className="flex-1">
         <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
-           <ParticleBackground />
            <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
