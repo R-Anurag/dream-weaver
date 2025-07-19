@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, UploadCloud } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -17,11 +17,9 @@ import { cn } from '@/lib/utils';
 
 interface ToolbarProps {
   onAddItem: (type: ItemType, content?: string, shape?: ShapeType) => void;
-  onPublish: () => void;
-  isPublished?: boolean;
 }
 
-export default function Toolbar({ onAddItem, onPublish, isPublished = false }: ToolbarProps) {
+export default function Toolbar({ onAddItem }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -57,7 +55,7 @@ export default function Toolbar({ onAddItem, onPublish, isPublished = false }: T
   ];
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-1">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-1">
       <input
         type="file"
         ref={fileInputRef}
@@ -89,10 +87,6 @@ export default function Toolbar({ onAddItem, onPublish, isPublished = false }: T
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-       <Button onClick={onPublish} variant="secondary" size="sm" className="rounded-full ml-2 h-8 px-4">
-            <UploadCloud className="mr-2 h-4 w-4" />
-            {isPublished ? "Update" : "Publish"}
-        </Button>
     </div>
   );
 }

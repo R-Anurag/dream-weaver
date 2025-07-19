@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, UploadCloud } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -223,7 +223,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <Toolbar onAddItem={handleAddItem} onPublish={() => setIsPublishing(true)} isPublished={activeBoard?.published} />
+          <Button onClick={() => setIsPublishing(true)} variant="secondary" size="sm" className="absolute top-4 right-4 z-10 rounded-full h-8 px-4">
+            <UploadCloud className="mr-2 h-4 w-4" />
+            {activeBoard?.published ? "Update" : "Publish"}
+          </Button>
+          <Toolbar onAddItem={handleAddItem} />
           <Canvas
             board={activeBoard}
             onUpdateItem={handleUpdateItem}
