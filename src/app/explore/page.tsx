@@ -65,7 +65,6 @@ export default function ExplorePage() {
     axis: 'x',
     skipSnaps: false,
     loop: true,
-    watchDrag: false,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -120,7 +119,7 @@ export default function ExplorePage() {
 
 
   const handleNextBoard = useCallback(() => {
-      if(emblaApi) emblaApi.scrollNext();
+      if(emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   const handleOpenBoard = useCallback((boardId: string) => {
@@ -148,7 +147,7 @@ export default function ExplorePage() {
         // Ensure it's more of a horizontal swipe than a vertical one
         if (Math.abs(dx) > Math.abs(dy) + 20) {
             if (dx > 50) { // Right swipe: next board
-                emblaApi.scrollPrev(); // Use scrollPrev to move from left to right
+                emblaApi.scrollPrev();
             } else if (dx < -50) { // Left swipe: view canvas
                 handleOpenBoard(currentBoard.id);
             }
