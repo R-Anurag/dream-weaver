@@ -1,4 +1,5 @@
 
+
 export type ItemType = 'text' | 'image' | 'shape' | 'post-it';
 
 export type ShapeType = 'rectangle' | 'circle' | 'star';
@@ -32,4 +33,13 @@ export type Board = {
   tags?: string[];
   flairs?: string[];
   published?: boolean;
+};
+
+export type Proposal = {
+    id: string;
+    boardId: string;
+    userName: string;
+    userAvatar: string;
+    message: string;
+    status: 'pending' | 'accepted' | 'declined' | 'considering';
 };

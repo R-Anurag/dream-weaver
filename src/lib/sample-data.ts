@@ -1,4 +1,5 @@
-import type { Board } from '@/types';
+
+import type { Board, Proposal } from '@/types';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -48,5 +49,32 @@ export const sampleBoards: Board[] = [
         { id: generateId(), type: 'image', x: 50, y: 50, width: 400, height: 300, rotation: 2, content: 'https://placehold.co/800x600', style: { backgroundColor: '', color: '', fontFamily: '', fontSize: 16, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
         { id: generateId(), type: 'text', x: 500, y: 150, width: 300, height: 100, rotation: 0, content: 'The New Remote HQ', style: { backgroundColor: 'transparent', color: '#333', fontFamily: 'Alegreya', fontSize: 32, shape: 'rectangle', borderColor: '', borderWidth: 0, textAlign: 'center' } },
     ]
+  },
+];
+
+export const sampleProposals: Proposal[] = [
+  {
+    id: 'prop-1',
+    boardId: 'sample-1',
+    userName: 'Alice Johnson',
+    userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+    message: "I'm a UI/UX designer with 5 years of experience in sustainable tech. I love your vision for urban farming and have some ideas for a companion app. Let's connect!",
+    status: 'pending',
+  },
+  {
+    id: 'prop-2',
+    boardId: 'sample-2',
+    userName: 'Bob Williams',
+    userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e',
+    message: "I'm a software engineer and can help build out the backend for your AI education platform. My background is in machine learning and data science.",
+    status: 'pending',
+  },
+  {
+    id: 'prop-3',
+    boardId: 'sample-3',
+    userName: 'Charlie Brown',
+    userAvatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f',
+    message: "Your ocean cleanup initiative is inspiring! I have a background in logistics and grant writing and would love to contribute to the project management.",
+    status: 'pending',
   },
 ];

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Sparkles, ArrowLeft, ArrowRight, Wand2 } from 'lucide-react';
-import type { Board } from '@/types';
+import type { Board, Proposal } from '@/types';
 import { generateProposalHeadings, generateProposalBody } from '@/ai/flows/proposal-flow';
 import { useToast } from './ui/use-toast';
 import { Skeleton } from './ui/skeleton';
@@ -22,6 +22,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
+
+const generateId = () => `prop-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
 const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void }) => {
     const [displayedText, setDisplayedText] = useState('');
@@ -164,9 +166,30 @@ export function ProposalDialog({ board }: { board: Board }) {
     }, [board, currentHeadingIndex, headings, toast, isGeneratingBody]);
 
     const handleSendProposal = () => {
-        console.log("Sending proposal:", proposalBody);
-        toast({ title: "Proposal Sent!", description: "Your collaboration request has been sent." });
-        handleOpenChange(false);
+        // This is a simulation. In a real app, this would send to a server.
+        // For now, we'll save it to localStorage to be viewed in the "Inbox".
+        const newProposal: Proposal = {
+            id: generateId(),
+            boardId: board.id,
+            userName: 'Local User', // Placeholder name
+            userAvatar: `https://i.pravatar.cc/150?u=${generateId()}`, // Placeholder avatar
+            message: proposalBody,
+            status: 'pending'
+        };
+
+        try {
+            const key = `proposals_${board.id}`;
+            const existingProposalsRaw = localStorage.getItem(key);
+            const existingProposals = existingProposalsRaw ? JSON.parse(existingProposalsRaw) : [];
+            const updatedProposals = [...existingProposals, newProposal];
+            localStorage.setItem(key, JSON.stringify(updatedProposals));
+            
+            toast({ title: "Proposal Sent!", description: "Your collaboration request has been sent." });
+            handleOpenChange(false);
+        } catch (error) {
+            console.error("Failed to save proposal to localStorage", error);
+            toast({ title: "Error", description: "Could not send proposal.", variant: "destructive" });
+        }
     };
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
