@@ -28,17 +28,13 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
 );
 
 const HowItWorksStep = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-    <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
-        <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
-                    <Icon className="h-6 w-6" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold font-headline">{title}</h3>
-                    <p className="text-muted-foreground mt-1">{description}</p>
-                </div>
+    <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
+        <CardContent className="p-6 text-center">
+             <div className="inline-block p-4 bg-primary/20 text-primary rounded-full mb-4">
+                <Icon className="h-8 w-8" />
             </div>
+            <h3 className="text-lg font-bold font-headline">{title}</h3>
+            <p className="text-muted-foreground mt-1">{description}</p>
         </CardContent>
     </Card>
 );
@@ -77,7 +73,7 @@ export default function HomePage() {
            <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
-                    <Image src="https://placehold.co/400x300" alt="placeholder image" width={400} height={300} className="rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="astronaut space" />
+                    <Image src="https://placehold.co/400x300" alt="placeholder image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="astronaut space" />
                 </FloatingItem>
                 <FloatingItem className="top-24 right-1/4 w-40" delay="1s">
                     <Card className="p-4 bg-[#FFFACD]/80 backdrop-blur-sm shadow-xl transform rotate-3">
@@ -85,7 +81,7 @@ export default function HomePage() {
                     </Card>
                 </FloatingItem>
                  <FloatingItem className="bottom-10 right-10 w-52 h-40" delay="1.2s">
-                    <Image src="https://placehold.co/400x300" alt="placeholder image" width={400} height={300} className="rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
+                    <Image src="https://placehold.co/400x300" alt="placeholder image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
                 </FloatingItem>
                  <FloatingItem className="bottom-16 left-1/4" delay="1.4s">
                     <Badge variant="secondary" className="shadow-lg text-base px-4 py-2 transform -rotate-12">#goals</Badge>
