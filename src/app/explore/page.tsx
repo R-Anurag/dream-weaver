@@ -16,30 +16,11 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 
-const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick: () => void }) => {
-  const [tapCount, setTapCount] = useState(0);
-  const router = useRouter();
-
-  const handleTap = () => {
-    setTapCount(prev => {
-        const newCount = prev + 1;
-        if (newCount === 1) {
-            // Start a timer to reset if it's just a single tap
-            setTimeout(() => {
-                setTapCount(0);
-            }, 300); // 300ms window for a double tap
-        } else if (newCount === 2) {
-            onDoubleClick();
-            return 0; // Reset after double tap
-        }
-        return newCount;
-    });
-  };
+const VisionBoardCard = ({ board }: { board: Board }) => {
 
   return (
     <div 
-        className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}
-        onClick={handleTap}
+        className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}
     >
       <Image
         src={board.thumbnailUrl || '/images/remotework.jpg'}
@@ -85,9 +66,9 @@ export default function ExplorePage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    axis: isMobile ? 'y' : 'x',
+    axis: 'x',
     skipSnaps: false,
-    loop: !isMobile,
+    loop: true,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -145,15 +126,34 @@ export default function ExplorePage() {
     setCurrentIndex(emblaApi.selectedScrollSnap())
   }, []);
 
+  const onSwipe = useCallback((emblaApi: EmblaCarouselType, eventName: string) => {
+    if (eventName === 'pointerUp' && isMobile) {
+      const { dragOffset } = emblaApi.internalEngine();
+      const swipeThreshold = emblaApi.rootNode().offsetWidth / 4;
+      
+      if (dragOffset.x < -swipeThreshold) {
+        // Swipe left to open board
+        if (currentBoard) {
+            handleOpenBoard(currentBoard.id);
+        }
+      } else if (dragOffset.x > swipeThreshold) {
+        // Swipe right to see next
+        emblaApi.scrollNext();
+      }
+    }
+  }, [emblaApi, isMobile, currentBoard]);
+
    useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', onSelect);
+    emblaApi.on('pointerUp', onSwipe);
     return () => {
       if (emblaApi) {
         emblaApi.off('select', onSelect);
+        emblaApi.off('pointerUp', onSwipe);
       }
     };
-  }, [emblaApi, onSelect]);
+  }, [emblaApi, onSelect, onSwipe]);
   
   useEffect(() => {
     if (emblaApi) {
@@ -175,7 +175,7 @@ export default function ExplorePage() {
                 <div className={cn("flex h-full", isMobile && "flex-col")}>
                     {filteredBoards.map((board) => (
                         <div key={board.id} className={cn("relative flex-[0_0_100%] w-full h-full min-h-0", isMobile ? "py-2" : "")}>
-                           <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)} />
+                           <VisionBoardCard board={board} />
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -212,7 +212,17 @@ export default function ExplorePage() {
                 </Button>
             </div>
         </header>
-        {CarouselArea}
+        <div className={cn("w-full h-full cursor-grab")}>
+            <div className="overflow-hidden h-full" ref={emblaRef}>
+                <div className="flex h-full">
+                    {filteredBoards.map((board) => (
+                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0">
+                           <VisionBoardCard board={board} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
       </div>
     );
   }
@@ -251,8 +261,16 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              <div onClick={() => handleOpenBoard(currentBoard.id)} className="w-full h-full">
-                {CarouselArea}
+              <div onClick={() => handleOpenBoard(currentBoard.id)} className="w-full h-full cursor-pointer max-w-4xl aspect-[4/3]">
+                 <div className="overflow-hidden h-full" ref={emblaRef}>
+                    <div className="flex h-full">
+                        {filteredBoards.map((board) => (
+                            <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0">
+                               <VisionBoardCard board={board} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
               </div>
 
               <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
@@ -271,3 +289,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+
