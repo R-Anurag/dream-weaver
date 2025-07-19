@@ -28,6 +28,7 @@ const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void
     const animationFrameRef = useRef<number>();
     
     useEffect(() => {
+        setDisplayedText(''); // Reset on new text
         let i = 0;
         const animate = () => {
             if (i < text.length) {
@@ -65,6 +66,24 @@ export function ProposalDialog({ board }: { board: Board }) {
     const [isTyping, setIsTyping] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout>();
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const resetState = useCallback(() => {
+        setHeadings([]);
+        setCurrentHeadingIndex(0);
+        setProposalBody('');
+        setIsAnimating(false);
+        setIsTyping(false);
+        if (timeoutRef.current) {
+            clearInterval(timeoutRef.current);
+        }
+    }, []);
+
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        if (!open) {
+            resetState();
+        }
+    };
 
     const handleNextHeading = useCallback(() => {
         if (headings.length === 0 || isAnimating) return;
@@ -120,32 +139,29 @@ export function ProposalDialog({ board }: { board: Board }) {
 
     const handleGenerateBody = useCallback(() => {
         const selectedHeading = headings[currentHeadingIndex];
-        if (!selectedHeading) return;
+        if (!selectedHeading || isGeneratingBody) return;
 
         setProposalBody('');
-        setIsTyping(false);
+        setIsTyping(true); // Set typing to true immediately
 
         startBodyGeneration(async () => {
             try {
                 const result = await generateProposalBody(board, selectedHeading);
                 if (result && result.proposal) {
                     setProposalBody(result.proposal);
-                    setIsTyping(true);
                 }
             } catch (error) {
                 console.error("Failed to generate proposal body", error);
                 toast({ title: "Error", description: "Could not generate the proposal.", variant: "destructive" });
+                setIsTyping(false); // Stop typing on error
             }
         });
-    }, [board, currentHeadingIndex, headings, toast]);
+    }, [board, currentHeadingIndex, headings, toast, isGeneratingBody]);
 
     const handleSendProposal = () => {
         console.log("Sending proposal:", proposalBody);
         toast({ title: "Proposal Sent!", description: "Your collaboration request has been sent." });
-        setIsOpen(false);
-        setProposalBody('');
-        setHeadings([]);
-        setCurrentHeadingIndex(0);
+        handleOpenChange(false);
     };
     
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -154,9 +170,13 @@ export function ProposalDialog({ board }: { board: Board }) {
             handleGenerateBody();
         }
     };
+    
+    const onTypewriterFinish = useCallback(() => {
+        setIsTyping(false);
+    }, []);
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                  <Button variant={isMobile ? "ghost" : "default"} size={isMobile ? "icon" : "default"}>
                     <Sparkles className={cn(!isMobile && "mr-2", "h-4 w-4")} />
@@ -205,7 +225,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                     {/* Step 2: Refine and Send */}
                     <div className="space-y-4">
                         <h4 className="font-semibold text-sm">2. Refine & Send</h4>
-                         {isGeneratingBody && !isTyping ? (
+                         {isGeneratingBody && !proposalBody ? (
                             <div className="space-y-2 border rounded-lg p-4 min-h-[200px]">
                                 <Skeleton className="h-4 w-1/4" />
                                 <Skeleton className="h-4 w-full" />
@@ -214,8 +234,8 @@ export function ProposalDialog({ board }: { board: Board }) {
                             </div>
                          ) : (
                             <div className="min-h-[200px] border rounded-lg p-4 bg-secondary/20 relative">
-                                {isTyping ? (
-                                    <Typewriter text={proposalBody} onFinished={() => setIsTyping(false)} />
+                                {isTyping && proposalBody ? (
+                                    <Typewriter text={proposalBody} onFinished={onTypewriterFinish} />
                                 ) : (
                                     <Textarea
                                         placeholder="Your proposal will be generated here. You can edit it before sending."
@@ -230,7 +250,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                 </div>
 
                 <DialogFooter>
-                    <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>Cancel</Button>
                     <Button onClick={handleSendProposal} disabled={!proposalBody || isGeneratingBody || isTyping}>
                         Send Proposal
                     </Button>
