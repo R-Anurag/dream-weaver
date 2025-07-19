@@ -21,6 +21,7 @@ import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { Badge } from './ui/badge';
 
 const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void }) => {
     const [displayedText, setDisplayedText] = useState('');
