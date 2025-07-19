@@ -50,10 +50,9 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   });
 
   const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
-    // Prevent starting a drag on right-click or on a textarea/input
      if ('button' in e && e.button === 2) return;
     if ((e.target as HTMLElement).closest('[data-no-drag]')) {
-        if (!isSelected) {
+        if (type !== 'resize' && !isSelected) {
             onSelect(item.id);
         }
         return;
@@ -61,7 +60,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
 
     e.stopPropagation();
     
-    // For touch events, we want to prevent default to avoid scrolling, etc.
     if ('touches' in e) {
       e.preventDefault();
     }
@@ -151,13 +149,11 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }, []);
 
   const handleEditClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
     e.preventDefault();
     onEdit(item.id);
   }
   
   const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
     e.preventDefault();
     onDelete(item.id);
   }
@@ -238,8 +234,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2" data-no-drag>
                 <div
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                    onMouseDown={(e) => handleInteractionStart(e, 'move')}
-                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
+                    onMouseDown={(e) => { e.stopPropagation(); handleInteractionStart(e, 'move')}}
+                    onTouchStart={(e) => { e.stopPropagation(); handleInteractionStart(e, 'move')}}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
