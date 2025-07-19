@@ -50,17 +50,20 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   });
 
   const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, type: 'move' | 'resize', handle?: string) => {
-     if ('button' in e && e.button === 2) return;
-    if ((e.target as HTMLElement).closest('[data-no-drag]')) {
-        if (type !== 'resize' && !isSelected) {
-            onSelect(item.id);
-        }
-        return;
+    if ('button' in e && e.button === 2) return;
+
+    const target = e.target as HTMLElement;
+
+    // This block handles clicks on controls (edit, delete) vs. drag handles (move, resize)
+    if (target.closest('[data-control]')) {
+      // It's a control button, don't start a drag interaction.
+      return;
     }
 
     e.stopPropagation();
     
-    if ('touches' in e) {
+    // Prevent default touch behavior like scrolling
+    if (e.nativeEvent instanceof TouchEvent) {
       e.preventDefault();
     }
     
@@ -90,9 +93,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
-    if ('touches' in e) {
-      e.preventDefault();
-    }
     const { type, startX, startY, startWidth, startHeight, handle, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
@@ -158,6 +158,17 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     onDelete(item.id);
   }
 
+  const handleItemBodyInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    // If clicking on a textarea, don't initiate a drag.
+    if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
+      if (!isSelected) {
+        onSelect(item.id);
+      }
+      return;
+    }
+    handleInteractionStart(e, 'move');
+  };
+
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
   return (
@@ -171,8 +182,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
       }}
-      onMouseDown={(e) => handleInteractionStart(e, 'move')}
-      onTouchStart={(e) => handleInteractionStart(e, 'move')}
+      onMouseDown={handleItemBodyInteractionStart}
+      onTouchStart={handleItemBodyInteractionStart}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
@@ -189,7 +200,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
-                data-no-drag
              />
           )}
           {item.type === 'post-it' && (
@@ -204,7 +214,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
-                data-no-drag
              />
           )}
           {item.type === 'shape' && (
@@ -218,7 +227,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
               {resizeHandles.map(handle => (
                 <div
                   key={handle}
-                  data-no-drag
                   className={cn(
                     'absolute w-3 h-3 bg-accent border-2 border-white rounded-full',
                     handle.includes('top') && '-top-1.5',
@@ -231,7 +239,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
                 />
               ))}
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2" data-no-drag>
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
                 <div
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
                     onMouseDown={(e) => handleInteractionStart(e, 'move')}
@@ -240,16 +248,18 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
                 <div
+                    data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
                     onClick={handleEditClick}
-                    onTouchStart={handleEditClick}
+                    onTouchEnd={handleEditClick}
                 >
                   <Settings className="w-4 h-4 text-accent-foreground" />
                 </div>
                 <div
+                    data-control
                     className="p-1 bg-destructive border-2 border-white rounded-full cursor-pointer"
                     onClick={handleDeleteClick}
-                    onTouchStart={handleDeleteClick}
+                    onTouchEnd={handleDeleteClick}
                 >
                   <Trash2 className="w-4 h-4 text-destructive-foreground" />
                 </div>
