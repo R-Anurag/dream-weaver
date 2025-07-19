@@ -89,7 +89,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                     {!isMobile && 'Collaborate'}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="w-[90vw] max-w-[90vw] rounded-lg sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Propose Collaboration</DialogTitle>
                     <DialogDescription>
