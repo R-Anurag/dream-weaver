@@ -21,6 +21,8 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import LottiePlayer from './lottie-player';
+import animationData from '@/lib/animation-data.json';
 
 
 interface BoardsSidebarProps {
@@ -65,7 +67,7 @@ export default function BoardsSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
         <Link href="/" className="flex items-center gap-2">
-            <Brush className="h-6 w-6 text-primary" />
+            <LottiePlayer animationData={animationData} className="h-10 w-10" />
             <h1 className="text-2xl font-bold font-headline">Dream Weaver</h1>
         </Link>
         <Button variant="ghost" size="icon" onClick={toggleSidebar}>
