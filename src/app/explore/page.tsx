@@ -170,7 +170,7 @@ export default function ExplorePage() {
                 </Button>
             </div>
         </header>
-        <div className="w-full h-full">
+        <div className="w-full h-svh">
             <div className="overflow-hidden h-full" ref={emblaRef}>
                 <div className="flex h-full flex-col">
                     {filteredBoards.map((board) => (
