@@ -86,8 +86,8 @@ export function ProposalDetailDialog({ proposal, isOpen, onOpenChange, onUpdateP
             <AvatarFallback>{proposal.userName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <DialogTitle>{proposal.userName}</DialogTitle>
-            <DialogDescription>Wants to collaborate with you.</DialogDescription>
+            <DialogTitle>Collaboration Proposal from {proposal.userName}</DialogTitle>
+            <DialogDescription>Review the proposal and decide on the next steps.</DialogDescription>
           </div>
         </DialogHeader>
         
