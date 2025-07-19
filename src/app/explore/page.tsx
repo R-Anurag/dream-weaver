@@ -2,18 +2,11 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
 
 const sampleBoards = [
   {
@@ -54,9 +47,9 @@ const sampleBoards = [
   },
 ];
 
-const VisionBoardCard = ({ board, onExpressInterest }: { board: (typeof sampleBoards)[0], onExpressInterest: (boardId: string) => void }) => {
+const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
   return (
-    <div className="relative aspect-[3/4] md:aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-2xl group">
+    <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
       <Image
         src={board.thumbnail}
         alt={board.title}
@@ -90,12 +83,6 @@ const VisionBoardCard = ({ board, onExpressInterest }: { board: (typeof sampleBo
             </div>
           </div>
         </div>
-        <div className="mt-6">
-            <Button className="w-full" onClick={() => onExpressInterest(board.id)}>
-              <Sparkles className="mr-2" />
-              Express Interest
-            </Button>
-          </div>
       </div>
     </div>
   );
@@ -103,6 +90,7 @@ const VisionBoardCard = ({ board, onExpressInterest }: { board: (typeof sampleBo
 
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
@@ -116,13 +104,20 @@ export default function ExplorePage() {
     );
   }, [searchTerm]);
 
+  const handleNextBoard = () => {
+    setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
+  };
+  
   const handleExpressInterest = (boardId: string) => {
     console.log(`Expressed interest in board: ${boardId}`);
     // Next step: Implement the view and propose functionality
+    handleNextBoard();
   };
 
+  const currentBoard = filteredBoards[currentIndex];
+
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
         <div className="relative max-w-md mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -130,35 +125,36 @@ export default function ExplorePage() {
             placeholder="Search projects, e.g., sustainability"
             className="pl-10 h-11"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentIndex(0); // Reset index on new search
+            }}
           />
         </div>
       </header>
-      <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-        {filteredBoards.length > 0 ? (
-          <Carousel
-            opts={{
-              align: "center",
-              loop: true,
-            }}
-            className="w-full max-w-sm md:max-w-2xl"
-          >
-            <CarouselContent>
-              {filteredBoards.map((board) => (
-                <CarouselItem key={board.id}>
-                  <VisionBoardCard board={board} onExpressInterest={handleExpressInterest} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
-            <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
-          </Carousel>
-        ) : (
-          <div className="text-center">
-            <h3 className="text-xl font-semibold">No boards found</h3>
-            <p className="text-muted-foreground">Try adjusting your search terms.</p>
-          </div>
-        )}
+      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-sm h-[60vh] md:max-w-md md:h-[70vh] flex flex-col items-center justify-center gap-6">
+          {currentBoard ? (
+            <>
+              <div className="w-full h-full">
+                 <VisionBoardCard board={currentBoard} />
+              </div>
+              <div className="flex items-center justify-center gap-4">
+                 <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
+                    <X className="h-8 w-8 text-red-500" />
+                 </Button>
+                 <Button onClick={() => handleExpressInterest(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
+                    <Sparkles className="h-8 w-8 text-primary" />
+                 </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center">
+              <h3 className="text-xl font-semibold">No boards found</h3>
+              <p className="text-muted-foreground">Try adjusting your search terms.</p>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
