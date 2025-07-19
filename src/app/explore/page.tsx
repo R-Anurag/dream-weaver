@@ -117,6 +117,10 @@ export default function ExplorePage() {
   }, [searchTerm, allBoards]);
   
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
+  
+  const handleOpenBoard = useCallback((boardId: string) => {
+    router.push(`/boards/view/${boardId}`);
+  }, [router]);
 
   const handleNextBoard = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -141,7 +145,7 @@ export default function ExplorePage() {
         emblaApi.scrollNext();
       }
     }
-  }, [emblaApi, isMobile, currentBoard]);
+  }, [emblaApi, isMobile, currentBoard, handleOpenBoard]);
 
    useEffect(() => {
     if (!emblaApi) return;
@@ -165,32 +169,7 @@ export default function ExplorePage() {
     }
   }, [searchTerm, filteredBoards.length, emblaApi]);
   
-  const handleOpenBoard = (boardId: string) => {
-    router.push(`/boards/view/${boardId}`);
-  };
-
-  const CarouselArea = (
-      <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
-            <div className="overflow-hidden h-full" ref={emblaRef}>
-                <div className={cn("flex h-full", isMobile && "flex-col")}>
-                    {filteredBoards.map((board) => (
-                        <div key={board.id} className={cn("relative flex-[0_0_100%] w-full h-full min-h-0", isMobile ? "py-2" : "")}>
-                           <VisionBoardCard board={board} />
-                        </div>
-                    ))}
-                    {filteredBoards.length === 0 && (
-                        <div className="flex-[0_0_100%] w-full h-full flex items-center justify-center text-foreground">
-                            <div className="text-center">
-                                <h3 className="text-xl font-semibold">No boards found</h3>
-                                <p className="text-muted-foreground">Try adjusting your search terms.</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-      </div>
-  )
-
+  
   if (isMobile) {
     return (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
@@ -261,7 +240,7 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              <div onClick={() => handleOpenBoard(currentBoard.id)} className="w-full h-full cursor-pointer max-w-4xl aspect-[4/3]">
+              <div className="w-full h-full cursor-pointer max-w-4xl aspect-[4/3]">
                  <div className="overflow-hidden h-full" ref={emblaRef}>
                     <div className="flex h-full">
                         {filteredBoards.map((board) => (
@@ -289,4 +268,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
 
