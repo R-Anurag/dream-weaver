@@ -1,6 +1,6 @@
 "use client";
 
-import Lottie, { LottieComponentProps } from "lottie-react";
+import Lottie, { type LottieComponentProps } from "lottie-react";
 
 type LottiePlayerProps = Omit<LottieComponentProps, "animationData"> & {
     animationData: any;
@@ -8,7 +8,7 @@ type LottiePlayerProps = Omit<LottieComponentProps, "animationData"> & {
 
 export default function LottiePlayer({ animationData, ...props }: LottiePlayerProps) {
   if (!animationData) {
-    return null; // Or a placeholder/loading state
+    return null;
   }
   return <Lottie animationData={animationData} {...props} />;
 }
