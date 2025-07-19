@@ -65,10 +65,10 @@ export default function ExplorePage() {
     axis: 'x',
     skipSnaps: false,
     loop: true,
+    watchDrag: false,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const dragStart = useRef({ x: 0, y: 0 });
-  
   const isMobile = useIsMobile();
   
   const loadDataFromStorage = useCallback(() => {
@@ -249,7 +249,7 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl aspect-[4/3] relative" onClick={() => handleOpenBoard(currentBoard.id)}>
+              <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
                  <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
                    <VisionBoardCard
                       board={currentBoard}
