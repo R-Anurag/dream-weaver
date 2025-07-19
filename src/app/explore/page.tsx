@@ -68,8 +68,6 @@ export default function ExplorePage() {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const isMobile = useIsMobile();
-  const dragStart = useRef({ x: 0, y: 0 });
-  const isSwiping = useRef(false);
 
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -114,7 +112,7 @@ export default function ExplorePage() {
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
 
   const handleNextBoard = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
@@ -134,13 +132,12 @@ export default function ExplorePage() {
   useEffect(() => {
     if (emblaApi) {
         emblaApi.reInit();
-        const newIndex = filteredBoards.length > 0 ? 0 : -1;
-        if(newIndex !== currentIndex) {
+        if (filteredBoards.length > 0) {
             emblaApi.scrollTo(0, true);
-            setCurrentIndex(newIndex > -1 ? newIndex : 0);
+            setCurrentIndex(0);
         }
     }
-  }, [searchTerm, filteredBoards.length, emblaApi, currentIndex]);
+  }, [searchTerm, filteredBoards.length, emblaApi]);
   
   const handleOpenBoard = (boardId: string) => {
     router.push(`/boards/view/${boardId}`);
