@@ -2,69 +2,33 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Search, Sparkles, X } from 'lucide-react';
+import { Search, Sparkles, X, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { sampleBoards } from '@/lib/sample-data';
+import type { Board } from '@/types';
+import { useRouter } from 'next/navigation';
 
-const sampleBoards = [
-  {
-    id: '1',
-    title: 'Sustainable Urban Farming',
-    description: 'A project to bring community gardens to concrete jungles.',
-    tags: ['sustainability', 'community', 'urban-farming'],
-    thumbnail: 'https://placehold.co/800x600',
-    dataAiHint: 'urban farming',
-    flairs: ['Design', 'Funding', 'Engineering'],
-  },
-  {
-    id: '2',
-    title: 'AI for Education',
-    description: 'Personalized learning paths for all students.',
-    tags: ['education', 'ai', 'technology'],
-    thumbnail: 'https://placehold.co/800x600',
-    dataAiHint: 'education technology',
-    flairs: ['Development', 'Research'],
-  },
-  {
-    id: '3',
-    title: 'Ocean Cleanup Initiative',
-    description: 'Leveraging drones and AI to clean our oceans.',
-    tags: ['environment', 'technology', 'conservation'],
-    thumbnail: 'https://placehold.co/800x600',
-    dataAiHint: 'ocean cleanup',
-    flairs: ['Engineering', 'Marketing', 'Logistics'],
-  },
-    {
-    id: '4',
-    title: 'Future of Remote Work',
-    description: 'Creating tools for a more connected remote workforce.',
-    tags: ['future-of-work', 'saas', 'community'],
-    thumbnail: 'https://placehold.co/800x600',
-    dataAiHint: 'remote work',
-    flairs: ['Product', 'Design', 'Marketing'],
-  },
-];
-
-const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
+const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
     <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
       <Image
-        src={board.thumbnail}
-        alt={board.title}
+        src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
+        alt={board.name}
         width={800}
         height={600}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        data-ai-hint={board.dataAiHint}
+        data-ai-hint="vision board"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
         <div>
-          <h2 className="text-2xl font-bold font-headline">{board.title}</h2>
+          <h2 className="text-2xl font-bold font-headline">{board.name}</h2>
           <p className="mt-2 text-sm text-white/90">{board.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {board.tags.map(tag => (
+            {board.tags?.map(tag => (
               <Badge key={tag} variant="secondary" className="backdrop-blur-sm bg-white/20 text-white border-none">
                 {tag}
               </Badge>
@@ -74,7 +38,7 @@ const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
               <div className="flex flex-wrap gap-2">
-                {board.flairs.map(flair => (
+                {board.flairs?.map(flair => (
                     <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
                     {flair}
                     </span>
@@ -91,6 +55,7 @@ const VisionBoardCard = ({ board }: { board: (typeof sampleBoards)[0] }) => {
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const router = useRouter();
 
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
@@ -98,9 +63,9 @@ export default function ExplorePage() {
     }
     const lowercasedFilter = searchTerm.toLowerCase();
     return sampleBoards.filter(board =>
-      board.title.toLowerCase().includes(lowercasedFilter) ||
-      board.description.toLowerCase().includes(lowercasedFilter) ||
-      board.tags.some(tag => tag.toLowerCase().includes(lowercasedFilter))
+      board.name.toLowerCase().includes(lowercasedFilter) ||
+      (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
+      board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
     );
   }, [searchTerm]);
 
@@ -108,10 +73,8 @@ export default function ExplorePage() {
     setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
   };
   
-  const handleExpressInterest = (boardId: string) => {
-    console.log(`Expressed interest in board: ${boardId}`);
-    // Next step: Implement the view and propose functionality
-    handleNextBoard();
+  const handleViewBoard = (boardId: string) => {
+    router.push(`/boards/view/${boardId}`);
   };
 
   const currentBoard = filteredBoards[currentIndex];
@@ -143,8 +106,8 @@ export default function ExplorePage() {
                  <Button onClick={handleNextBoard} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
                     <X className="h-8 w-8 text-red-500" />
                  </Button>
-                 <Button onClick={() => handleExpressInterest(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
-                    <Sparkles className="h-8 w-8 text-primary" />
+                 <Button onClick={() => handleViewBoard(currentBoard.id)} variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg hover:bg-muted">
+                    <Eye className="h-8 w-8 text-primary" />
                  </Button>
               </div>
             </>

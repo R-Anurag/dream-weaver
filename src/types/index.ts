@@ -27,4 +27,7 @@ export type Board = {
   id: string;
   name: string;
   items: CanvasItem[];
+  description?: string;
+  tags?: string[];
+  flairs?: string[];
 };
