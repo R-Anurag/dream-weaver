@@ -15,7 +15,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose, Menu } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
@@ -281,7 +281,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
           <header className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
-            <Button
+             <Button
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"

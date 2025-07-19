@@ -34,21 +34,23 @@ interface BoardsSidebarProps {
 }
 
 const MenuItem = ({ href, onClick, icon: Icon, children }: { href?: string, onClick?: () => void, icon: React.ElementType, children: React.ReactNode }) => {
+    const commonProps = {
+        className: "flex items-center gap-3 text-sm font-medium p-2 rounded-md hover:bg-secondary cursor-pointer",
+        onClick: onClick,
+    };
+
     const content = (
-        <div 
-         className="flex items-center gap-3 text-sm font-medium p-2 rounded-md hover:bg-secondary cursor-pointer"
-         onClick={onClick}
-        >
+        <>
             <Icon className="h-5 w-5 text-muted-foreground" />
             <span>{children}</span>
-        </div>
+        </>
     );
 
     if (href) {
-        return <Link href={href} legacyBehavior passHref><a>{content}</a></Link>;
+        return <Link href={href} {...commonProps}>{content}</Link>;
     }
 
-    return content;
+    return <div {...commonProps}>{content}</div>;
 }
 
 export default function BoardsSidebar({
@@ -61,6 +63,7 @@ export default function BoardsSidebar({
 }: BoardsSidebarProps) {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const { toggleSidebar, state } = useSidebar();
   
   const handleStartEditing = (board: Board) => {
     setEditingBoardId(board.id);
@@ -86,6 +89,15 @@ export default function BoardsSidebar({
             <Brush className="h-8 w-8 text-accent" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
         </Link>
+         <Button
+            onClick={toggleSidebar}
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="Toggle Menu"
+        >
+            {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+        </Button>
       </div>
        <div className="flex flex-col gap-1 px-2">
          <MenuItem href="/explore" icon={Compass}>Explore</MenuItem>
