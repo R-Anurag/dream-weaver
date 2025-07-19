@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,6 +22,35 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 
+const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void }) => {
+    const [displayedText, setDisplayedText] = useState('');
+    const animationFrameRef = useRef<number>();
+    
+    useEffect(() => {
+        let i = 0;
+        const animate = () => {
+            if (i < text.length) {
+                setDisplayedText(text.substring(0, i + 1));
+                i++;
+                animationFrameRef.current = requestAnimationFrame(animate);
+            } else {
+                 onFinished();
+            }
+        };
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, [text, onFinished]);
+
+    return (
+        <p className="whitespace-pre-wrap break-word">{displayedText}<span className="inline-block w-0.5 h-4 bg-foreground animate-ping ml-1"></span></p>
+    );
+};
+
+
 export function ProposalDialog({ board }: { board: Board }) {
     const [isOpen, setIsOpen] = useState(false);
     const [headings, setHeadings] = useState<string[]>([]);
@@ -31,6 +60,37 @@ export function ProposalDialog({ board }: { board: Board }) {
     const [isGeneratingBody, startBodyGeneration] = useTransition();
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    const [isAnimating, setIsAnimating] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout>();
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const handleNextHeading = useCallback(() => {
+        if (headings.length === 0 || isAnimating) return;
+        setIsAnimating(true);
+        setTimeout(() => {
+            setCurrentHeadingIndex((prev) => (prev + 1) % headings.length);
+            setIsAnimating(false);
+        }, 500);
+    }, [headings.length, isAnimating]);
+
+    useEffect(() => {
+        if (isOpen && headings.length > 0) {
+            timeoutRef.current = setInterval(() => {
+                handleNextHeading();
+            }, 5000);
+        } else if (!isOpen || headings.length === 0) {
+            if (timeoutRef.current) {
+                clearInterval(timeoutRef.current);
+            }
+        }
+        return () => {
+            if (timeoutRef.current) {
+                clearInterval(timeoutRef.current);
+            }
+        };
+    }, [isOpen, headings, handleNextHeading]);
+
 
     useEffect(() => {
         if (isOpen && board) {
@@ -48,30 +108,35 @@ export function ProposalDialog({ board }: { board: Board }) {
         }
     }, [isOpen, board, toast]);
 
-    const handleNextHeading = () => {
-        setCurrentHeadingIndex((prev) => (prev + 1) % headings.length);
-    };
-
     const handlePrevHeading = () => {
-        setCurrentHeadingIndex((prev) => (prev - 1 + headings.length) % headings.length);
+        if (headings.length === 0 || isAnimating) return;
+        setIsAnimating(true);
+        setTimeout(() => {
+            setCurrentHeadingIndex((prev) => (prev - 1 + headings.length) % headings.length);
+            setIsAnimating(false);
+        }, 500);
     };
 
-    const handleGenerateBody = () => {
+    const handleGenerateBody = useCallback(() => {
         const selectedHeading = headings[currentHeadingIndex];
         if (!selectedHeading) return;
+
+        setProposalBody('');
+        setIsTyping(false);
 
         startBodyGeneration(async () => {
             try {
                 const result = await generateProposalBody(board, selectedHeading);
                 if (result && result.proposal) {
                     setProposalBody(result.proposal);
+                    setIsTyping(true);
                 }
             } catch (error) {
                 console.error("Failed to generate proposal body", error);
                 toast({ title: "Error", description: "Could not generate the proposal.", variant: "destructive" });
             }
         });
-    };
+    }, [board, currentHeadingIndex, headings, toast]);
 
     const handleSendProposal = () => {
         console.log("Sending proposal:", proposalBody);
@@ -80,6 +145,13 @@ export function ProposalDialog({ board }: { board: Board }) {
         setProposalBody('');
         setHeadings([]);
         setCurrentHeadingIndex(0);
+    };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            handleGenerateBody();
+        }
     };
 
     return (
@@ -100,8 +172,8 @@ export function ProposalDialog({ board }: { board: Board }) {
 
                 <div className="grid md:grid-cols-2 md:gap-8 py-4">
                     {/* Step 1: Idea Generation */}
-                    <div className="space-y-4">
-                        <h4 className="font-semibold text-sm">1. Choose a Proposal Idea</h4>
+                    <div className="space-y-4" onKeyDown={handleKeyDown} ref={wrapperRef} tabIndex={0}>
+                        <h4 className="font-semibold text-sm">1. Choose a Proposal Idea <Badge variant="outline" className="ml-2">TAB</Badge></h4>
                         {isGeneratingHeadings ? (
                             <div className="flex items-center justify-between p-4 border rounded-lg min-h-[100px]">
                                 <Skeleton className="h-4 w-10" />
@@ -109,16 +181,16 @@ export function ProposalDialog({ board }: { board: Board }) {
                                 <Skeleton className="h-4 w-10" />
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center p-4 border rounded-lg bg-secondary/50 min-h-[100px]">
-                                <p className="text-center font-medium flex-1 px-4">{headings[currentHeadingIndex] || "No ideas yet..."}</p>
-                                <div className="flex items-center justify-center mt-2">
-                                    <Button variant="ghost" size="icon" onClick={handlePrevHeading} disabled={headings.length === 0}>
-                                        <ArrowLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={handleNextHeading} disabled={headings.length === 0}>
-                                        <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                            <div className="flex items-center justify-center p-4 border rounded-lg bg-secondary/50 min-h-[100px]">
+                                 <Button variant="ghost" size="icon" onClick={handlePrevHeading} disabled={headings.length === 0}>
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                                <p className={cn("text-center font-medium flex-1 px-4 h-12 flex items-center justify-center animate-text-morph", isAnimating ? 'animate-text-morph-out' : 'animate-text-morph-in')}>
+                                    {headings[currentHeadingIndex] || "No ideas yet..."}
+                                </p>
+                                <Button variant="ghost" size="icon" onClick={handleNextHeading} disabled={headings.length === 0}>
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
                             </div>
                         )}
                          <Button onClick={handleGenerateBody} disabled={isGeneratingBody || headings.length === 0} className="w-full">
@@ -132,7 +204,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                     {/* Step 2: Refine and Send */}
                     <div className="space-y-4">
                         <h4 className="font-semibold text-sm">2. Refine & Send</h4>
-                         {isGeneratingBody ? (
+                         {isGeneratingBody && !isTyping ? (
                             <div className="space-y-2 border rounded-lg p-4 min-h-[200px]">
                                 <Skeleton className="h-4 w-1/4" />
                                 <Skeleton className="h-4 w-full" />
@@ -140,19 +212,25 @@ export function ProposalDialog({ board }: { board: Board }) {
                                 <Skeleton className="h-4 w-3/4" />
                             </div>
                          ) : (
-                            <Textarea
-                                placeholder="Your proposal will be generated here. You can edit it before sending."
-                                value={proposalBody}
-                                onChange={(e) => setProposalBody(e.target.value)}
-                                className="min-h-[200px]"
-                            />
+                            <div className="min-h-[200px] border rounded-lg p-4 bg-secondary/20 relative">
+                                {isTyping ? (
+                                    <Typewriter text={proposalBody} onFinished={() => setIsTyping(false)} />
+                                ) : (
+                                    <Textarea
+                                        placeholder="Your proposal will be generated here. You can edit it before sending."
+                                        value={proposalBody}
+                                        onChange={(e) => setProposalBody(e.target.value)}
+                                        className="bg-transparent border-none focus-visible:ring-0 p-0 h-full resize-none min-h-[180px]"
+                                    />
+                                )}
+                            </div>
                          )}
                     </div>
                 </div>
 
                 <DialogFooter>
                     <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button onClick={handleSendProposal} disabled={!proposalBody || isGeneratingBody}>
+                    <Button onClick={handleSendProposal} disabled={!proposalBody || isGeneratingBody || isTyping}>
                         Send Proposal
                     </Button>
                 </DialogFooter>

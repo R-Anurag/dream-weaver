@@ -81,4 +81,60 @@
     animation: fade-in-up 0.5s ease-out forwards;
     opacity: 0;
   }
+
+  @keyframes text-morph-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes text-morph-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-text-morph {
+    animation-duration: 0.5s;
+    animation-timing-function: ease-in-out;
+  }
+  
+  .animate-text-morph-out {
+    animation-name: text-morph-out;
+  }
+  
+  .animate-text-morph-in {
+    animation-name: text-morph-in;
+  }
+  
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: hsl(var(--foreground)); }
+  }
+
+  .typewriter-text {
+    overflow: hidden; 
+    border-right: .15em solid hsl(var(--foreground));
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0 auto; 
+    animation: 
+      typing 2s steps(40, end),
+      blink-caret .75s step-end infinite;
+  }
 }
