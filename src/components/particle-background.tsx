@@ -5,11 +5,42 @@ import { useEffect, useMemo, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Container, type ISourceOptions } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
+import { useTheme } from "next-themes";
 
 export default function ParticleBackground() {
   const [init, setInit] = useState(false);
-
+  const [particleColor, setParticleColor] = useState('#000000');
+  const [bgColor, setBgColor] = useState('#ffffff');
+  
   useEffect(() => {
+    const fgColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+
+    const convertHslToHex = (hsl: string) => {
+        if (!hsl) return '#000000';
+        const [h, s, l] = hsl.match(/\d+/g)?.map(Number) || [0,0,0];
+        const hDecimal = h;
+        const sDecimal = s / 100;
+        const lDecimal = l / 100;
+        const c = (1 - Math.abs(2 * lDecimal - 1)) * sDecimal;
+        const x = c * (1 - Math.abs(((hDecimal / 60) % 2) - 1));
+        const m = lDecimal - c / 2;
+        let r = 0, g = 0, b = 0;
+        if (hDecimal >= 0 && hDecimal < 60) { [r, g, b] = [c, x, 0]; }
+        else if (hDecimal >= 60 && hDecimal < 120) { [r, g, b] = [x, c, 0]; }
+        else if (hDecimal >= 120 && hDecimal < 180) { [r, g, b] = [0, c, x]; }
+        else if (hDecimal >= 180 && hDecimal < 240) { [r, g, b] = [0, x, c]; }
+        else if (hDecimal >= 240 && hDecimal < 300) { [r, g, b] = [x, 0, c]; }
+        else if (hDecimal >= 300 && hDecimal < 360) { [r, g, b] = [c, 0, x]; }
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+        return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    setParticleColor(convertHslToHex(fgColor));
+    setBgColor(convertHslToHex(bgColor));
+
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
     }).then(() => {
@@ -45,10 +76,10 @@ export default function ParticleBackground() {
       },
       particles: {
         color: {
-          value: "#ffffff",
+          value: particleColor,
         },
         links: {
-          color: "#ffffff",
+          color: particleColor,
           distance: 150,
           enable: false,
           opacity: 0.1,
@@ -92,7 +123,7 @@ export default function ParticleBackground() {
       },
       detectRetina: true,
     }),
-    [],
+    [particleColor],
   );
 
   if (init) {

@@ -79,13 +79,13 @@ export default function HomePage() {
       <main className="flex-1">
         <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
            <ParticleBackground />
-           <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
+           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
                     <Image src="https://placehold.co/400x300" alt="placeholder image" width={400} height={300} className="rounded-lg shadow-2xl transform -rotate-6" data-ai-hint="astronaut space" />
                 </FloatingItem>
                 <FloatingItem className="top-24 right-1/4 w-40" delay="1s">
-                    <Card className="p-4 bg-[#FFFACD] shadow-xl transform rotate-3">
+                    <Card className="p-4 bg-[#FFFACD]/80 backdrop-blur-sm shadow-xl transform rotate-3">
                         <p className="font-medium text-sm text-black">Brainstorm new ideas for the pitch deck!</p>
                     </Card>
                 </FloatingItem>
