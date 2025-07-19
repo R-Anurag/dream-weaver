@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, PanelLeft, Compass } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -18,6 +18,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useSidebar } from '@/components/ui/sidebar';
+import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 
 interface BoardsSidebarProps {
@@ -66,12 +68,24 @@ export default function BoardsSidebar({
             <PanelLeft />
         </Button>
       </div>
-      <Button onClick={onAddBoard} variant="outline" className="w-full mb-4">
-        <PlusSquare className="mr-2 h-4 w-4" />
-        New Board
-      </Button>
+       <div className="flex flex-col gap-2">
+         <Button asChild variant="outline">
+          <Link href="/explore">
+            <Compass className="mr-2 h-4 w-4" />
+            Explore
+          </Link>
+        </Button>
+        <Button onClick={onAddBoard} variant="outline">
+          <PlusSquare className="mr-2 h-4 w-4" />
+          New Board
+        </Button>
+      </div>
+      
+      <Separator className="my-4" />
+
       <ScrollArea className="flex-1 -mx-4">
         <div className="px-4">
+          <h2 className="text-sm font-semibold text-muted-foreground px-2 mb-2">My Boards</h2>
           {boards.map(board => (
             <div
               key={board.id}

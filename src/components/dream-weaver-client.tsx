@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Board, CanvasItem, ItemType, ShapeType } from '@/types';
-import BoardsSidebar from '@/components/boards-sidebar';
 import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -57,7 +55,7 @@ const createNewItem = (type: ItemType, content: string = '', shape: ShapeType = 
   }
 };
 
-const WelcomeBoard: Board = {
+export const WelcomeBoard: Board = {
   id: 'welcome-board',
   name: 'Welcome ✨',
   items: [
@@ -72,40 +70,9 @@ const WelcomeBoard: Board = {
   ]
 };
 
-export default function DreamWeaverClient() {
-  const [boards, setBoards] = useState<Board[]>([]);
-  const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
+export default function DreamWeaverClient({ boards, setBoards, activeBoardId, setActiveBoardId }: { boards: Board[], setBoards: (boards: Board[]) => void, activeBoardId: string | null, setActiveBoardId: (id: string | null) => void}) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    try {
-      const savedBoards = localStorage.getItem('dreamWeaverBoards');
-      if (savedBoards) {
-        const parsedBoards = JSON.parse(savedBoards);
-        if (parsedBoards.length > 0) {
-          setBoards(parsedBoards);
-          setActiveBoardId(parsedBoards[0].id);
-        } else {
-            setBoards([WelcomeBoard]);
-            setActiveBoardId(WelcomeBoard.id);
-        }
-      } else {
-        setBoards([WelcomeBoard]);
-        setActiveBoardId(WelcomeBoard.id);
-      }
-    } catch (error) {
-      console.error("Failed to load boards from localStorage", error);
-      setBoards([WelcomeBoard]);
-      setActiveBoardId(WelcomeBoard.id);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (boards.length > 0) {
-      localStorage.setItem('dreamWeaverBoards', JSON.stringify(boards));
-    }
-  }, [boards]);
   
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     setBoards(prevBoards =>
@@ -115,7 +82,7 @@ export default function DreamWeaverClient() {
           : board
       )
     );
-  }, [activeBoardId]);
+  }, [activeBoardId, setBoards]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
@@ -135,7 +102,7 @@ export default function DreamWeaverClient() {
         })
       );
     }
-  }, [activeBoardId]);
+  }, [activeBoardId, setBoards]);
 
   const activeBoard = boards.find(b => b.id === activeBoardId);
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
@@ -156,74 +123,25 @@ export default function DreamWeaverClient() {
     setSelectedItemId(null);
   }
 
-  const handleAddBoard = () => {
-    const newBoard: Board = {
-      id: generateId(),
-      name: `New Board ${boards.length + 1}`,
-      items: [],
-    };
-    setBoards([...boards, newBoard]);
-    setActiveBoardId(newBoard.id);
-    setSelectedItemId(null);
-  };
-
-  const handleDeleteBoard = (boardId: string) => {
-    const newBoards = boards.filter(b => b.id !== boardId);
-    setBoards(newBoards);
-    if (activeBoardId === boardId) {
-      const newActiveId = newBoards.length > 0 ? newBoards[0].id : null;
-      setActiveBoardId(newActiveId);
-      setSelectedItemId(null);
-    }
-    if (newBoards.length === 0) {
-      localStorage.removeItem('dreamWeaverBoards');
-    }
-  };
-  
-  const handleRenameBoard = (boardId: string, newName: string) => {
-    setBoards(boards.map(b => b.id === boardId ? {...b, name: newName} : b));
-  }
-  
-  const handleSelectBoard = (boardId: string) => {
-    setActiveBoardId(boardId);
-    setSelectedItemId(null);
-  }
-
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-screen bg-background font-body text-foreground overflow-hidden">
-        <Sidebar>
-          <BoardsSidebar
-            boards={boards}
-            activeBoardId={activeBoardId}
-            onSelectBoard={handleSelectBoard}
-            onAddBoard={handleAddBoard}
-            onDeleteBoard={handleDeleteBoard}
-            onRenameBoard={handleRenameBoard}
+      <main className="flex-1 flex flex-row relative">
+        <div className="flex-1 flex flex-col relative">
+          <Toolbar onAddItem={handleAddItem} />
+          <Canvas
+            board={activeBoard}
+            onUpdateItem={handleUpdateItem}
+            selectedItemId={selectedItemId}
+            onSelectItem={handleSelectItem}
           />
-        </Sidebar>
-        <SidebarInset>
-          <main className="flex-1 flex flex-row relative">
-            <div className="flex-1 flex flex-col relative">
-              <Toolbar onAddItem={handleAddItem} />
-              <Canvas
-                board={activeBoard}
-                onUpdateItem={handleUpdateItem}
-                selectedItemId={selectedItemId}
-                onSelectItem={handleSelectItem}
-              />
-            </div>
-            {selectedItem && (
-              <PropertiesPanel
-                item={selectedItem}
-                onUpdateItem={handleUpdateItem}
-                onDeleteItem={handleDeleteItem}
-                onClose={() => setSelectedItemId(null)}
-              />
-            )}
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+        </div>
+        {selectedItem && (
+          <PropertiesPanel
+            item={selectedItem}
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
+            onClose={() => setSelectedItemId(null)}
+          />
+        )}
+      </main>
   );
 }
