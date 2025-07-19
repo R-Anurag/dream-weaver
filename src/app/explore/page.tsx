@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Sparkles, X, Eye } from 'lucide-react';
+import { Search, Sparkles, X, Eye, PlusSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
   return (
@@ -157,14 +158,21 @@ export default function ExplorePage() {
     return (
       <div className="h-screen w-screen bg-black relative overflow-hidden">
         <header className="p-4 absolute top-0 left-0 right-0 z-20">
-            <div className="relative max-w-md mx-auto">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    placeholder="Search projects..."
-                    className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="flex items-center gap-2 max-w-md mx-auto">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        placeholder="Search projects..."
+                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                 <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
+                    <Link href="/boards">
+                        <PlusSquare className="h-5 w-5" />
+                    </Link>
+                </Button>
             </div>
         </header>
 
@@ -192,17 +200,24 @@ export default function ExplorePage() {
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
-        <div className="relative max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Search projects, e.g., sustainability"
-            className="pl-10 h-11"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentIndex(0);
-            }}
-          />
+        <div className="flex items-center justify-center gap-4 max-w-2xl mx-auto">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search projects, e.g., sustainability"
+              className="pl-10 h-11"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentIndex(0);
+              }}
+            />
+          </div>
+          <Button asChild>
+            <Link href="/boards">
+                <PlusSquare className="mr-2 h-4 w-4" /> Create
+            </Link>
+          </Button>
         </div>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
