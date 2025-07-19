@@ -94,7 +94,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile: sidebarIsMobile } = useSidebar();
   
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
@@ -106,15 +106,16 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   }, [activeBoardId]);
 
   useEffect(() => {
-    if (activeBoard?.published) {
+    if (activeBoard?.id) {
         const storedProposals = localStorage.getItem(`proposals_${activeBoard.id}`);
-        const localProposals = storedProposals ? JSON.parse(storedProposals) : [];
-        const combinedProposals = [...localProposals, ...sampleProposals.filter(sp => sp.boardId === activeBoard.id && !localProposals.some((lp: Proposal) => lp.id === sp.id))];
+        const localProposals: Proposal[] = storedProposals ? JSON.parse(storedProposals) : [];
+        const sampleForBoard = sampleProposals.filter(sp => sp.boardId === activeBoard.id);
+        const combinedProposals = [...localProposals, ...sampleForBoard.filter(sp => !localProposals.some(lp => lp.id === sp.id))];
         setProposals(combinedProposals);
     } else {
         setProposals([]);
     }
-  }, [activeBoard, boards]);
+  }, [activeBoard]);
 
   const pendingProposalsCount = useMemo(() => {
     return proposals.filter(p => p.status === 'pending').length;
@@ -191,7 +192,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const handleUpdateProposal = (updatedProposal: Proposal) => {
     const updatedProposals = proposals.map(p => p.id === updatedProposal.id ? updatedProposal : p);
     setProposals(updatedProposals);
-    localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals));
+    localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
   };
 
 
@@ -256,18 +257,19 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-          <header className="absolute top-4 right-4 z-10 flex items-center gap-2">
-            {isMobile && (
-              <Button
+          <header className="absolute top-4 left-4 z-10 flex items-center gap-2">
+             <Button
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="fixed top-4 left-4 bg-card shadow-lg border border-border"
+                className="bg-card shadow-lg border border-border"
                 aria-label="Toggle Menu"
               >
                 <Menu className="h-5 w-5" />
               </Button>
-            )}
+          </header>
+
+          <header className="absolute top-4 right-4 z-10 flex items-center gap-2">
             {activeBoard?.published && (
                 <Button
                     onClick={() => setIsProposalsPanelOpen(true)}
@@ -294,6 +296,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
               <UploadCloud className="h-5 w-5" />
             </Button>
           </header>
+
           <Toolbar onAddItem={handleAddItem} />
           <Canvas
             board={activeBoard}
