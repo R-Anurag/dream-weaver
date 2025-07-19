@@ -16,9 +16,31 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 
-const VisionBoardCard = ({ board }: { board: Board }) => {
+const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick: () => void }) => {
+  const [tapCount, setTapCount] = useState(0);
+  const router = useRouter();
+
+  const handleTap = () => {
+    setTapCount(prev => {
+        const newCount = prev + 1;
+        if (newCount === 1) {
+            // Start a timer to reset if it's just a single tap
+            setTimeout(() => {
+                setTapCount(0);
+            }, 300); // 300ms window for a double tap
+        } else if (newCount === 2) {
+            onDoubleClick();
+            return 0; // Reset after double tap
+        }
+        return newCount;
+    });
+  };
+
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}>
+    <div 
+        className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")}
+        onClick={handleTap}
+    >
       <Image
         src={board.thumbnailUrl || '/images/remotework.jpg'}
         alt={board.name}
@@ -61,13 +83,13 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    axis: 'x',
+    axis: isMobile ? 'y' : 'x',
     skipSnaps: false,
-    loop: true,
+    loop: !isMobile,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const isMobile = useIsMobile();
 
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
@@ -94,7 +116,6 @@ export default function ExplorePage() {
 
   useEffect(() => {
     loadDataFromStorage();
-    // Add event listener for storage changes
     window.addEventListener('storage', loadDataFromStorage);
     return () => {
         window.removeEventListener('storage', loadDataFromStorage);
@@ -151,10 +172,10 @@ export default function ExplorePage() {
   const CarouselArea = (
       <div className={cn("w-full h-full cursor-grab", isMobile ? "bg-black" : "max-w-4xl aspect-[4/3]")}>
             <div className="overflow-hidden h-full" ref={emblaRef}>
-                <div className="flex h-full">
+                <div className={cn("flex h-full", isMobile && "flex-col")}>
                     {filteredBoards.map((board) => (
-                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full" onClick={() => handleOpenBoard(board.id)}>
-                           <VisionBoardCard board={board} />
+                        <div key={board.id} className={cn("relative flex-[0_0_100%] w-full h-full min-h-0", isMobile ? "py-2" : "")}>
+                           <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)} />
                         </div>
                     ))}
                     {filteredBoards.length === 0 && (
@@ -230,7 +251,9 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              {CarouselArea}
+              <div onClick={() => handleOpenBoard(currentBoard.id)} className="w-full h-full">
+                {CarouselArea}
+              </div>
 
               <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
                 <Eye className="h-5 w-5 mr-2" />
@@ -248,5 +271,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
