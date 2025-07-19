@@ -10,6 +10,7 @@ import { Trash2, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PropertiesPanelProps {
   item: CanvasItem;
@@ -46,12 +47,13 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
     const updateStyle = (key: string, value: any) => {
         onUpdateItem({ ...item, style: { ...item.style, [key]: value } });
     };
+    const isMobile = useIsMobile();
 
     return (
-        <aside className="w-72 bg-card border-l border-border flex flex-col shadow-md z-20">
+        <aside className="w-full md:w-72 bg-card md:border-l md:border-border flex flex-col md:shadow-md z-20">
             <div className="flex justify-between items-center p-4 border-b">
                 <h3 className="font-bold font-headline text-lg capitalize">{item.type} Properties</h3>
-                <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={onClose} className={cn(isMobile && 'hidden')}><X className="h-4 w-4" /></Button>
             </div>
             
             <ScrollArea className="flex-1">

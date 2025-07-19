@@ -7,6 +7,11 @@ import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Sheet,
+  SheetContent,
+} from "@/components/ui/sheet";
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -74,6 +79,7 @@ export const WelcomeBoard: Board = {
 export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     // When the active board changes, deselect any selected item.
@@ -129,6 +135,32 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setSelectedItemId(null);
   }
 
+  const renderPropertiesPanel = () => {
+    if (!selectedItem) return null;
+    
+    const panel = (
+      <PropertiesPanel
+        key={selectedItemId}
+        item={selectedItem}
+        onUpdateItem={handleUpdateItem}
+        onDeleteItem={handleDeleteItem}
+        onClose={() => setSelectedItemId(null)}
+      />
+    );
+
+    if (isMobile) {
+      return (
+        <Sheet open={!!selectedItemId} onOpenChange={(open) => !open && setSelectedItemId(null)}>
+          <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0">
+             {panel}
+          </SheetContent>
+        </Sheet>
+      )
+    }
+
+    return panel;
+  }
+
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
@@ -140,15 +172,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onSelectItem={handleSelectItem}
           />
         </div>
-        {selectedItem && (
-          <PropertiesPanel
-            key={selectedItemId}
-            item={selectedItem}
-            onUpdateItem={handleUpdateItem}
-            onDeleteItem={handleDeleteItem}
-            onClose={() => setSelectedItemId(null)}
-          />
-        )}
+        {renderPropertiesPanel()}
       </main>
   );
 }

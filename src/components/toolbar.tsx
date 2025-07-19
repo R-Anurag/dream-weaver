@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Menu } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -11,6 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast";
+import { useSidebar } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ToolbarProps {
   onAddItem: (type: ItemType, content?: string, shape?: ShapeType) => void;
@@ -19,6 +23,9 @@ interface ToolbarProps {
 export default function Toolbar({ onAddItem }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -45,6 +52,9 @@ export default function Toolbar({ onAddItem }: ToolbarProps) {
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-2">
+       <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle Sidebar" className={cn("md:hidden", !isMobile && "hidden")}>
+        <Menu className="h-5 w-5" />
+      </Button>
       <input
         type="file"
         ref={fileInputRef}
