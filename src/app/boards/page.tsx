@@ -10,54 +10,58 @@ import { WelcomeBoard } from '@/components/dream-weaver-client';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-const getInitialBoards = (): Board[] => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-  try {
-    const savedBoards = localStorage.getItem('dreamWeaverBoards');
-    if (savedBoards) {
-      const parsedBoards = JSON.parse(savedBoards);
-      if (Array.isArray(parsedBoards) && parsedBoards.length > 0) {
-        return parsedBoards;
-      }
-    }
-  } catch (error) {
-    console.error("Failed to load boards from localStorage", error);
-  }
-  
+const getInitialWelcomeBoard = (): Board[] => {
   const welcome = { ...WelcomeBoard, id: generateId() };
   return [welcome];
 };
 
 
 export default function BoardsPage() {
-  const [boards, setBoards] = useState<Board[]>(getInitialBoards);
-  const [activeBoardId, setActiveBoardId] = useState<string | null>(() => {
-      const initialBoards = getInitialBoards();
-      return initialBoards.length > 0 ? initialBoards[0].id : null;
-  });
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // This effect now only runs to initialize the active board ID
-    // if it wasn't set from the initial boards state.
-    if (!activeBoardId && boards.length > 0) {
-        setActiveBoardId(boards[0].id);
+    // Load boards from localStorage only on the client side
+    let loadedBoards: Board[] = [];
+    try {
+      const savedBoards = localStorage.getItem('dreamWeaverBoards');
+      if (savedBoards) {
+        const parsedBoards = JSON.parse(savedBoards);
+        if (Array.isArray(parsedBoards) && parsedBoards.length > 0) {
+          loadedBoards = parsedBoards;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load boards from localStorage", error);
     }
-  }, [boards, activeBoardId]);
 
+    if (loadedBoards.length > 0) {
+      setBoards(loadedBoards);
+      setActiveBoardId(loadedBoards[0].id);
+    } else {
+      const welcome = { ...WelcomeBoard, id: generateId() };
+      setBoards([welcome]);
+      setActiveBoardId(welcome.id);
+    }
+    setIsLoaded(true);
+  }, []);
+  
   useEffect(() => {
     // This effect is for saving to localStorage whenever boards change.
-    if (boards.length > 0) {
-      // Don't save the placeholder welcome board if it's the only one
-      if (boards.length === 1 && boards[0].id === 'welcome-board' && boards[0].name === 'Welcome ✨') {
-          return;
+    // We only save if isLoaded is true, to prevent overwriting on initial load.
+    if (isLoaded) {
+      if (boards.length > 0) {
+        // Don't save the placeholder welcome board if it's the only one and it hasn't been modified.
+        if (boards.length === 1 && boards[0].id.startsWith('welcome-') && boards[0].items.length <= 2) {
+            return;
+        }
+        localStorage.setItem('dreamWeaverBoards', JSON.stringify(boards));
+      } else {
+        localStorage.removeItem('dreamWeaverBoards');
       }
-      localStorage.setItem('dreamWeaverBoards', JSON.stringify(boards));
-    } else {
-      localStorage.removeItem('dreamWeaverBoards');
     }
-  }, [boards]);
+  }, [boards, isLoaded]);
 
   const handleAddBoard = () => {
     const newBoard: Board = {
@@ -65,13 +69,13 @@ export default function BoardsPage() {
       name: `New Board ${boards.filter(b => b.name.startsWith("New Board")).length + 1}`,
       items: [],
     };
-    // If the only board is the welcome board, replace it. Otherwise, add to the array.
-    const newBoards = boards.length === 1 && boards[0].id.startsWith('welcome') 
-        ? [newBoard] 
-        : [...boards, newBoard];
-
-    setBoards(newBoards);
-    setActiveBoardId(newBoard.id);
+    
+    setBoards(prevBoards => {
+       const isWelcomeBoard = prevBoards.length === 1 && prevBoards[0].id.startsWith('welcome-');
+       const newBoards = isWelcomeBoard ? [newBoard] : [...prevBoards, newBoard];
+       setActiveBoardId(newBoard.id);
+       return newBoards;
+    });
   };
 
   const handleDeleteBoard = (boardId: string) => {
