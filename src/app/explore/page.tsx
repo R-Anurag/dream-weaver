@@ -14,12 +14,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
-const VisionBoardCard = ({ board, onCardClick, hasSentProposal }: { board: Board, onCardClick: () => void, hasSentProposal: boolean }) => {
+const VisionBoardCard = ({ board, onCardClick }: { board: Board, onCardClick: () => void }) => {
   const isMobile = useIsMobile();
   
   return (
-    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group", !isMobile && "cursor-pointer")} onClick={!isMobile ? onCardClick : undefined}>
+    <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer")} onClick={onCardClick}>
       <Image
         src={board.items.find(item => item.type === 'image')?.content || 'https://placehold.co/800x600'}
         alt={board.name}
@@ -33,13 +34,6 @@ const VisionBoardCard = ({ board, onCardClick, hasSentProposal }: { board: Board
         <div>
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold font-headline">{board.name}</h2>
-            <div className="flex items-center gap-2">
-                {hasSentProposal && (
-                    <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
-                        Proposal Sent
-                    </Badge>
-                )}
-            </div>
           </div>
           <p className="mt-2 text-sm text-white/90">{board.description}</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -49,8 +43,7 @@ const VisionBoardCard = ({ board, onCardClick, hasSentProposal }: { board: Board
               </Badge>
             ))}
           </div>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-            <div className="flex-1">
+           <div className="mt-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
               <div className="flex flex-wrap gap-2">
                 {board.flairs?.map(flair => (
@@ -60,13 +53,6 @@ const VisionBoardCard = ({ board, onCardClick, hasSentProposal }: { board: Board
                 ))}
               </div>
             </div>
-             {isMobile && (
-                <Button size="lg" className="bg-white/20 text-white border border-white/30 backdrop-blur-sm hover:bg-white/30" onClick={onCardClick}>
-                    <Eye className="mr-2 h-5 w-5" />
-                    Interested
-                </Button>
-            )}
-          </div>
         </div>
       </div>
     </div>
@@ -77,12 +63,12 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
-  const [sentProposals, setSentProposals] = useState<Record<string, boolean>>({});
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     axis: isMobile ? 'x' : 'y',
     skipSnaps: true,
+    loop: true,
   });
   const dragStart = useRef({ x: 0, y: 0 });
 
@@ -107,21 +93,6 @@ export default function ExplorePage() {
     });
 
     setAllBoards(combinedBoards);
-
-    const proposalsSentMap: Record<string, boolean> = {};
-    combinedBoards.forEach(board => {
-        try {
-            const key = `proposals_${board.id}`;
-            const existingProposalsRaw = localStorage.getItem(key);
-            if (existingProposalsRaw) {
-                const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
-                if (proposals.some(p => p.userName === 'Local User')) {
-                    proposalsSentMap[board.id] = true;
-                }
-            }
-        } catch (e) {}
-    });
-    setSentProposals(proposalsSentMap);
   }, []);
 
   useEffect(() => {
@@ -148,8 +119,8 @@ export default function ExplorePage() {
   }, [searchTerm, allBoards]);
 
   const handleNextBoard = useCallback(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % filteredBoards.length);
-  }, [filteredBoards.length]);
+      if(emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
 
   const handleOpenBoard = (boardId: string) => {
@@ -169,32 +140,43 @@ export default function ExplorePage() {
     }
     
     const onPointerUp = (e: PointerEvent) => {
-        if (!isMobile) return;
+        if (!isMobile || !currentBoard) return;
         const dragEnd = { x: e.clientX, y: e.clientY };
         const dx = dragEnd.x - dragStart.current.x;
+        const dy = dragEnd.y - dragStart.current.y;
 
-        // Check for a short, distinct swipe to the right to navigate
-        if (dx > 50 && Math.abs(dragEnd.y - dragStart.current.y) < 30) {
-            if(emblaApi.canScrollPrev()) {
-                 emblaApi.scrollPrev();
-            } else {
-                 if (currentBoard) {
-                    handleOpenBoard(currentBoard.id);
-                 }
-            }
+        // Check for a swipe right to navigate
+        if (dx > 50 && Math.abs(dy) < 50) { 
+            handleOpenBoard(currentBoard.id);
+        } else if (dx < -50) { // Swipe left
+            emblaApi.scrollNext();
+        } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { // Tap
+            handleOpenBoard(currentBoard.id);
         }
     }
     
     const containerNode = emblaApi.containerNode();
+    // Prevent default click behavior on the container if we are swiping
+    const onContainerClick = (e: MouseEvent) => {
+        const dx = Math.abs(e.clientX - dragStart.current.x);
+        const dy = Math.abs(e.clientY - dragStart.current.y);
+        if (dx > 10 || dy > 10) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
     containerNode.addEventListener('pointerdown', onPointerDown);
     containerNode.addEventListener('pointerup', onPointerUp);
+    containerNode.addEventListener('click', onContainerClick, true); // Use capture phase
 
     return () => {
       emblaApi.off('select', onSelect)
       containerNode.removeEventListener('pointerdown', onPointerDown);
       containerNode.removeEventListener('pointerup', onPointerUp);
+      containerNode.removeEventListener('click', onContainerClick, true);
     }
-  }, [emblaApi, onSelect, isMobile, handleOpenBoard, filteredBoards.length, currentIndex]);
+  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -232,8 +214,7 @@ export default function ExplorePage() {
                     <div key={board.id} className="relative flex-[0_0_100%] w-full h-full">
                         <VisionBoardCard 
                             board={board} 
-                            hasSentProposal={sentProposals[board.id]}
-                            onCardClick={() => handleOpenBoard(board.id)}
+                            onCardClick={() => {}} // Pass empty function as navigation is handled by gestures
                         />
                     </div>
                 ))}
@@ -286,8 +267,7 @@ export default function ExplorePage() {
               <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
                  <VisionBoardCard
                     board={currentBoard}
-                    onCardClick={() => handleOpenBoard(currentBoard.id)}
-                    hasSentProposal={sentProposals[currentBoard.id]}
+                    onCardClick={() => {}} // Pass empty function on desktop too
                  />
               </div>
 
@@ -307,4 +287,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
