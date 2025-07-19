@@ -15,11 +15,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { UploadCloud, Inbox } from 'lucide-react';
+import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { PublishDialog } from './publish-dialog';
 import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
 import { Badge } from './ui/badge';
+import { useSidebar } from './ui/sidebar';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -105,6 +106,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { state, toggleSidebar } = useSidebar();
   
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
@@ -278,32 +280,52 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
-          <header className="absolute top-4 right-4 z-10 flex items-center gap-2">
-            {activeBoard?.published && (
-                <Button
-                    onClick={() => setIsProposalsPanelOpen(true)}
-                    variant="ghost"
-                    size="icon"
-                    className="bg-card shadow-lg border border-border relative"
-                    aria-label="View Proposals"
-                >
-                    <Inbox className="h-5 w-5" />
-                    {pendingProposalsCount > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full">
-                            {pendingProposalsCount}
-                        </Badge>
-                    )}
-                </Button>
-            )}
+          <header className="absolute top-4 left-4 z-10 flex items-center gap-2">
             <Button
-              onClick={() => setIsPublishing(true)}
-              variant="ghost"
-              size="icon"
-              className="bg-card shadow-lg border border-border"
-              aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
+                onClick={toggleSidebar}
+                variant="ghost"
+                size="icon"
+                className="bg-card shadow-lg border border-border md:hidden"
+                aria-label="Toggle Menu"
             >
-              <UploadCloud className="h-5 w-5" />
+                {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
+            <Button
+                onClick={toggleSidebar}
+                variant="ghost"
+                size="icon"
+                className="bg-card shadow-lg border border-border hidden md:flex"
+                aria-label="Toggle Menu"
+            >
+                {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+            </Button>
+            <div className="absolute top-0 left-12 right-4 flex items-center justify-end gap-2">
+                {activeBoard?.published && (
+                    <Button
+                        onClick={() => setIsProposalsPanelOpen(true)}
+                        variant="ghost"
+                        size="icon"
+                        className="bg-card shadow-lg border border-border relative"
+                        aria-label="View Proposals"
+                    >
+                        <Inbox className="h-5 w-5" />
+                        {pendingProposalsCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                                {pendingProposalsCount}
+                            </Badge>
+                        )}
+                    </Button>
+                )}
+                <Button
+                onClick={() => setIsPublishing(true)}
+                variant="ghost"
+                size="icon"
+                className="bg-card shadow-lg border border-border"
+                aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
+                >
+                <UploadCloud className="h-5 w-5" />
+                </Button>
+            </div>
           </header>
 
           <Toolbar onAddItem={handleAddItem} activeTool={activeTool} onSetTool={setActiveTool} />
