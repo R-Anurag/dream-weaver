@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, ThumbsDown, Eye, Heart, Sparkles, MessageSquare, Clock } from 'lucide-react';
+import { Search, Eye, Sparkles, ThumbsDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,11 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 const VisionBoardCard = ({ board }: { board: Board }) => {
-  const isMobile = useIsMobile();
-  
   return (
     <div className={cn("relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group")}>
       <Image
@@ -62,7 +59,6 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
   const router = useRouter();
-  const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     axis: 'x',
     skipSnaps: false,
@@ -70,7 +66,9 @@ export default function ExplorePage() {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const dragStart = useRef({ x: 0, y: 0 });
-
+  
+  const isMobile = useIsMobile();
+  
   const loadDataFromStorage = useCallback(() => {
     let publishedBoards: Board[] = [];
     try {
@@ -148,7 +146,7 @@ export default function ExplorePage() {
         // Ensure it's more of a horizontal swipe than a vertical one
         if (Math.abs(dx) > Math.abs(dy) + 20) {
             if (dx > 50) { // Right swipe: next board
-                emblaApi.scrollNext();
+                emblaApi.scrollPrev(); // Use scrollPrev to move from left to right
             } else if (dx < -50) { // Left swipe: view canvas
                 handleOpenBoard(currentBoard.id);
             }
@@ -165,7 +163,7 @@ export default function ExplorePage() {
       containerNode.removeEventListener('pointerdown', onPointerDown);
       containerNode.removeEventListener('pointerup', onPointerUp);
     }
-  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard, handleNextBoard]);
+  }, [emblaApi, onSelect, isMobile, currentBoard, handleOpenBoard]);
 
   useEffect(() => {
     emblaApi?.reInit();
@@ -249,8 +247,8 @@ export default function ExplorePage() {
                   Pass
               </Button>
               
-              <div className="w-full h-full max-w-4xl aspect-[4/3] relative">
-                 <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group cursor-pointer" onClick={() => handleOpenBoard(currentBoard.id)}>
+              <div className="w-full h-full max-w-4xl aspect-[4/3] relative cursor-pointer" onClick={() => handleOpenBoard(currentBoard.id)}>
+                 <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl group">
                    <VisionBoardCard
                       board={currentBoard}
                    />
