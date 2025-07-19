@@ -1,4 +1,6 @@
 
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +12,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
+import ParticleBackground from '@/components/particle-background';
 
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
@@ -28,7 +31,7 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
 const HowItWorksStep = ({ icon: Icon, title, description, imageUrl, imageHint }: { icon: React.ElementType, title: string, description: string, imageUrl: string, imageHint: string }) => (
     <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg hover:shadow-primary/20 transition-shadow duration-300">
         <div className="relative h-48 w-full">
-             <Image src={imageUrl} alt={title} fill className="object-cover" data-ai-hint={imageHint} />
+             <Image src={imageUrl} alt={title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" data-ai-hint={imageHint} />
         </div>
         <CardContent className="p-6">
             <div className="flex items-start gap-4">
@@ -75,7 +78,7 @@ export default function HomePage() {
 
       <main className="flex-1">
         <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
-           <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+           <ParticleBackground />
            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
             <div className="container max-w-7xl relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <FloatingItem className="top-10 left-10 w-48 h-32" delay="0.8s">
