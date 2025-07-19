@@ -52,7 +52,7 @@ const Typewriter = ({ text, onFinished }: { text: string, onFinished: () => void
             value={displayedText}
             readOnly
             disabled
-            className="bg-transparent border-none focus-visible:ring-0 p-0 h-full resize-none min-h-[180px] text-foreground disabled:cursor-default disabled:opacity-100"
+            className="bg-transparent border-none focus-visible:ring-0 p-0 h-full resize-none text-foreground disabled:cursor-default disabled:opacity-100"
         />
     );
 };
@@ -231,14 +231,14 @@ export function ProposalDialog({ board }: { board: Board }) {
                     <div className="space-y-4">
                         <h4 className="font-semibold text-sm">2. Refine & Send</h4>
                          {isGeneratingBody && !proposalBody ? (
-                            <div className="space-y-2 border rounded-lg p-4 min-h-[200px] h-[200px]">
+                            <div className="space-y-2 border rounded-lg p-4 min-h-[200px]">
                                 <Skeleton className="h-4 w-1/4" />
                                 <Skeleton className="h-4 w-full" />
                                 <Skeleton className="h-4 w-full" />
                                 <Skeleton className="h-4 w-3/4" />
                             </div>
                          ) : (
-                            <div className="h-[200px] border rounded-lg p-4 bg-secondary/20 relative overflow-y-auto">
+                            <div className="h-[200px] border rounded-lg p-1 bg-secondary/20 relative">
                                 {isTyping && proposalBody ? (
                                     <Typewriter text={proposalBody} onFinished={onTypewriterFinish} />
                                 ) : (
@@ -246,7 +246,7 @@ export function ProposalDialog({ board }: { board: Board }) {
                                         placeholder="Your proposal will be generated here. You can edit it before sending."
                                         value={proposalBody}
                                         onChange={(e) => setProposalBody(e.target.value)}
-                                        className="bg-transparent border-none focus-visible:ring-0 p-0 h-full resize-none"
+                                        className="bg-transparent border-none focus-visible:ring-0 p-3 h-full resize-none"
                                     />
                                 )}
                             </div>
