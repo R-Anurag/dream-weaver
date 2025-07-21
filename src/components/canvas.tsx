@@ -42,9 +42,11 @@ export default function Canvas({
     };
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) {
-      if (activeTool === 'select') onSelectItem(null);
+      if (activeTool === 'select' && !('touches' in e)) { // Don't deselect on touch drag start on canvas background
+          onSelectItem(null);
+      }
       return;
     }
     if (activeTool !== 'pencil') return;
@@ -67,16 +69,28 @@ export default function Canvas({
     setCurrentDrawing(newDrawing);
   };
   
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (activeTool === 'eraser' && e.buttons === 1) {
-        const target = e.target as SVGElement;
-        if (target.tagName === 'path' && target.dataset.id) {
-            onDeleteItem(target.dataset.id);
+  const handleInteractionMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (activeTool === 'eraser' && ('buttons' in e ? e.buttons === 1 : true)) {
+        let target: EventTarget | null;
+        if ('touches' in e) {
+            const touch = e.touches[0];
+            target = document.elementFromPoint(touch.clientX, touch.clientY);
+        } else {
+            target = e.target;
+        }
+
+        const svgPath = target as SVGPathElement;
+        if (svgPath.tagName === 'path' && svgPath.dataset.id) {
+            onDeleteItem(svgPath.dataset.id);
         }
         return;
     }
 
     if (!isDrawing || activeTool !== 'pencil' || !currentDrawing) return;
+    
+    if ('touches' in e) {
+        e.preventDefault();
+    }
 
     const { x, y } = getPointerPosition(e);
     
@@ -92,7 +106,7 @@ export default function Canvas({
     }
   };
 
-  const handleMouseUp = () => {
+  const handleInteractionEnd = () => {
     if (!isDrawing || !currentDrawing) return;
     setIsDrawing(false);
     if (currentDrawing.style.points && currentDrawing.style.points.length > 1) {
@@ -125,18 +139,21 @@ export default function Canvas({
   return (
     <div
       id="canvas"
-      className="flex-1 w-full h-full bg-background relative overflow-auto"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      className="flex-1 w-full h-full bg-background relative overflow-auto touch-none"
+      onMouseDown={handleInteractionStart}
+      onMouseMove={handleInteractionMove}
+      onMouseUp={handleInteractionEnd}
+      onMouseLeave={handleInteractionEnd}
+      onTouchStart={handleInteractionStart}
+      onTouchMove={handleInteractionMove}
+      onTouchEnd={handleInteractionEnd}
       style={{
           backgroundSize: '20px 20px',
           backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)',
           cursor: activeTool === 'pencil' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : 'default'
       }}
     >
-      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ pointerEvents: activeTool === 'eraser' ? 'auto' : 'none' }}>
+      <svg className="absolute top-0 left-0 w-full h-full" style={{ pointerEvents: activeTool === 'eraser' ? 'auto' : 'none' }}>
         {drawingItems.map(renderDrawing)}
         {isDrawing && currentDrawing && renderDrawing(currentDrawing)}
       </svg>
