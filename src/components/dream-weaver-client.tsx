@@ -145,11 +145,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
-      // If clicking an already selected item, open the properties panel
-      if (selectedItemId === itemId) {
-        setIsPropertiesPanelOpen(true);
-      }
-      
       setSelectedItemId(itemId);
       setActiveTool('select');
       
@@ -173,7 +168,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     } else {
         setSelectedItemId(null);
     }
-  }, [activeBoardId, setBoards, selectedItemId]);
+  }, [activeBoardId, setBoards]);
 
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
