@@ -16,6 +16,7 @@ import {
 import LottiePlayer from '@/components/lottie-player';
 import animationData from '@/lib/animation-data.json';
 import { cn } from '@/lib/utils';
+import ScrollAnimator from '@/components/scroll-animator';
 
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
@@ -83,7 +84,7 @@ export default function HomePage() {
                     </Card>
                 </FloatingItem>
                  <FloatingItem className="bottom-10 right-10 w-52 h-40" delay="1.2s">
-                    <Image src="/images/designQuote.png" alt="Serene landscape" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
+                    <Image src="/images/designQuote.jpg" alt="Serene landscape" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg shadow-2xl transform rotate-2" data-ai-hint="serene landscape" />
                 </FloatingItem>
                  <FloatingItem className="bottom-16 left-1/4" delay="1.4s">
                     <Badge variant="outline" className="shadow-lg text-base px-4 py-2 transform -rotate-12">#goals</Badge>
@@ -114,87 +115,95 @@ export default function HomePage() {
 
         <section id="features" className="py-16 md:py-24 bg-pastel-pink">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12 animate-fade-in-up">
-              <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
-              <p className="text-muted-foreground mt-2">From personal vision boards to collaborative projects.</p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-8 animate-fade-in-up">
-              <FeatureCard icon={Brush} title="Intuitive Canvas" description="Effortlessly drag and drop images, notes, and text to create your perfect vision board." />
-              <FeatureCard icon={Lightbulb} title="Find Inspiration" description="Explore a universe of public projects, get inspired, and see what others are dreaming up." />
-              <FeatureCard icon={Users} title="Collaborate & Connect" description="Share your vision and find partners with the skills you need to make your dream a reality." />
-            </div>
+            <ScrollAnimator>
+                <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold font-headline">Why Dream Weaver?</h2>
+                <p className="text-muted-foreground mt-2">From personal vision boards to collaborative projects.</p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-8">
+                <FeatureCard icon={Brush} title="Intuitive Canvas" description="Effortlessly drag and drop images, notes, and text to create your perfect vision board." />
+                <FeatureCard icon={Lightbulb} title="Find Inspiration" description="Explore a universe of public projects, get inspired, and see what others are dreaming up." />
+                <FeatureCard icon={Users} title="Collaborate & Connect" description="Share your vision and find partners with the skills you need to make your dream a reality." />
+                </div>
+            </ScrollAnimator>
           </div>
         </section>
 
         <section id="how-it-works" className="py-16 md:py-24 bg-pastel-blue">
             <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12 animate-fade-in-up">
-                    <h2 className="text-3xl font-bold font-headline">How It Works</h2>
-                    <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-8 md:gap-12 animate-fade-in-up">
-                   <HowItWorksStep 
-                        icon={PencilRuler} 
-                        title="1. Create Your Canvas" 
-                        description="Start with a blank canvas. This is your personal space to dream big and outline your goals."
-                    />
-                   <HowItWorksStep 
-                        icon={Zap} 
-                        title="2. Weave Your Vision" 
-                        description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."
-                    />
-                   <HowItWorksStep 
-                        icon={CheckCircle} 
-                        title="3. Collaborate & Manifest" 
-                        description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."
-                    />
-                </div>
+                <ScrollAnimator>
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold font-headline">How It Works</h2>
+                        <p className="text-muted-foreground mt-2">Bring your ideas to life in three simple steps.</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+                    <HowItWorksStep 
+                            icon={PencilRuler} 
+                            title="1. Create Your Canvas" 
+                            description="Start with a blank canvas. This is your personal space to dream big and outline your goals."
+                        />
+                    <HowItWorksStep 
+                            icon={Zap} 
+                            title="2. Weave Your Vision" 
+                            description="Add images, text, notes, and shapes. Arrange them freely to create a visual representation of your aspirations."
+                        />
+                    <HowItWorksStep 
+                            icon={CheckCircle} 
+                            title="3. Collaborate & Manifest" 
+                            description="Share your board to find collaborators, gather feedback, and take the first steps toward making your dream a reality."
+                        />
+                    </div>
+                </ScrollAnimator>
             </div>
         </section>
         
         <section id="faq" className="py-16 md:py-24 bg-pastel-green">
             <div className="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12 animate-fade-in-up">
-                    <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
-                </div>
-                <Accordion type="single" collapsible className="w-full animate-fade-in-up">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger>Is Dream Weaver free to use?</AccordionTrigger>
-                    <AccordionContent>
-                      Yes, the core features of Dream Weaver—creating and managing your personal vision boards—are completely free. We may introduce premium features for teams and advanced collaboration in the future.
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger>Can I share my vision boards with others?</AccordionTrigger>
-                    <AccordionContent>
-                      Absolutely! You can share your boards with specific people or make them public on the Explore page to find collaborators and partners for your projects.
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger>What kind of projects can I create?</AccordionTrigger>
-                    <AccordionContent>
-                      Anything you can dream of! From personal goals like fitness journeys and travel plans to large-scale projects like starting a business, launching a community initiative, or creating art.
-                    </AccordionContent>
-                  </AccordionItem>
-                   <AccordionItem value="item-4">
-                    <AccordionTrigger>How is this different from other productivity tools?</AccordionTrigger>
-                    <AccordionContent>
-                      Dream Weaver focuses on the creative, visual-first stage of idea development. It's less about tasks and deadlines and more about inspiration, visualization, and finding the right people to bring your ideas to life.
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                <ScrollAnimator>
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold font-headline">Frequently Asked Questions</h2>
+                    </div>
+                    <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>Is Dream Weaver free to use?</AccordionTrigger>
+                        <AccordionContent>
+                        Yes, the core features of Dream Weaver—creating and managing your personal vision boards—are completely free. We may introduce premium features for teams and advanced collaboration in the future.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-2">
+                        <AccordionTrigger>Can I share my vision boards with others?</AccordionTrigger>
+                        <AccordionContent>
+                        Absolutely! You can share your boards with specific people or make them public on the Explore page to find collaborators and partners for your projects.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-3">
+                        <AccordionTrigger>What kind of projects can I create?</AccordionTrigger>
+                        <AccordionContent>
+                        Anything you can dream of! From personal goals like fitness journeys and travel plans to large-scale projects like starting a business, launching a community initiative, or creating art.
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-4">
+                        <AccordionTrigger>How is this different from other productivity tools?</AccordionTrigger>
+                        <AccordionContent>
+                        Dream Weaver focuses on the creative, visual-first stage of idea development. It's less about tasks and deadlines and more about inspiration, visualization, and finding the right people to bring your ideas to life.
+                        </AccordionContent>
+                    </AccordionItem>
+                    </Accordion>
+                </ScrollAnimator>
             </div>
         </section>
 
         <section className="py-16 md:py-24 bg-pastel-yellow">
-            <div className="container max-w-5xl text-center mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-                 <h2 className="text-3xl font-bold font-headline mb-4">Ready to Start Your Journey?</h2>
-                 <p className="text-muted-foreground mb-8">Your next big idea is just a vision board away.</p>
-                 <Button asChild size="lg">
-                    <Link href="/boards">
-                        Create Your First Board for Free
-                    </Link>
-                </Button>
+            <div className="container max-w-5xl text-center mx-auto px-4 sm:px-6 lg:px-8">
+                <ScrollAnimator>
+                    <h2 className="text-3xl font-bold font-headline mb-4">Ready to Start Your Journey?</h2>
+                    <p className="text-muted-foreground mb-8">Your next big idea is just a vision board away.</p>
+                    <Button asChild size="lg">
+                        <Link href="/boards">
+                            Create Your First Board for Free
+                        </Link>
+                    </Button>
+                </ScrollAnimator>
             </div>
         </section>
       </main>
