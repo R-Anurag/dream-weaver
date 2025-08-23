@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Sparkles, Star } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Sparkles, Star, Mic } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { ProposalDialog } from '@/components/proposal-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -70,6 +71,7 @@ export default function ExplorePage() {
     loop: true,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { toast } = useToast();
   
   const publishedBoards = useMemo(() => allBoards.filter(b => b.published), [allBoards]);
 
@@ -102,6 +104,13 @@ export default function ExplorePage() {
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setCurrentIndex(emblaApi.selectedScrollSnap())
   }, []);
+  
+  const handleMicSearch = () => {
+    toast({
+        title: "Coming Soon!",
+        description: "Voice search will be available in a future update."
+    });
+  };
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -130,10 +139,13 @@ export default function ExplorePage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
                     <Input
                         placeholder="Search projects..."
-                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
+                        className="pl-10 pr-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                    <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicSearch}>
+                        <Mic className="h-5 w-5 text-white/80 hover:text-white" />
+                    </button>
                 </div>
                 <div className="flex items-center gap-1">
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
@@ -172,10 +184,13 @@ export default function ExplorePage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
                 <Input
                 placeholder="Search projects..."
-                className="pl-10 h-11"
+                className="pl-10 pr-10 h-11"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicSearch}>
+                    <Mic className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </button>
               </div>
           </div>
           <div className="flex items-center gap-2">
