@@ -88,7 +88,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
 
   return (
     <div
-      className={cn("absolute cursor-pointer")}
+      className={cn("absolute")}
       style={{
         left: item.x,
         top: item.y,
@@ -103,31 +103,32 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
             <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
           )}
           {item.type === 'text' && (
-             <textarea
-                value={item.content}
-                readOnly
-                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none pointer-events-none"
+             <div
+                className="w-full h-full p-2 bg-transparent overflow-hidden pointer-events-none"
                 style={{
                   color: item.style.color,
                   fontFamily: item.style.fontFamily,
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
-             />
+             >
+              {item.content}
+             </div>
           )}
           {item.type === 'post-it' && (
-             <textarea
-                value={item.content}
-                readOnly
-                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md pointer-events-none"
+             <div
+                className="w-full h-full p-4 rounded-sm shadow-md overflow-hidden pointer-events-none"
                 style={{
                   backgroundColor: item.style.backgroundColor,
                   color: item.style.color,
                   fontFamily: item.style.fontFamily,
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
+                  whiteSpace: 'pre-wrap'
                 }}
-             />
+             >
+                {item.content}
+             </div>
           )}
           {item.type === 'shape' && (
             <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">

@@ -136,27 +136,19 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
     if (itemId) {
-      // Bring to front
       const item = localItems.find(i => i.id === itemId);
       if (item && item.type !== 'drawing') {
         const otherItems = localItems.filter(i => i.id !== itemId);
-        updateItems([...otherItems, item]);
+        updateItems([...otherItems, item], false);
       }
-      setIsPropertiesPanelOpen(true);
-    } else {
-        setIsPropertiesPanelOpen(false);
     }
+    setIsPropertiesPanelOpen(!!itemId);
   }, [localItems, updateItems]);
 
-
-  useEffect(() => {
-    if (selectedItemId && !isPropertiesPanelOpen) {
-        setIsPropertiesPanelOpen(true);
-    } else if (!selectedItemId && isPropertiesPanelOpen) {
-        setIsPropertiesPanelOpen(false);
-    }
-  }, [selectedItemId, isPropertiesPanelOpen]);
-
+  const handleEditItem = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setIsPropertiesPanelOpen(true);
+  }
 
   const selectedItem = localItems.find(i => i.id === selectedItemId);
 
@@ -183,6 +175,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     updateItems(localItems.filter(i => i.id !== itemIdToDelete));
     if (selectedItemId === itemIdToDelete) {
         setSelectedItemId(null);
+        setIsPropertiesPanelOpen(false);
     }
   }, [board, localItems, selectedItemId, updateItems]);
 
@@ -190,7 +183,10 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     if (isMobile) {
       return (
         <>
-          <Sheet open={isPropertiesPanelOpen && !!selectedItem} onOpenChange={setIsPropertiesPanelOpen}>
+          <Sheet open={isPropertiesPanelOpen && !!selectedItem} onOpenChange={(isOpen) => {
+              setIsPropertiesPanelOpen(isOpen);
+              if (!isOpen) setSelectedItemId(null);
+            }}>
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
                   <SheetTitle className="capitalize text-lg">{selectedItem?.type} Properties</SheetTitle>
@@ -202,7 +198,10 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
                     item={selectedItem}
                     onUpdateItem={handleUpdateItem}
                     onDeleteItem={() => handleDeleteItem(selectedItem.id)}
-                    onClose={() => setIsPropertiesPanelOpen(false)}
+                    onClose={() => {
+                        setIsPropertiesPanelOpen(false);
+                        setSelectedItemId(null);
+                    }}
                   />
               )}
             </SheetContent>
@@ -223,7 +222,10 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
           item={selectedItem}
           onUpdateItem={handleUpdateItem}
           onDeleteItem={() => handleDeleteItem(selectedItem.id)}
-          onClose={() => setIsPropertiesPanelOpen(false)}
+          onClose={() => {
+            setIsPropertiesPanelOpen(false);
+            setSelectedItemId(null);
+          }}
         />
       );
     }
@@ -271,7 +273,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
             onAddItem={handleAddDrawingItem}
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
-            onEditItem={() => setIsPropertiesPanelOpen(true)}
+            onEditItem={handleEditItem}
             onDeleteItem={handleDeleteItem}
             activeTool={activeTool}
           />
