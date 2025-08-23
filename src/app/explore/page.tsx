@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
