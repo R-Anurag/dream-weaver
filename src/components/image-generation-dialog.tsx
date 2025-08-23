@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Loader2, Wand2, ImagePlus } from 'lucide-react';
+import { Loader2, Wand2, ImagePlus, Mic } from 'lucide-react';
 import { generateImage } from '@/ai/flows/image-generation-flow';
 import { useToast } from './ui/use-toast';
 import Image from 'next/image';
@@ -86,6 +86,9 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
                   disabled={isGenerating}
                   className="pr-10"
                 />
+                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <Mic className="h-5 w-5 text-muted-foreground" />
+                </div>
             </div>
           </div>
           <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-secondary/50">
