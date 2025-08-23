@@ -303,3 +303,5 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     </div>
   );
 }
+
+    
