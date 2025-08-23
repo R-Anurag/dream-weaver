@@ -142,6 +142,9 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
         const otherItems = localItems.filter(i => i.id !== itemId);
         updateItems([...otherItems, item]);
       }
+      setIsPropertiesPanelOpen(true);
+    } else {
+        setIsPropertiesPanelOpen(false);
     }
   }, [localItems, updateItems]);
 
@@ -187,7 +190,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     if (isMobile) {
       return (
         <>
-          <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
+          <Sheet open={isPropertiesPanelOpen && !!selectedItem} onOpenChange={setIsPropertiesPanelOpen}>
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
                   <SheetTitle className="capitalize text-lg">{selectedItem?.type} Properties</SheetTitle>
@@ -213,7 +216,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       );
     }
 
-    if (isProposalsPanelOpen && selectedItem) {
+    if (isPropertiesPanelOpen && selectedItem) {
       return (
         <PropertiesPanel
           key={selectedItem.id}

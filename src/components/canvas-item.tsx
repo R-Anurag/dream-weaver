@@ -37,7 +37,6 @@ const Shape = ({ item }: { item: CanvasItem }) => {
 
 export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete }: CanvasItemProps) {
   const interactionRef = useRef<{
-    isDragging: boolean;
     startX: number;
     startY: number;
     initialX: number;
@@ -47,7 +46,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     interactionRef.current = {
-      isDragging: true,
       startX: e.clientX,
       startY: e.clientY,
       initialX: item.x,
@@ -59,7 +57,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }, [item.x, item.y, onUpdate]);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!interactionRef.current?.isDragging) return;
+    if (!interactionRef.current) return;
     
     const dx = e.clientX - interactionRef.current.startX;
     const dy = e.clientY - interactionRef.current.startY;
@@ -100,15 +98,15 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       }}
       onClick={handleItemClick}
     >
-        <div className={cn("w-full h-full transition-shadow duration-200 group pointer-events-none", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 ring-offset-background rounded-lg")}>
+        <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 ring-offset-background rounded-lg")}>
           {item.type === 'image' && (
-            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md" data-ai-hint="dream board" />
+            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
           )}
           {item.type === 'text' && (
              <textarea
                 value={item.content}
                 readOnly
-                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none"
+                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none pointer-events-none"
                 style={{
                   color: item.style.color,
                   fontFamily: item.style.fontFamily,
@@ -121,7 +119,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              <textarea
                 value={item.content}
                 readOnly
-                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md"
+                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md pointer-events-none"
                 style={{
                   backgroundColor: item.style.backgroundColor,
                   color: item.style.color,
@@ -132,13 +130,13 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              />
           )}
           {item.type === 'shape' && (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
                 <Shape item={item} />
             </svg>
           )}
         </div>
           {isSelected && (
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-1 bg-background p-1 rounded-full shadow-lg border pointer-events-auto" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-1 bg-background p-1 rounded-full shadow-lg border" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
               <div
                   className="p-1.5 rounded-full cursor-move hover:bg-muted"
                   onPointerDown={handlePointerDown}
