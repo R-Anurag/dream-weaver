@@ -81,6 +81,12 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
         const result = await generateImage({ prompt });
         if (result && result.dataUri) {
           setGeneratedImage(result.dataUri);
+        } else {
+           toast({
+              title: 'Image Generation Failed',
+              description: 'This may be due to the prompt. Please try a different one.',
+              variant: 'destructive',
+            });
         }
       } catch (error) {
         console.error('Failed to generate image', error);

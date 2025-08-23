@@ -19,8 +19,9 @@ export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 const GenerateImageOutputSchema = z.object({
   dataUri: z
     .string()
+    .nullable()
     .describe(
-      "The generated image, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:image/png;base64,<encoded_data>'."
+      "The generated image, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:image/png;base64,<encoded_data>'. Can be null if generation fails."
     ),
 });
 export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
@@ -38,18 +39,25 @@ const generateImageFlow = ai.defineFlow(
     outputSchema: GenerateImageOutputSchema,
   },
   async input => {
-    const {media} = await ai.generate({
-        model: 'googleai/gemini-2.0-flash-preview-image-generation',
-        prompt: input.prompt,
-        config: {
-            responseModalities: ['TEXT', 'IMAGE'],
-        },
-    });
+    try {
+        const {media} = await ai.generate({
+            model: 'googleai/gemini-2.0-flash-preview-image-generation',
+            prompt: input.prompt,
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
 
-    if (!media) {
-        throw new Error('Image generation failed to produce an image.');
+        if (!media) {
+            console.error('Image generation failed to produce a media object.');
+            return { dataUri: null };
+        }
+        
+        return { dataUri: media.url };
+
+    } catch (error) {
+        console.error("An error occurred during image generation:", error);
+        return { dataUri: null };
     }
-    
-    return { dataUri: media.url };
   }
 );
