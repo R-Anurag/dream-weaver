@@ -258,7 +258,7 @@ export default function ExplorePage() {
     <div className="flex min-h-svh flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <Link href="/boards" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
+          <Link href="/" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
               <Brush className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg font-headline">Dream Weaver</span>
           </Link>
