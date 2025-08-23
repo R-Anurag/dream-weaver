@@ -34,19 +34,4 @@ export type Board = {
   items: CanvasItem[];
   description?: string;
   tags?: string[];
-  flairs?: string[];
-  published?: boolean;
-  thumbnailUrl?: string;
-};
-
-export type AccessLevel = 'view' | 'comment' | 'edit';
-
-export type Proposal = {
-    id: string;
-    boardId: string;
-    userName: string;
-    userAvatar: string;
-    message: string;
-    status: 'pending' | 'accepted' | 'declined' | 'considering';
-    accessLevel: AccessLevel | null;
 };

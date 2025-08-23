@@ -2,15 +2,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import type { Board, CanvasItem, Proposal } from '@/types';
+import type { Board } from '@/types';
 import CanvasItemComponent from '@/components/canvas-item';
 import { sampleBoards } from '@/lib/sample-data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { ProposalDialog } from '@/components/proposal-dialog';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { cn } from '@/lib/utils';
 
 interface ViewOnlyCanvasProps {
@@ -56,13 +55,10 @@ export default function ViewBoardPage() {
   const params = useParams();
   const boardId = params.boardId as string;
   const [board, setBoard] = useState<Board | undefined>();
-  const [hasSentProposal, setHasSentProposal] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!boardId) return;
-
-    setHasSentProposal(false); // Reset state on board change
 
     // Check sample boards
     const sampleBoard = sampleBoards.find(b => b.id === boardId);
@@ -84,26 +80,7 @@ export default function ViewBoardPage() {
       }
     }
 
-    // Check if a proposal has been sent for this board
-    try {
-        const key = `proposals_${boardId}`;
-        const existingProposalsRaw = localStorage.getItem(key);
-        if (existingProposalsRaw) {
-            const proposals: Proposal[] = JSON.parse(existingProposalsRaw);
-            // Simple check if any proposal exists for this board from "Local User"
-            if (proposals.some(p => p.userName === 'Local User')) {
-                setHasSentProposal(true);
-            }
-        }
-    } catch (error) {
-        console.error("Failed to check proposals in localStorage", error);
-    }
-
   }, [boardId]);
-
-  const handleProposalSent = () => {
-    setHasSentProposal(true);
-  };
 
   return (
     <div className="flex flex-col min-h-svh w-screen bg-background" key={boardId}>
@@ -114,21 +91,12 @@ export default function ViewBoardPage() {
                     {!isMobile && 'Back to Explore'}
                 </Link>
             </Button>
-            <div className="flex-1 text-center">
+            <div className="flex-1 text-center min-w-0">
                  <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
             </div>
-            <div className="flex justify-end">
-               {board && (
-                  hasSentProposal ? (
-                    <Button variant="outline" disabled>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Proposal Sent
-                    </Button>
-                  ) : (
-                    <ProposalDialog board={board} onProposalSent={handleProposalSent} />
-                  )
-               )}
+            <div className="w-24 flex justify-end">
+              {/* Placeholder for actions */}
             </div>
         </header>
         <main className="flex-1 flex flex-col relative p-4 md:p-8">
@@ -137,5 +105,3 @@ export default function ViewBoardPage() {
     </div>
   );
 }
-
-    

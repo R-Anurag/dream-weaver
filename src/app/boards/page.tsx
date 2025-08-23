@@ -95,14 +95,6 @@ export default function BoardsPage() {
     setActiveBoardId(boardId);
   }
 
-  const handleUpdateBoardDetails = (boardId: string, details: Partial<Board>) => {
-     setBoards(prevBoards =>
-      prevBoards.map(board =>
-        board.id === boardId ? { ...board, ...details, published: true } : board
-      )
-    );
-  }
-
   return (
     <div className="flex min-h-svh w-screen bg-background font-body text-foreground overflow-hidden">
         <Sidebar>
@@ -120,7 +112,6 @@ export default function BoardsPage() {
               key={activeBoardId}
               board={boards.find(b => b.id === activeBoardId)}
               onUpdateItems={handleUpdateBoardItems}
-              onUpdateBoardDetails={handleUpdateBoardDetails}
             />
         </SidebarInset>
     </div>

@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Board, CanvasItem, ItemType, ShapeType, Proposal } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import type { Board, CanvasItem, ItemType, ShapeType } from '@/types';
 import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import {
   Sheet,
   SheetContent,
@@ -16,11 +16,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
-import { PublishDialog } from './publish-dialog';
-import ProposalsPanel from './proposals-panel';
-import { sampleProposals } from '@/lib/sample-data';
-import { Badge } from './ui/badge';
+import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { useSidebar } from './ui/sidebar';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -94,15 +90,11 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
       style: { backgroundColor: '#FFFACD', color: '#333333', fontFamily: 'Alegreya', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' }
     },
   ],
-  published: false,
 };
 
-export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardDetails }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void, onUpdateBoardDetails: (boardId: string, details: Partial<Board>) => void }) {
+export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
-  const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
   const [localItems, setLocalItems] = useState<CanvasItem[]>([]);
   const { toast } = useToast();
@@ -113,30 +105,9 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
     setLocalItems(board?.items || []);
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
-    setIsProposalsPanelOpen(false);
     setActiveTool('select');
   }, [board]);
 
-  useEffect(() => {
-    if (board?.id) {
-        try {
-            const storedProposals = localStorage.getItem(`proposals_${board.id}`);
-            const localProposals: Proposal[] = storedProposals ? JSON.parse(storedProposals) : [];
-            const sampleForBoard = sampleProposals.filter(sp => sp.boardId === board.id);
-            const combinedProposals = [...localProposals, ...sampleForBoard.filter(sp => !localProposals.some(lp => lp.id === sp.id))];
-            setProposals(combinedProposals);
-        } catch (error) {
-            console.error("Failed to load proposals", error);
-            setProposals([]);
-        }
-    } else {
-        setProposals([]);
-    }
-  }, [board]);
-
-  const pendingProposalsCount = useMemo(() => {
-    return proposals.filter(p => p.status === 'pending').length;
-  }, [proposals]);
 
   const updateItems = (newItems: CanvasItem[], updateStorage: boolean = true) => {
       setLocalItems(newItems);
@@ -148,7 +119,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
     updateItems(newItems);
-  }, [localItems]);
+  }, [localItems, updateItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
@@ -166,7 +137,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
     } else {
       setSelectedItemId(null);
     }
-  }, [selectedItemId, localItems]);
+  }, [selectedItemId, localItems, updateItems]);
 
   const selectedItem = localItems.find(i => i.id === selectedItemId);
 
@@ -186,7 +157,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
   const handleAddDrawingItem = useCallback((item: CanvasItem) => {
     if (!board) return;
     updateItems([...localItems, item]);
-  }, [board, localItems]);
+  }, [board, localItems, updateItems]);
   
   const handleDeleteItem = useCallback((itemIdToDelete: string) => {
     if (!itemIdToDelete || !board) return;
@@ -195,32 +166,11 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
         setSelectedItemId(null);
         setIsPropertiesPanelOpen(false);
     }
-  }, [board, localItems, selectedItemId]);
-
-  const handlePublish = (details: Partial<Board>) => {
-    if (!board) return;
-    onUpdateBoardDetails(board.id, details);
-    toast({
-      title: "Board Published!",
-      description: "Your vision board is now live on the Explore page.",
-    });
-    setIsPublishing(false);
-  };
-
-  const handleUpdateProposal = (updatedProposal: Proposal) => {
-    const updatedProposals = proposals.map(p => p.id === updatedProposal.id ? updatedProposal : p);
-    setProposals(updatedProposals);
-    try {
-        localStorage.setItem(`proposals_${board?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
-    } catch(e) {
-        console.error("Failed to save proposals", e);
-    }
-  };
+  }, [board, localItems, selectedItemId, updateItems]);
 
   const renderPanels = () => {
     if (isMobile) {
       return (
-        <>
           <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
@@ -238,16 +188,6 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
               )}
             </SheetContent>
           </Sheet>
-          <Sheet open={isProposalsPanelOpen} onOpenChange={setIsProposalsPanelOpen}>
-            <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Proposals Inbox</SheetTitle>
-                    <SheetDescription className="sr-only">View and manage collaboration proposals for this board.</SheetDescription>
-                </SheetHeader>
-                {board && <ProposalsPanel board={board} proposals={proposals} onUpdateProposal={handleUpdateProposal} onClose={() => setIsProposalsPanelOpen(false)} />}
-            </SheetContent>
-          </Sheet>
-        </>
       );
     }
 
@@ -262,34 +202,10 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
         />
       );
     }
-
-    if (isProposalsPanelOpen && board) {
-      return (
-        <ProposalsPanel
-          board={board}
-          proposals={proposals}
-          onUpdateProposal={handleUpdateProposal}
-          onClose={() => setIsProposalsPanelOpen(false)}
-        />
-      );
-    }
     
     return null;
   }
   
-  const PublishTrigger = (
-      <Button
-          onClick={() => setIsPublishing(true)}
-          variant="ghost"
-          size="icon"
-          className="bg-card shadow-lg border border-border"
-          aria-label={board?.published ? "Update Board" : "Publish Board"}
-          >
-          <UploadCloud className="h-5 w-5" />
-      </Button>
-  );
-
-
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
@@ -304,32 +220,6 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardD
                 {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
             <div className="flex items-center justify-end gap-2">
-                {board?.published && (
-                    <Button
-                        onClick={() => setIsProposalsPanelOpen(true)}
-                        variant="ghost"
-                        size="icon"
-                        className="bg-card shadow-lg border border-border relative"
-                        aria-label="View Proposals"
-                    >
-                        <Inbox className="h-5 w-5" />
-                        {pendingProposalsCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center rounded-full">
-                                {pendingProposalsCount}
-                            </Badge>
-                        )}
-                    </Button>
-                )}
-                 {board && (
-                     <PublishDialog
-                        board={board}
-                        onPublish={handlePublish}
-                        isOpen={isPublishing}
-                        onOpenChange={setIsPublishing}
-                    >
-                       {PublishTrigger}
-                    </PublishDialog>
-                 )}
             </div>
           </header>
 

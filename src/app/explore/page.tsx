@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { sampleBoards } from '@/lib/sample-data';
 import type { Board } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
         onDoubleClick={onDoubleClick}
     >
       <Image
-        src={board.thumbnailUrl || `/images/remotework.jpg`}
+        src={`/images/urbanfarming.jpg`}
         alt={board.name}
         width={800}
         height={600}
@@ -45,16 +45,6 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
               </Badge>
             ))}
           </div>
-           <div className="mt-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/80 mb-2">Seeking collaboration in:</p>
-              <div className="flex flex-wrap gap-2">
-                {board.flairs?.map(flair => (
-                    <span key={flair} className="text-xs font-medium bg-accent/80 text-accent-foreground rounded-full px-2 py-0.5">
-                    {flair}
-                    </span>
-                ))}
-              </div>
-            </div>
         </div>
       </div>
     </div>
@@ -72,45 +62,13 @@ export default function ExplorePage() {
     loop: true,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const loadDataFromStorage = useCallback(() => {
-    let publishedBoards: Board[] = [];
-    try {
-        const savedBoards = localStorage.getItem('dreamWeaverBoards');
-        if (savedBoards) {
-            const localBoards: Board[] = JSON.parse(savedBoards);
-            publishedBoards = localBoards.filter(b => b.published);
-        }
-    } catch (error) {
-        console.error("Failed to load published boards from localStorage", error);
-    }
-    
-    const combinedBoards = [...sampleBoards];
-    const sampleBoardIds = new Set(sampleBoards.map(b => b.id));
-    publishedBoards.forEach(pBoard => {
-      if (!sampleBoardIds.has(pBoard.id)) {
-        combinedBoards.push(pBoard);
-      }
-    });
-
-    setAllBoards(combinedBoards);
-  }, []);
-
-  useEffect(() => {
-    loadDataFromStorage();
-    window.addEventListener('storage', loadDataFromStorage);
-    return () => {
-        window.removeEventListener('storage', loadDataFromStorage);
-    };
-  }, [loadDataFromStorage]);
   
   const filteredBoards = useMemo(() => {
-    const relevantBoards = allBoards.filter(b => b.published || sampleBoards.some(sb => sb.id === b.id));
     if (!searchTerm) {
-      return relevantBoards;
+      return allBoards;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    return relevantBoards.filter(board =>
+    return allBoards.filter(board =>
         board.name.toLowerCase().includes(lowercasedFilter) ||
         (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
         board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
