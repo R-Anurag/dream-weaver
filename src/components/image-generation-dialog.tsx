@@ -63,6 +63,13 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
     setPrompt('');
     setGeneratedImage(null);
   };
+  
+  const handleMicClick = () => {
+    toast({
+        title: "Coming Soon!",
+        description: "Voice input for image generation is on its way."
+    })
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -86,8 +93,8 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
                   disabled={isGenerating}
                   className="pr-10"
                 />
-                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <Mic className="h-5 w-5 text-muted-foreground" />
+                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={handleMicClick}>
+                    <Mic className="h-5 w-5 text-muted-foreground hover:text-foreground" />
                 </div>
             </div>
           </div>
