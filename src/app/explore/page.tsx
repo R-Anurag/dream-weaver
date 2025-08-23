@@ -159,12 +159,12 @@ export default function ExplorePage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
                     <Input
                         placeholder="Search projects..."
-                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60 pr-10"
+                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <VoiceInputButton onTranscript={setSearchTerm} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80" />
                 </div>
+                 <VoiceInputButton onTranscript={setSearchTerm} className="bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20" />
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
                         <Plus className="h-5 w-5" />
@@ -196,15 +196,17 @@ export default function ExplorePage() {
                 <ArrowLeft className="mr-2 h-4 w-4" /> My Boards
             </Link>
           </Button>
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Search projects..."
-              className="pl-10 h-11 pr-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <VoiceInputButton onTranscript={setSearchTerm} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <Input
+                placeholder="Search projects..."
+                className="pl-10 h-11"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <VoiceInputButton onTranscript={setSearchTerm} />
           </div>
           <Button asChild>
             <Link href="/boards">
@@ -250,4 +252,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
