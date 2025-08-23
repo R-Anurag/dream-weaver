@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Sparkles, Star, Mic } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useCallback, useRef, useTransition } from 'react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Sparkles, Star, Mic, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { ProposalDialog } from '@/components/proposal-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { searchBoards } from '@/ai/flows/search-flow';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -62,7 +63,10 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
 
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [allBoards, setAllBoards] = useState<Board[]>(sampleBoards);
+  const [allBoards] = useState<Board[]>(() => sampleBoards.filter(b => b.published));
+  const [filteredBoardIds, setFilteredBoardIds] = useState<string[]>(() => allBoards.map(b => b.id));
+  const [isSearching, startSearchTransition] = useTransition();
+
   const router = useRouter();
   const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -79,7 +83,6 @@ export default function ExplorePage() {
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      // Browser doesn't support speech recognition
       return;
     }
 
@@ -108,19 +111,43 @@ export default function ExplorePage() {
     recognitionRef.current = recognition;
   }, [toast]);
   
-  const publishedBoards = useMemo(() => allBoards.filter(b => b.published), [allBoards]);
+  const handleSearch = useCallback((query: string) => {
+    if (!query) {
+      setFilteredBoardIds(allBoards.map(b => b.id));
+      return;
+    }
+    startSearchTransition(async () => {
+      try {
+        const result = await searchBoards(query, allBoards);
+        if (result && result.rankedBoardIds) {
+          setFilteredBoardIds(result.rankedBoardIds);
+        }
+      } catch (error) {
+        console.error("AI search failed", error);
+        toast({ title: 'Search Error', description: 'The AI search failed. Please try again.', variant: 'destructive' });
+        // Fallback to simple search
+        const lowercasedFilter = query.toLowerCase();
+        const fallbackIds = allBoards.filter(board =>
+            board.name.toLowerCase().includes(lowercasedFilter) ||
+            (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
+            board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
+        ).map(b => b.id);
+        setFilteredBoardIds(fallbackIds);
+      }
+    });
+  }, [allBoards, toast]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      handleSearch(searchTerm);
+    }, 500); // Debounce search
+    return () => clearTimeout(handler);
+  }, [searchTerm, handleSearch]);
 
   const filteredBoards = useMemo(() => {
-    if (!searchTerm) {
-      return publishedBoards;
-    }
-    const lowercasedFilter = searchTerm.toLowerCase();
-    return publishedBoards.filter(board =>
-        board.name.toLowerCase().includes(lowercasedFilter) ||
-        (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
-        board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
-    );
-  }, [searchTerm, publishedBoards]);
+    const boardMap = new Map(allBoards.map(b => [b.id, b]));
+    return filteredBoardIds.map(id => boardMap.get(id)).filter((b): b is Board => !!b);
+  }, [filteredBoardIds, allBoards]);
   
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
   
@@ -178,10 +205,10 @@ export default function ExplorePage() {
         emblaApi.reInit();
         if (filteredBoards.length > 0) {
             emblaApi.scrollTo(0, true);
-            setCurrentIndex(0);
         }
+        setCurrentIndex(0);
     }
-  }, [searchTerm, filteredBoards.length, emblaApi, isMobile]);
+  }, [filteredBoardIds, emblaApi, isMobile]);
   
   if (isMobile) {
     return (
@@ -189,7 +216,10 @@ export default function ExplorePage() {
         <header className="p-4 absolute top-0 left-0 right-0 z-30">
             <div className="flex items-center gap-2 max-w-md mx-auto">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
+                    {isSearching ? 
+                        <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 animate-spin" /> :
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
+                    }
                     <Input
                         placeholder="Search projects..."
                         className="pl-10 pr-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
@@ -234,7 +264,10 @@ export default function ExplorePage() {
           </Link>
           <div className="flex items-center gap-2 flex-1 max-w-xs">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                 {isSearching ? 
+                    <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" /> :
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                }
                 <Input
                 placeholder="Search projects..."
                 className="pl-10 pr-10 h-11"
@@ -257,7 +290,13 @@ export default function ExplorePage() {
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
-          {filteredBoards.length > 0 && currentBoard ? (
+          {isSearching ? (
+            <div className="text-center">
+              <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+              <h3 className="mt-4 text-xl font-semibold">Searching...</h3>
+              <p className="text-muted-foreground">Our AI is finding the best matches for you.</p>
+            </div>
+          ) : filteredBoards.length > 0 && currentBoard ? (
             <>
                <Button onClick={handlePrevBoard} variant="outline" size="lg" className="shadow-lg hover:bg-muted flex-shrink-0 w-40">
                   <ThumbsDown className="h-5 w-5 mr-2 text-destructive" />
