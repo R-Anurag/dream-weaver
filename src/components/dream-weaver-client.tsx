@@ -370,7 +370,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onEditItem={() => setIsPropertiesPanelOpen(true)}
             onDeleteItem={handleDeleteItem}
             activeTool={activeTool}
-            isVoiceRecording={isListening}
+            isVoiceRecording={isListening && selectedItemId !== null}
             onVoiceRecord={handleVoiceRecord}
           />
         </div>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SpeechRecognitionOptions {
   onStop?: (transcript: string) => void;
@@ -12,6 +12,15 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const handleStop = useCallback(() => {
+      setTranscript(prev => {
+          if (onStop) {
+              onStop(prev);
+          }
+          return prev;
+      });
+  }, [onStop]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -35,16 +44,9 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
       
       recognition.onend = () => {
         if (isListening) {
-            // In continuous mode, it can sometimes stop. Restart it.
             recognition.start();
         } else {
-            // If stopped manually, trigger the callback
-            setTranscript(prev => {
-                if (onStop) {
-                    onStop(prev);
-                }
-                return prev;
-            });
+            handleStop();
         }
       };
 
@@ -59,11 +61,11 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [isListening, handleStop]);
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
-      setTranscript(''); // Reset transcript on start
+      setTranscript(''); 
       recognitionRef.current.start();
       setIsListening(true);
     }
@@ -73,7 +75,6 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
-      // onStop is called via the onend handler
     }
   };
 
