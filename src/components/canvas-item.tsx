@@ -54,7 +54,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
-  }, [item.x, item.y, onUpdate]);
+  }, [item.x, item.y]);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
     if (!interactionRef.current) return;
@@ -69,7 +69,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     interactionRef.current = null;
     document.removeEventListener('pointermove', handlePointerMove);
     document.removeEventListener('pointerup', handlePointerUp);
-  }, [handlePointerMove]);
+  }, []);
   
   const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();

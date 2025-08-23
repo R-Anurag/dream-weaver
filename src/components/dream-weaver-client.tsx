@@ -129,20 +129,19 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   }
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
-    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    updateItems(newItems);
+    updateItems(localItems.map(item => (item.id === updatedItem.id ? updatedItem : item)));
   }, [localItems, updateItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
     if (itemId) {
+      // Bring item to front
       const item = localItems.find(i => i.id === itemId);
-      if (item && item.type !== 'drawing') {
+      if (item) {
         const otherItems = localItems.filter(i => i.id !== itemId);
         updateItems([...otherItems, item], false);
       }
     }
-    setIsPropertiesPanelOpen(!!itemId);
   }, [localItems, updateItems]);
 
   const handleEditItem = (itemId: string) => {
@@ -162,6 +161,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
     if (type !== 'drawing') {
       handleSelectItem(newItem.id);
+      handleEditItem(newItem.id);
     }
   };
 
@@ -179,13 +179,21 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     }
   }, [board, localItems, selectedItemId, updateItems]);
 
+  const closePropertiesPanel = () => {
+    setIsPropertiesPanelOpen(false);
+    setSelectedItemId(null);
+  };
+
   const renderPanels = () => {
     if (isMobile) {
       return (
         <>
           <Sheet open={isPropertiesPanelOpen && !!selectedItem} onOpenChange={(isOpen) => {
-              setIsPropertiesPanelOpen(isOpen);
-              if (!isOpen) setSelectedItemId(null);
+              if (!isOpen) {
+                closePropertiesPanel();
+              } else {
+                setIsPropertiesPanelOpen(true);
+              }
             }}>
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
@@ -198,10 +206,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
                     item={selectedItem}
                     onUpdateItem={handleUpdateItem}
                     onDeleteItem={() => handleDeleteItem(selectedItem.id)}
-                    onClose={() => {
-                        setIsPropertiesPanelOpen(false);
-                        setSelectedItemId(null);
-                    }}
+                    onClose={closePropertiesPanel}
                   />
               )}
             </SheetContent>
@@ -222,10 +227,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
           item={selectedItem}
           onUpdateItem={handleUpdateItem}
           onDeleteItem={() => handleDeleteItem(selectedItem.id)}
-          onClose={() => {
-            setIsPropertiesPanelOpen(false);
-            setSelectedItemId(null);
-          }}
+          onClose={closePropertiesPanel}
         />
       );
     }
