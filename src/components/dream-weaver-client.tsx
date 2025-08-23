@@ -102,47 +102,87 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
-  const [localItems, setLocalItems] = useState<CanvasItem[]>([]);
+  
+  const [history, setHistory] = useState<CanvasItem[][]>([[]]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  const localItems = history[historyIndex];
+
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
   
   useEffect(() => {
-    setLocalItems(board?.items || []);
+    const initialItems = board?.items || [];
+    setHistory([initialItems]);
+    setHistoryIndex(0);
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
     setActiveTool('select');
      if(board) {
-        // Mock loading proposals for the active board
         const boardProposals = sampleProposals.filter(p => p.boardId === 'board-1'); // mock
         setProposals(boardProposals);
     }
   }, [board?.id]);
 
 
-  const updateItems = useCallback((newItems: CanvasItem[], updateStorage: boolean = true) => {
-      setLocalItems(newItems);
-      if(board && updateStorage) {
-          onUpdateItems(board.id, newItems);
+  const updateItems = useCallback((newItems: CanvasItem[], isHistoryEvent: boolean = true) => {
+    if (board) {
+      if (isHistoryEvent) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(newItems);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
       }
-  }, [board, onUpdateItems]);
+      onUpdateItems(board.id, newItems);
+    }
+  }, [board, onUpdateItems, history, historyIndex]);
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      if (board) {
+        onUpdateItems(board.id, history[newIndex]);
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      if (board) {
+        onUpdateItems(board.id, history[newIndex]);
+      }
+    }
+  };
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
-    updateItems(localItems.map(item => (item.id === updatedItem.id ? updatedItem : item)));
+    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
+    // Don't create a new history state for every minor update (e.g. dragging)
+    // For simplicity, we'll let this create history. A more robust solution would throttle this.
+    updateItems(newItems);
   }, [localItems, updateItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
+    setIsPropertiesPanelOpen(!!itemId);
     if (itemId) {
-      // Bring item to front
       const item = localItems.find(i => i.id === itemId);
       if (item) {
         const otherItems = localItems.filter(i => i.id !== itemId);
-        updateItems([...otherItems, item], false);
+        const newItems = [...otherItems, item];
+        setHistory(prev => {
+          const updatedHistory = [...prev];
+          updatedHistory[historyIndex] = newItems;
+          return updatedHistory;
+        });
+        if (board) onUpdateItems(board.id, newItems);
       }
     }
-  }, [localItems, updateItems]);
+  }, [localItems, onUpdateItems, board, historyIndex]);
 
   const handleEditItem = (itemId: string) => {
     setSelectedItemId(itemId);
@@ -268,7 +308,15 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
             </div>
           </header>
 
-          <Toolbar onAddItem={handleAddItem} activeTool={activeTool} onSetTool={setActiveTool} />
+          <Toolbar 
+            onAddItem={handleAddItem} 
+            activeTool={activeTool} 
+            onSetTool={setActiveTool}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < history.length - 1}
+           />
           <Canvas
             boardItems={localItems}
             onUpdateItem={handleUpdateItem}
@@ -284,5 +332,3 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       </main>
   );
 }
-
-    

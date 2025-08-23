@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Pencil, Eraser, Wand2 } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Pencil, Eraser, Wand2, Undo, Redo } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -20,9 +20,13 @@ interface ToolbarProps {
   onAddItem: (type: ItemType, content?: string, shape?: ShapeType) => void;
   activeTool: 'select' | 'pencil' | 'eraser';
   onSetTool: (tool: 'select' | 'pencil' | 'eraser') => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export default function Toolbar({ onAddItem, activeTool, onSetTool }: ToolbarProps) {
+export default function Toolbar({ onAddItem, activeTool, onSetTool, onUndo, onRedo, canUndo, canRedo }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -69,6 +73,15 @@ export default function Toolbar({ onAddItem, activeTool, onSetTool }: ToolbarPro
         accept="image/*"
         onChange={handleImageUpload}
       />
+      <Button variant="ghost" size="icon" onClick={onUndo} disabled={!canUndo} aria-label="Undo">
+        <Undo className="h-5 w-5" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onRedo} disabled={!canRedo} aria-label="Redo">
+        <Redo className="h-5 w-5" />
+      </Button>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
       <Button variant={activeTool === 'pencil' ? 'secondary' : 'ghost'} size="icon" onClick={() => onSetTool('pencil')} aria-label="Pencil">
         <Pencil className="h-5 w-5" />
       </Button>
