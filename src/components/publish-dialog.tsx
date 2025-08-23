@@ -22,7 +22,6 @@ import Image from 'next/image';
 import { useToast } from './ui/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
-import { VoiceInputButton } from './voice-input-button';
 
 
 interface PublishDialogProps {
@@ -136,13 +135,11 @@ const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChan
                 <div className="grid gap-2 relative">
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your vision board..." />
-                    <VoiceInputButton onTranscript={setDescription} className="absolute right-3 top-1" />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="tags">Tags (comma-separated)</Label>
                     <div className="relative">
                         <Input id="tags" placeholder="e.g., sustainability, art, tech" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'tag')} className="pr-10" />
-                        <VoiceInputButton onTranscript={(t) => addChip(t, 'tag')} className="absolute right-3 top-1/2 -translate-y-1/2" />
                     </div>
                     <div className="flex flex-wrap gap-2 mt-1 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                         {tags.map((tag, index) => (
@@ -157,7 +154,6 @@ const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChan
                     <Label htmlFor="flairs">Seeking Skills (comma-separated)</Label>
                     <div className="relative">
                         <Input id="flairs" placeholder="e.g., Design, Funding, Engineering" value={currentFlair} onChange={(e) => setCurrentFlair(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'flair')} className="pr-10" />
-                         <VoiceInputButton onTranscript={(t) => addChip(t, 'flair')} className="absolute right-3 top-1/2 -translate-y-1/2" />
                     </div>
                     <div className="flex flex-wrap gap-2 mt-1 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                         {flairs.map((flair, index) => (

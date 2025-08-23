@@ -5,8 +5,7 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Move, Settings, Trash2, Mic } from 'lucide-react';
-import { VoiceInputButton } from './voice-input-button';
+import { Move, Settings, Trash2 } from 'lucide-react';
 
 interface CanvasItemProps {
   item: CanvasItem;
@@ -198,13 +197,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }
 
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-  const canHaveVoice = item.type === 'text' || item.type === 'post-it';
-
-  const handleVoiceTranscript = (transcript: string) => {
-    if (transcript) {
-        onUpdate({ ...item, content: item.content ? `${item.content} ${transcript}` : transcript });
-    }
-  };
 
   return (
     <div
@@ -290,15 +282,6 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
-                {canHaveVoice && (
-                     <VoiceInputButton
-                        onTranscript={handleVoiceTranscript}
-                        onStart={() => onSelect(item.id)}
-                        className="p-1 bg-accent border-2 border-white rounded-full h-auto w-auto"
-                        iconClassName='w-4 h-4 text-accent-foreground'
-                        tooltipContent={null}
-                    />
-                )}
                 <div
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"

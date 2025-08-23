@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Mic } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { VoiceInputButton } from '@/components/voice-input-button';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -165,7 +164,6 @@ export default function ExplorePage() {
                     />
                 </div>
                 <div className="flex items-center gap-1">
-                 <VoiceInputButton onTranscript={setSearchTerm} className="bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20" />
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
                         <Plus className="h-5 w-5" />
@@ -207,7 +205,6 @@ export default function ExplorePage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <VoiceInputButton onTranscript={setSearchTerm} />
           </div>
           <div className="flex items-center gap-2">
             <Button asChild>

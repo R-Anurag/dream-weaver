@@ -19,7 +19,6 @@ import { useToast } from './ui/use-toast';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
-import { VoiceInputButton } from './voice-input-button';
 
 interface ImageGenerationDialogProps {
   onAddItem: (type: 'image', content: string) => void;
@@ -87,7 +86,6 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
                   disabled={isGenerating}
                   className="pr-10"
                 />
-                <VoiceInputButton onTranscript={setPrompt} className="absolute right-3 top-1/2 -translate-y-1/2" />
             </div>
           </div>
           <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-secondary/50">
