@@ -98,17 +98,15 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
     switch(stage) {
         case 'generate-headings':
             return (
-                <>
-                <DialogHeader className="sr-only">
-                    <DialogTitle>Generating Ideas</DialogTitle>
-                    <DialogDescription>The AI is generating proposal ideas.</DialogDescription>
-                </DialogHeader>
                 <div className="flex flex-col items-center justify-center text-center p-8 min-h-[300px]">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Generating Ideas</DialogTitle>
+                        <DialogDescription>The AI is generating proposal ideas.</DialogDescription>
+                    </DialogHeader>
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
                     <h3 className="text-lg font-medium">Generating Ideas...</h3>
                     <p className="text-muted-foreground text-sm">Our AI is crafting some catchy proposal starters for your project.</p>
                 </div>
-                </>
             )
         case 'select-heading':
             return (
@@ -176,17 +174,15 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
             )
         case 'sent':
             return (
-                 <>
+                <div className="flex flex-col items-center justify-center text-center p-8 min-h-[300px]">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Proposal Sent</DialogTitle>
                         <DialogDescription>Your proposal has been successfully sent.</DialogDescription>
                     </DialogHeader>
-                    <div className="flex flex-col items-center justify-center text-center p-8 min-h-[300px]">
-                        <Sparkles className="h-12 w-12 text-accent mb-4 animate-pulse" />
-                        <h3 className="text-lg font-medium">Proposal Sent!</h3>
-                        <p className="text-muted-foreground text-sm">The project owner has been notified. Good luck!</p>
-                    </div>
-                </>
+                    <Sparkles className="h-12 w-12 text-accent mb-4 animate-pulse" />
+                    <h3 className="text-lg font-medium">Proposal Sent!</h3>
+                    <p className="text-muted-foreground text-sm">The project owner has been notified. Good luck!</p>
+                </div>
             )
     }
   }
