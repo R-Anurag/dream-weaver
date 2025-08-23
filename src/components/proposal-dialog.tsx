@@ -19,6 +19,7 @@ import { useToast } from './ui/use-toast';
 import type { Board } from '@/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import { Label } from './ui/label';
 
 interface ProposalDialogProps {
   board: Board;
