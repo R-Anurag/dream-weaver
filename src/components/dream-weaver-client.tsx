@@ -13,6 +13,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
 import { UploadCloud, Inbox, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
@@ -159,7 +160,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
-      setSelectedItemId(itemId);
+      if (selectedItemId === itemId) {
+        // Don't re-open if already selected
+      } else {
+         setSelectedItemId(itemId);
+      }
       setActiveTool('select');
       
       setBoards(prevBoards =>
@@ -184,7 +189,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         setSelectedItemId(null);
       }
     }
-  }, [activeBoardId, setBoards, isListening]);
+  }, [activeBoardId, setBoards, isListening, selectedItemId]);
 
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
