@@ -6,11 +6,11 @@ import { getFirestore } from "firebase/firestore";
 // TODO: Replace with your own Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  authDomain: "dream-weaver-qpc40.firebaseapp.com",
+  projectId: "dream-weaver-qpc40",
+  storageBucket: "dream-weaver-qpc40.firebasestorage.app",
+  messagingSenderId: "892490259196",
+  appId: "1:892490259196:web:3765d1da1a59b9ef0e1579"
 };
 
 // Initialize Firebase
