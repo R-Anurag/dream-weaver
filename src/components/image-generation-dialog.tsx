@@ -117,6 +117,7 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
       recognition.stop();
     } else {
       try {
+        setPrompt(''); // Clear the prompt before starting
         recognition.start();
         setIsListening(true);
       } catch (error) {
@@ -161,7 +162,7 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
                 </div>
 
                 <DialogFooter className="p-6 flex-col sm:flex-col sm:space-x-0 gap-2 mt-auto">
-                    <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
+                    <Button onClick={handleGenerate} disabled={isGenerating || !prompt} className="w-full">
                         {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                         Generate
                     </Button>
