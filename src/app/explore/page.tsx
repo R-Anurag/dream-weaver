@@ -164,12 +164,14 @@ export default function ExplorePage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                <div className="flex items-center gap-1">
                  <VoiceInputButton onTranscript={setSearchTerm} className="bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20" />
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
                         <Plus className="h-5 w-5" />
                     </Link>
                 </Button>
+                </div>
             </div>
         </header>
         <div className="w-full h-svh">
@@ -195,23 +197,23 @@ export default function ExplorePage() {
               <Brush className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg font-headline">Dream Weaver</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                <Input
-                placeholder="Search projects..."
-                className="pl-10 h-11"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-            <VoiceInputButton onTranscript={setSearchTerm} />
+          <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+              <Input
+              placeholder="Search projects..."
+              className="pl-10 h-11"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              />
           </div>
-          <Button asChild>
-            <Link href="/boards">
-                <Plus className="mr-2 h-4 w-4" /> Create Board
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <VoiceInputButton onTranscript={setSearchTerm} />
+            <Button asChild>
+              <Link href="/boards">
+                  <Plus className="mr-2 h-4 w-4" /> Create Board
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
@@ -251,5 +253,7 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
 
     
