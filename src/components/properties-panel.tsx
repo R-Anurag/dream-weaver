@@ -48,6 +48,9 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
     const updateStyle = (key: string, value: any) => {
         onUpdateItem({ ...item, style: { ...item.style, [key]: value } });
     };
+    const updateProperty = (key: string, value: any) => {
+        onUpdateItem({ ...item, [key]: value });
+    }
     const isMobile = useIsMobile();
     const fontFamilies = ['Alegreya', 'Architects Daughter', 'Caveat'];
 
@@ -55,6 +58,29 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
         <>
             <ScrollArea className="flex-1">
                 <div className="space-y-4 p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>X</Label>
+                            <Input type="number" value={Math.round(item.x)} onChange={(e) => updateProperty('x', parseInt(e.target.value))} className="w-full h-8" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Y</Label>
+                            <Input type="number" value={Math.round(item.y)} onChange={(e) => updateProperty('y', parseInt(e.target.value))} className="w-full h-8" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label>Width</Label>
+                            <Input type="number" value={Math.round(item.width)} onChange={(e) => updateProperty('width', parseInt(e.target.value))} className="w-full h-8" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label>Height</Label>
+                            <Input type="number" value={Math.round(item.height)} onChange={(e) => updateProperty('height', parseInt(e.target.value))} className="w-full h-8" />
+                        </div>
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <Label>Rotation</Label>
+                        <Input type="number" value={Math.round(item.rotation)} onChange={(e) => onUpdateItem({...item, rotation: parseInt(e.target.value)})} className="w-20 h-8" />
+                    </div>
+
                     {(item.type === 'text' || item.type === 'shape' || item.type === 'post-it') && (
                          <div className="flex items-center justify-between">
                             <Label>Background</Label>
@@ -106,10 +132,6 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                             </div>
                         </>
                     )}
-                     <div className="flex items-center justify-between">
-                        <Label>Rotation</Label>
-                        <Input type="number" value={Math.round(item.rotation)} onChange={(e) => onUpdateItem({...item, rotation: parseInt(e.target.value)})} className="w-20 h-8" />
-                    </div>
                 </div>
             </ScrollArea>
 
@@ -136,3 +158,5 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
         </aside>
     );
 }
+
+    
