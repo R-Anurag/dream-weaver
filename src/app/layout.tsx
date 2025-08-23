@@ -12,7 +12,7 @@ const alegreya = Alegreya({
 
 export const metadata: Metadata = {
   title: 'Dream Weaver',
-  description: 'A creative digital vision board to help you visualize your goals and collaborate with others.',
+  description: 'A creative digital canvas and vision board to help you visualize your goals, find inspiration, and collaborate with others to bring your dreams to life.',
 };
 
 export default function RootLayout({
