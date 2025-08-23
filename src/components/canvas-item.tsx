@@ -107,9 +107,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           {item.type === 'text' && (
              <textarea
                 value={item.content}
-                onPointerDown={(e) => e.stopPropagation()}
-                onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
+                readOnly
+                className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-pointer pointer-events-none"
                 style={{
                   color: item.style.color,
                   fontFamily: item.style.fontFamily,
@@ -121,9 +120,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           {item.type === 'post-it' && (
              <textarea
                 value={item.content}
-                onPointerDown={(e) => e.stopPropagation()}
-                onChange={(e) => onUpdate({ ...item, content: e.target.value })}
-                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
+                readOnly
+                className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-pointer pointer-events-none"
                 style={{
                   backgroundColor: item.style.backgroundColor,
                   color: item.style.color,
