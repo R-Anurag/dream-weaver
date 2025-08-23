@@ -56,7 +56,7 @@ const createNewItem = (type: ItemType, content: string = '', shape: ShapeType = 
         height: 150,
         content: 'A quick note...',
         rotation: -3,
-        style: { ...baseItem.style, backgroundColor: '#FFFACD', color: '#333333', textAlign: 'left' as const },
+        style: { ...baseItem.style, backgroundColor: '#FFFACD', color: '#333333', textAlign: 'left' as const, fontFamily: 'Caveat' },
       };
     case 'shape':
       return {
@@ -70,6 +70,7 @@ const createNewItem = (type: ItemType, content: string = '', shape: ShapeType = 
         return {
              ...baseItem,
             width: 0, height: 0,
+            content: '',
             style: {
                 ...baseItem.style,
                 strokeColor: '#000000',
@@ -91,7 +92,7 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
     },
     {
       id: generateId(), type: 'post-it', x: 500, y: 80, width: 200, height: 200, rotation: 5, content: 'Add images, shapes, and notes to visualize your dreams. \n\nLet\'s get started!',
-      style: { backgroundColor: '#FFFACD', color: '#333333', fontFamily: 'Alegreya', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' }
+      style: { backgroundColor: '#FFFACD', color: '#333333', fontFamily: 'Caveat', fontSize: 16, borderColor: '#000000', borderWidth: 0, textAlign: 'left', shape: 'rectangle' }
     },
   ],
 };
@@ -106,7 +107,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const [history, setHistory] = useState<CanvasItem[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const localItems = history[historyIndex];
+  const localItems = history[historyIndex] || [];
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -127,17 +128,23 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   }, [board?.id]);
 
 
-  const updateItems = useCallback((newItems: CanvasItem[], isHistoryEvent: boolean = true) => {
+  const updateItems = useCallback((newItems: CanvasItem[]) => {
     if (board) {
-      if (isHistoryEvent) {
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(newItems);
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
-      }
-      onUpdateItems(board.id, newItems);
+        onUpdateItems(board.id, newItems);
     }
   }, [board, onUpdateItems, history, historyIndex]);
+  
+  const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
+    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
+    const newHistory = [...history];
+    newHistory[historyIndex] = newItems;
+    setHistory(newHistory);
+    if(board) onUpdateItems(board.id, newItems);
+  }, [localItems, updateItems, board, history, historyIndex]);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -159,30 +166,21 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     }
   };
 
-  const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
-    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    // Don't create a new history state for every minor update (e.g. dragging)
-    // For simplicity, we'll let this create history. A more robust solution would throttle this.
-    updateItems(newItems);
-  }, [localItems, updateItems]);
-
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
-    setIsPropertiesPanelOpen(!!itemId);
     if (itemId) {
       const item = localItems.find(i => i.id === itemId);
       if (item) {
+        // Bring to front
         const otherItems = localItems.filter(i => i.id !== itemId);
         const newItems = [...otherItems, item];
-        setHistory(prev => {
-          const updatedHistory = [...prev];
-          updatedHistory[historyIndex] = newItems;
-          return updatedHistory;
-        });
+        const newHistory = [...history];
+        newHistory[historyIndex] = newItems;
+        setHistory(newHistory);
         if (board) onUpdateItems(board.id, newItems);
       }
     }
-  }, [localItems, onUpdateItems, board, historyIndex]);
+  }, [localItems, onUpdateItems, board, history, historyIndex]);
 
   const handleEditItem = (itemId: string) => {
     setSelectedItemId(itemId);
@@ -201,7 +199,6 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
     if (type !== 'drawing') {
       handleSelectItem(newItem.id);
-      handleEditItem(newItem.id);
     }
   };
 
@@ -253,7 +250,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
           </Sheet>
           <Sheet open={isProposalsPanelOpen} onOpenChange={setIsProposalsPanelOpen}>
             <SheetContent side="left" className="w-[85vw] p-0 flex flex-col">
-                 <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} />
+                 <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} onClose={() => setIsProposalsPanelOpen(false)} />
             </SheetContent>
           </Sheet>
         </>
@@ -285,11 +282,12 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="bg-card shadow-lg border border-border"
+                className="bg-card shadow-lg border border-border md:hidden"
                 aria-label="Toggle Menu"
             >
                 {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
+            <div className="flex-grow"></div>
             <div className="flex items-center justify-end gap-2">
                  <Button variant="outline" size="icon" className="relative bg-card shadow-lg" onClick={() => setIsProposalsPanelOpen(!isProposalsPanelOpen)}>
                     <Bell className="h-5 w-5" />
