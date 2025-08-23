@@ -17,8 +17,6 @@ import LottiePlayer from '@/components/lottie-player';
 import animationData from '@/lib/animation-data.json';
 import { cn } from '@/lib/utils';
 import ScrollAnimator from '@/components/scroll-animator';
-import { useAuth } from '@/hooks/use-auth';
-import { auth } from '@/lib/firebase';
 
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title:string, description: string }) => (
@@ -53,8 +51,6 @@ const FloatingItem = ({ className, children, delay }: { className: string, child
 
 
 export default function HomePage() {
-  const { user } = useAuth();
-
   return (
     <div className="flex flex-col min-h-svh bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -67,19 +63,11 @@ export default function HomePage() {
             <Button asChild variant="ghost">
               <Link href="/explore">Explore</Link>
             </Button>
-            {user ? (
-                 <Button asChild>
-                    <Link href="/boards">
-                        Go to Your Boards <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                </Button>
-            ) : (
-                 <Button asChild>
-                    <Link href="/login">
-                        Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                </Button>
-            )}
+            <Button asChild>
+                <Link href="/boards">
+                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
           </nav>
         </div>
       </header>

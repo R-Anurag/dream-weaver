@@ -3,7 +3,6 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "next-themes";
 import { Alegreya } from 'next/font/google';
-import { AuthProvider } from '@/hooks/use-auth';
 
 const alegreya = Alegreya({
   subsets: ['latin'],
@@ -25,9 +24,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={alegreya.variable}>
       <body className="font-body antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
             {children}
-          </AuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>

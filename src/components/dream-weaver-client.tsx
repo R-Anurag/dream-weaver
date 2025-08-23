@@ -97,7 +97,7 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
   published: false,
 };
 
-export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
+export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoardDetails }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void, onUpdateBoardDetails: (boardId: string, details: Partial<Board>) => void }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
@@ -119,11 +119,16 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
   useEffect(() => {
     if (board?.id) {
-        const storedProposals = localStorage.getItem(`proposals_${board.id}`);
-        const localProposals: Proposal[] = storedProposals ? JSON.parse(storedProposals) : [];
-        const sampleForBoard = sampleProposals.filter(sp => sp.boardId === board.id);
-        const combinedProposals = [...localProposals, ...sampleForBoard.filter(sp => !localProposals.some(lp => lp.id === sp.id))];
-        setProposals(combinedProposals);
+        try {
+            const storedProposals = localStorage.getItem(`proposals_${board.id}`);
+            const localProposals: Proposal[] = storedProposals ? JSON.parse(storedProposals) : [];
+            const sampleForBoard = sampleProposals.filter(sp => sp.boardId === board.id);
+            const combinedProposals = [...localProposals, ...sampleForBoard.filter(sp => !localProposals.some(lp => lp.id === sp.id))];
+            setProposals(combinedProposals);
+        } catch (error) {
+            console.error("Failed to load proposals", error);
+            setProposals([]);
+        }
     } else {
         setProposals([]);
     }
@@ -133,9 +138,9 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     return proposals.filter(p => p.status === 'pending').length;
   }, [proposals]);
 
-  const updateItems = (newItems: CanvasItem[]) => {
+  const updateItems = (newItems: CanvasItem[], updateStorage: boolean = true) => {
       setLocalItems(newItems);
-      if(board) {
+      if(board && updateStorage) {
           onUpdateItems(board.id, newItems);
       }
   }
@@ -156,7 +161,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       if (itemToMove?.type !== 'drawing') {
           const newItems = localItems.filter(item => item.id !== itemId);
           newItems.push(itemToMove);
-          updateItems(newItems);
+          updateItems(newItems, true); // explicitly save on reorder
       }
     } else {
       setSelectedItemId(null);
@@ -194,8 +199,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
   const handlePublish = (details: Partial<Board>) => {
     if (!board) return;
-    // This should now be handled at the page level to update Firestore
-    console.log("Publishing", details);
+    onUpdateBoardDetails(board.id, details);
     toast({
       title: "Board Published!",
       description: "Your vision board is now live on the Explore page.",
@@ -206,7 +210,11 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const handleUpdateProposal = (updatedProposal: Proposal) => {
     const updatedProposals = proposals.map(p => p.id === updatedProposal.id ? updatedProposal : p);
     setProposals(updatedProposals);
-    localStorage.setItem(`proposals_${board?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
+    try {
+        localStorage.setItem(`proposals_${board?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
+    } catch(e) {
+        console.error("Failed to save proposals", e);
+    }
   };
 
   const renderPanels = () => {
