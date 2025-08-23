@@ -19,6 +19,7 @@ import { Rocket, Copy, Check, Save } from 'lucide-react';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+import { ScrollArea } from './ui/scroll-area';
 
 interface PublishDialogProps {
   board: Board | undefined;
@@ -89,73 +90,80 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle>Publish & Share</DialogTitle>
           <DialogDescription>
             Edit your board's public details and publish it to the world.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                    id="description" 
-                    placeholder="Describe your vision board..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[80px]"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input 
-                    id="tags" 
-                    placeholder="e.g., sustainability, community, tech"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="flairs">Flairs (comma-separated)</Label>
-                <Input 
-                    id="flairs" 
-                    placeholder="e.g., Featured, Top 5%"
-                    value={flairs}
-                    onChange={(e) => setFlairs(e.target.value)}
-                />
-            </div>
-
-            <div className="flex items-center space-x-4 rounded-lg border p-4">
-                <Rocket className="h-6 w-6 text-primary" />
-                <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                    Publish to web
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                    Allow anyone with the link to view your board.
-                    </p>
-                </div>
-                <Switch
-                    id="publish-switch"
-                    checked={isPublished}
-                    onCheckedChange={handlePublishToggle}
-                />
-            </div>
-
-            {isPublished && (
-                <div className="space-y-2">
-                    <Label htmlFor="link">Shareable Link</Label>
-                    <div className="flex space-x-2">
-                        <Input id="link" value={shareableLink} readOnly />
-                        <Button type="button" size="icon" variant="secondary" onClick={copyToClipboard}>
-                            {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                        </Button>
+        <ScrollArea className="flex-1 min-h-0">
+            <div className="grid md:grid-cols-2 gap-6 p-6">
+                {/* Left Column */}
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea 
+                            id="description" 
+                            placeholder="Describe your vision board..."
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[120px]"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="tags">Tags (comma-separated)</Label>
+                        <Input 
+                            id="tags" 
+                            placeholder="e.g., sustainability, community, tech"
+                            value={tags}
+                            onChange={(e) => setTags(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="flairs">Flairs (comma-separated)</Label>
+                        <Input 
+                            id="flairs" 
+                            placeholder="e.g., Featured, Top 5%"
+                            value={flairs}
+                            onChange={(e) => setFlairs(e.target.value)}
+                        />
                     </div>
                 </div>
-            )}
-        </div>
-        <DialogFooter>
+                {/* Right Column */}
+                <div className="space-y-6">
+                    <div className="flex items-center space-x-4 rounded-lg border p-4 h-fit">
+                        <Rocket className="h-6 w-6 text-primary" />
+                        <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                            Publish to web
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                            Allow anyone to view your board.
+                            </p>
+                        </div>
+                        <Switch
+                            id="publish-switch"
+                            checked={isPublished}
+                            onCheckedChange={handlePublishToggle}
+                        />
+                    </div>
+
+                    {isPublished && (
+                        <div className="space-y-2 animate-fade-in-up">
+                            <Label htmlFor="link">Shareable Link</Label>
+                            <div className="flex space-x-2">
+                                <Input id="link" value={shareableLink} readOnly />
+                                <Button type="button" size="icon" variant="secondary" onClick={copyToClipboard}>
+                                    {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </ScrollArea>
+        <DialogFooter className="p-6 pt-4 border-t bg-background">
             <Button onClick={handleSaveChanges}>
                 <Save className="mr-2 h-4 w-4" />
                 Save Changes
