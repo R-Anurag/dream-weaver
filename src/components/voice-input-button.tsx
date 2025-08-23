@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { Wand2 } from 'lucide-react';
+import { Mic } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -46,7 +46,7 @@ export function VoiceInputButton({ onTranscript, className }: VoiceInputButtonPr
             onClick={handleToggleListening}
             className={cn("h-7 w-7", isListening && 'text-destructive animate-pulse', className)}
           >
-            <Wand2 className="h-4 w-4" />
+            <Mic className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>

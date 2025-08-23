@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Mic } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -197,17 +197,19 @@ export default function ExplorePage() {
               <Brush className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg font-headline">Dream Weaver</span>
           </Link>
-          <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-              <Input
-              placeholder="Search projects..."
-              className="pl-10 h-11"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="flex items-center gap-2 flex-1 max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                <Input
+                placeholder="Search projects..."
+                className="pl-10 h-11"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <VoiceInputButton onTranscript={setSearchTerm} />
           </div>
           <div className="flex items-center gap-2">
-            <VoiceInputButton onTranscript={setSearchTerm} />
             <Button asChild>
               <Link href="/boards">
                   <Plus className="mr-2 h-4 w-4" /> Create Board
@@ -253,7 +255,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
-
-    
