@@ -129,7 +129,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       setActiveTool('select');
       
       const itemToMove = localItems.find(item => item.id === itemId);
-      if (itemToMove?.type !== 'drawing') {
+      if (itemToMove && itemToMove.type !== 'drawing') {
           const newItems = localItems.filter(item => item.id !== itemId);
           newItems.push(itemToMove);
           updateItems(newItems, true); // explicitly save on reorder
