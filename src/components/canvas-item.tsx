@@ -167,6 +167,9 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }
   
   const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Stop the event from bubbling up to the canvas, which would deselect it
+    e.stopPropagation();
+
     // If an interaction (drag/resize) just finished, don't process the click.
     if (interactionRef.current.isInteracting) return;
     
@@ -294,5 +297,3 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     </div>
   );
 }
-
-    
