@@ -134,21 +134,16 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   }, [localItems, updateItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
-    if (selectedItemId === itemId) return;
-    
     setSelectedItemId(itemId);
-    setActiveTool('select');
-    
-    // Bring to front logic
     if (itemId) {
-        const itemToMove = localItems.find(item => item.id === itemId);
-        if (itemToMove && itemToMove.type !== 'drawing') {
-            const newItems = localItems.filter(item => item.id !== itemId);
-            newItems.push(itemToMove);
-            updateItems(newItems, true); // explicitly save on reorder
-        }
+      // Bring to front
+      const item = localItems.find(i => i.id === itemId);
+      if (item && item.type !== 'drawing') {
+        const otherItems = localItems.filter(i => i.id !== itemId);
+        updateItems([...otherItems, item]);
+      }
     }
-  }, [selectedItemId, localItems, updateItems]);
+  }, [localItems, updateItems]);
 
 
   useEffect(() => {
@@ -185,7 +180,6 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     updateItems(localItems.filter(i => i.id !== itemIdToDelete));
     if (selectedItemId === itemIdToDelete) {
         setSelectedItemId(null);
-        setIsPropertiesPanelOpen(false);
     }
   }, [board, localItems, selectedItemId, updateItems]);
 
@@ -219,10 +213,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       );
     }
 
-    if (isProposalsPanelOpen) {
-       return <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} onClose={() => setIsProposalsPanelOpen(false)} />;
-    }
-    if (isPropertiesPanelOpen && selectedItem) {
+    if (isProposalsPanelOpen && selectedItem) {
       return (
         <PropertiesPanel
           key={selectedItem.id}
@@ -286,5 +277,3 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       </main>
   );
 }
-
-    
