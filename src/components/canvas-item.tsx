@@ -58,7 +58,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     
     // Prevent default touch behavior like scrolling
     if ('touches' in e) {
-      e.preventDefault();
+      // e.preventDefault(); // Note: Disabling this as it can interfere with scrolling on the canvas itself
     }
     
     // Select the item if it's not already selected
@@ -88,21 +88,27 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   };
 
   const handleInteractionMove = (e: MouseEvent | TouchEvent) => {
-    // Prevent scroll on touch devices
-    if ('touches' in e) {
+    // Prevent scroll on touch devices while dragging an item
+    if ('touches' in e && interactionRef.current.type) {
       e.preventDefault();
     }
       
     const { type, startX, startY, startWidth, startHeight, handle, startItemX, startItemY } = interactionRef.current;
     if (!type) return;
 
-    interactionRef.current.isInteracting = true;
-
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
     const dx = clientX - startX;
     const dy = clientY - startY;
+    
+    // Set interacting to true only if the user has moved a certain threshold
+    if (!interactionRef.current.isInteracting && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+       interactionRef.current.isInteracting = true;
+    }
+    
+    if (!interactionRef.current.isInteracting) return;
+
 
     if (type === 'move') {
       onUpdate({ ...item, x: startItemX + dx, y: startItemY + dy });
@@ -133,12 +139,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     window.removeEventListener('touchmove', handleInteractionMove);
     window.removeEventListener('touchend', handleInteractionEnd);
     
-    // Use a timeout to reset the interaction state,
-    // which prevents the click event from firing immediately after a drag.
+    // Reset the interaction type after a short delay
+    // This helps distinguish a drag from a click
     setTimeout(() => {
         if (interactionRef.current) {
-            interactionRef.current.isInteracting = false;
             interactionRef.current.type = null;
+            interactionRef.current.isInteracting = false;
         }
     }, 0);
   };
@@ -172,29 +178,19 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     // Otherwise, select the item.
     onSelect(item.id);
   };
-
-  const handleItemMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Don't start a drag if clicking on a textarea.
     if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
-      onSelect(item.id);
-      return;
+        onSelect(item.id);
+        return;
     }
     // Start move interaction only if not clicking a resize handle or a control button
     if (!(e.target as HTMLElement).closest('[data-resize-handle]') && !(e.target as HTMLElement).closest('[data-control]')) {
-        onSelect(item.id)
+        handleInteractionStart(e as any, 'move');
     }
   }
 
-  const handleItemTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).tagName.toLowerCase() === 'textarea') {
-      onSelect(item.id);
-      e.stopPropagation();
-      return;
-    }
-    if (!(e.target as HTMLElement).closest('[data-resize-handle]') && !(e.target as HTMLElement).closest('[data-control]')) {
-        onSelect(item.id)
-    }
-  }
 
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -211,18 +207,16 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         touchAction: 'none', // Prevents default browser touch actions like scrolling
       }}
       onClick={handleItemClick}
-      onMouseDown={handleItemMouseDown}
-      onTouchStart={handleItemTouchStart}
+      onPointerDown={handlePointerDown}
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
-            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md" data-ai-hint="dream board" />
+            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
           )}
           {item.type === 'text' && (
              <textarea
                 value={item.content}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-2 bg-transparent resize-none focus:outline-none cursor-text"
                 style={{
@@ -236,8 +230,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           {item.type === 'post-it' && (
              <textarea
                 value={item.content}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 onChange={(e) => onUpdate({ ...item, content: e.target.value })}
                 className="w-full h-full p-4 resize-none focus:outline-none rounded-sm shadow-md cursor-text"
                 style={{
@@ -250,7 +243,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              />
           )}
           {item.type === 'shape' && (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
                 <Shape item={item} />
             </svg>
           )}
@@ -269,16 +262,14 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                     handle.includes('right') && '-right-1.5',
                     (handle.includes('left') && handle.includes('top')) || (handle.includes('right') && handle.includes('bottom')) ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
                   )}
-                  onMouseDown={(e) => handleInteractionStart(e, 'resize', handle)}
-                  onTouchStart={(e) => handleInteractionStart(e, 'resize', handle)}
+                  onPointerDown={(e) => handleInteractionStart(e as any, 'resize', handle)}
                 />
               ))}
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex gap-2">
                 <div
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-move"
-                    onMouseDown={(e) => handleInteractionStart(e, 'move')}
-                    onTouchStart={(e) => handleInteractionStart(e, 'move')}
+                    onPointerDown={(e) => handleInteractionStart(e as any, 'move')}
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
