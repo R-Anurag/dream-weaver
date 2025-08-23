@@ -21,6 +21,7 @@ import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
 import { Badge } from './ui/badge';
 import { useSidebar } from './ui/sidebar';
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -107,6 +108,9 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
+  const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
+      onStop: () => setSelectedItemId(null) // Deselect item when listening stops
+  });
   
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
@@ -143,6 +147,16 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     );
   }, [activeBoardId, setBoards]);
 
+  // Update text item with voice transcript
+  useEffect(() => {
+      if (transcript && selectedItemId) {
+          const itemToUpdate = activeBoard?.items.find(item => item.id === selectedItemId);
+          if (itemToUpdate && (itemToUpdate.type === 'text' || itemToUpdate.type === 'post-it')) {
+              handleUpdateItem({ ...itemToUpdate, content: transcript });
+          }
+      }
+  }, [transcript, selectedItemId, activeBoard, handleUpdateItem]);
+
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
       setSelectedItemId(itemId);
@@ -166,9 +180,11 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         })
       );
     } else {
+      if (!isListening) {
         setSelectedItemId(null);
+      }
     }
-  }, [activeBoardId, setBoards]);
+  }, [activeBoardId, setBoards, isListening]);
 
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
@@ -219,6 +235,15 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     setProposals(updatedProposals);
     localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
   };
+
+  const handleVoiceRecord = useCallback((itemId: string) => {
+    if (isListening) {
+      stopListening();
+    } else {
+      handleSelectItem(itemId);
+      startListening();
+    }
+  }, [isListening, stopListening, startListening, handleSelectItem]);
 
 
   const renderPanels = () => {
@@ -345,6 +370,8 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onEditItem={() => setIsPropertiesPanelOpen(true)}
             onDeleteItem={handleDeleteItem}
             activeTool={activeTool}
+            isVoiceRecording={isListening}
+            onVoiceRecord={handleVoiceRecord}
           />
         </div>
         {renderPanels()}

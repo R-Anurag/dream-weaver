@@ -19,6 +19,7 @@ import { useToast } from './ui/use-toast';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import { VoiceInputButton } from './voice-input-button';
 
 interface ImageGenerationDialogProps {
   onAddItem: (type: 'image', content: string) => void;
@@ -76,14 +77,18 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Input
-              id="prompt"
-              placeholder="e.g., 'A majestic lion in a futuristic jungle'"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-              disabled={isGenerating}
-            />
+            <div className="relative">
+                <Input
+                  id="prompt"
+                  placeholder="e.g., 'A majestic lion in a futuristic jungle'"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                  disabled={isGenerating}
+                  className="pr-10"
+                />
+                <VoiceInputButton onTranscript={setPrompt} className="absolute right-3 top-1/2 -translate-y-1/2" />
+            </div>
           </div>
           <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-secondary/50">
             {isGenerating ? (

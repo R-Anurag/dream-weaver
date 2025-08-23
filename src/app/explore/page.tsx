@@ -14,6 +14,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { VoiceInputButton } from '@/components/voice-input-button';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -155,13 +156,14 @@ export default function ExplorePage() {
         <header className="p-4 absolute top-0 left-0 right-0 z-20">
             <div className="flex items-center gap-2 max-w-md mx-auto">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
                     <Input
                         placeholder="Search projects..."
-                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60"
+                        className="pl-10 h-11 bg-black/50 text-white border-white/30 backdrop-blur-sm placeholder:text-white/60 pr-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                    <VoiceInputButton onTranscript={setSearchTerm} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80" />
                 </div>
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
@@ -195,13 +197,14 @@ export default function ExplorePage() {
             </Link>
           </Button>
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search projects..."
-              className="pl-10 h-11"
+              className="pl-10 h-11 pr-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <VoiceInputButton onTranscript={setSearchTerm} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           </div>
           <Button asChild>
             <Link href="/boards">

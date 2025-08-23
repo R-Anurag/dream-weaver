@@ -14,6 +14,8 @@ interface CanvasProps {
   onEditItem: (id: string) => void;
   onDeleteItem: (id: string) => void;
   activeTool: 'select' | 'pencil' | 'eraser';
+  isVoiceRecording: boolean;
+  onVoiceRecord: (itemId: string) => void;
 }
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -26,7 +28,9 @@ export default function Canvas({
   onSelectItem, 
   onEditItem, 
   onDeleteItem,
-  activeTool 
+  activeTool,
+  isVoiceRecording,
+  onVoiceRecord
 }: CanvasProps) {
 
   const [isDrawing, setIsDrawing] = useState(false);
@@ -167,6 +171,8 @@ export default function Canvas({
           onSelect={onSelectItem}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
+          isVoiceRecording={isVoiceRecording && item.id === selectedItemId}
+          onVoiceRecord={onVoiceRecord}
         />
       ))}
     </div>

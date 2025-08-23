@@ -22,6 +22,7 @@ import Image from 'next/image';
 import { useToast } from './ui/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
+import { VoiceInputButton } from './voice-input-button';
 
 
 interface PublishDialogProps {
@@ -58,19 +59,23 @@ const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChan
         onFormChange(details);
     }, [description, tags, flairs, thumbnail, onFormChange]);
 
+    const addChip = (value: string, type: 'tag' | 'flair') => {
+        if (value) {
+            if (type === 'tag' && !tags.includes(value)) {
+                setTags(prev => [...prev, value]);
+                setCurrentTag('');
+            } else if (type === 'flair' && !flairs.includes(value)) {
+                setFlairs(prev => [...prev, value]);
+                setCurrentFlair('');
+            }
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: 'tag' | 'flair') => {
         if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
             const value = e.currentTarget.value.trim();
-            if (value) {
-                if (type === 'tag' && !tags.includes(value)) {
-                    setTags([...tags, value]);
-                    setCurrentTag('');
-                } else if (type === 'flair' && !flairs.includes(value)) {
-                    setFlairs([...flairs, value]);
-                    setCurrentFlair('');
-                }
-            }
+            addChip(value, type);
         }
     };
     
@@ -128,13 +133,17 @@ const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChan
                 </div>
             </div>
             <div className="grid gap-4">
-                <div className="grid gap-2">
+                <div className="grid gap-2 relative">
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your vision board..." />
+                    <VoiceInputButton onTranscript={setDescription} className="absolute right-3 top-1" />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="tags">Tags (comma-separated)</Label>
-                    <Input id="tags" placeholder="e.g., sustainability, art, tech" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'tag')} />
+                    <div className="relative">
+                        <Input id="tags" placeholder="e.g., sustainability, art, tech" value={currentTag} onChange={(e) => setCurrentTag(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'tag')} className="pr-10" />
+                        <VoiceInputButton onTranscript={(t) => addChip(t, 'tag')} className="absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
                     <div className="flex flex-wrap gap-2 mt-1 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                         {tags.map((tag, index) => (
                             <Badge key={index} variant="secondary">
@@ -146,7 +155,10 @@ const PublishForm = ({ board, onFormChange, isOpen }: { board: Board, onFormChan
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="flairs">Seeking Skills (comma-separated)</Label>
-                    <Input id="flairs" placeholder="e.g., Design, Funding, Engineering" value={currentFlair} onChange={(e) => setCurrentFlair(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'flair')} />
+                    <div className="relative">
+                        <Input id="flairs" placeholder="e.g., Design, Funding, Engineering" value={currentFlair} onChange={(e) => setCurrentFlair(e.target.value)} onKeyDown={(e) => handleKeyDown(e, 'flair')} className="pr-10" />
+                         <VoiceInputButton onTranscript={(t) => addChip(t, 'flair')} className="absolute right-3 top-1/2 -translate-y-1/2" />
+                    </div>
                     <div className="flex flex-wrap gap-2 mt-1 p-2 border rounded-md min-h-[40px] max-h-[80px] overflow-y-auto">
                         {flairs.map((flair, index) => (
                             <Badge key={index} variant="default" className="bg-accent text-accent-foreground">

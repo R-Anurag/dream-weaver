@@ -5,7 +5,8 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Move, Settings, Trash2 } from 'lucide-react';
+import { Move, Settings, Trash2, Mic } from 'lucide-react';
+import { VoiceInputButton } from './voice-input-button';
 
 interface CanvasItemProps {
   item: CanvasItem;
@@ -14,6 +15,8 @@ interface CanvasItemProps {
   onSelect: (id: string | null) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  isVoiceRecording: boolean;
+  onVoiceRecord: (itemId: string) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -35,7 +38,7 @@ const Shape = ({ item }: { item: CanvasItem }) => {
   }
 };
 
-export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete }: CanvasItemProps) {
+export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete, isVoiceRecording, onVoiceRecord }: CanvasItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef({
     type: null as 'move' | 'resize' | null,
@@ -197,6 +200,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   }
 
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+  const canHaveVoice = item.type === 'text' || item.type === 'post-it';
 
   return (
     <div
@@ -282,6 +286,21 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                 >
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
+                {canHaveVoice && (
+                     <button
+                        data-control
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onVoiceRecord(item.id);
+                        }}
+                        className={cn(
+                            "p-1 bg-accent border-2 border-white rounded-full cursor-pointer",
+                            isVoiceRecording && "bg-destructive animate-pulse"
+                        )}
+                    >
+                        <Mic className="w-4 h-4 text-accent-foreground" />
+                    </button>
+                )}
                 <div
                     data-control
                     className="p-1 bg-accent border-2 border-white rounded-full cursor-pointer"
