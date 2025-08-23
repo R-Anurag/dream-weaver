@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import { ScrollArea } from './ui/scroll-area';
 
 interface ImageGenerationDialogProps {
   onAddItem: (type: 'image', content: string) => void;
@@ -40,11 +41,6 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({
-        title: "Browser Not Supported",
-        description: "Your browser doesn't support speech recognition.",
-        variant: "destructive"
-      });
       return;
     }
 
@@ -60,7 +56,9 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
 
     recognition.onerror = (event) => {
         console.error('Speech recognition error', event.error);
-        toast({ title: 'Speech Recognition Error', description: `An error occurred: ${event.error}`, variant: 'destructive' });
+        if (event.error !== 'no-speech') {
+            toast({ title: 'Speech Recognition Error', description: `An error occurred: ${event.error}`, variant: 'destructive' });
+        }
         setIsListening(false);
     };
     
@@ -106,7 +104,14 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
   
   const handleMicClick = () => {
     const recognition = recognitionRef.current;
-    if (!recognition) return;
+    if (!recognition) {
+        toast({
+            title: "Browser Not Supported",
+            description: "Your browser doesn't support speech recognition.",
+            variant: "destructive"
+        });
+        return;
+    }
 
     if (isListening) {
       recognition.stop();
@@ -122,62 +127,72 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) handleClose();
+        else setIsOpen(true);
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Generate Image with AI</DialogTitle>
-          <DialogDescription>
-            Describe the image you want to create. Or click the mic and say it!
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <div className="relative">
-                <Input
-                  id="prompt"
-                  placeholder="e.g., 'A majestic lion in a futuristic jungle'"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                  disabled={isGenerating}
-                  className="pr-10"
-                />
-                 <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicClick} disabled={isGenerating}>
-                    <Mic className={cn("h-5 w-5 text-muted-foreground hover:text-foreground", isListening && "text-destructive animate-pulse")} />
-                </button>
-            </div>
-          </div>
-          <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-secondary/50">
-            {isGenerating ? (
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p>Generating...</p>
-              </div>
-            ) : generatedImage ? (
-              <Image src={generatedImage} alt="Generated image" width={400} height={400} className="object-contain w-full h-full rounded-md" data-ai-hint={prompt} />
-            ) : (
-                <div className="text-center p-4">
-                    <Wand2 className="mx-auto h-8 w-8" />
-                    <p className="mt-2 text-sm">Your image will appear here</p>
+      <DialogContent className="sm:max-w-md md:max-w-2xl p-0">
+        <div className="flex flex-col md:flex-row">
+            {/* Left side: Controls */}
+            <div className="w-full md:w-1/2 flex flex-col">
+                <DialogHeader className="p-6 pb-4 text-left">
+                  <DialogTitle>Generate Image with AI</DialogTitle>
+                  <DialogDescription>
+                    Describe the image you want to create. Or click the mic and say it!
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="px-6 space-y-4">
+                    <div className="relative">
+                        <Input
+                          id="prompt"
+                          placeholder="e.g., 'A majestic lion in a futuristic jungle'"
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                          disabled={isGenerating}
+                          className="pr-10"
+                        />
+                         <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicClick} disabled={isGenerating}>
+                            <Mic className={cn("h-5 w-5 text-muted-foreground hover:text-foreground", isListening && "text-destructive animate-pulse")} />
+                        </button>
+                    </div>
                 </div>
-            )}
-          </div>
+
+                <DialogFooter className="p-6 flex-col sm:flex-col sm:space-x-0 gap-2 mt-auto">
+                    <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Generate
+                    </Button>
+                    {generatedImage && (
+                        <Button onClick={handleAddToBoard} className="w-full" variant="secondary">
+                            <ImagePlus className="mr-2 h-4 w-4" />
+                            Add to Board
+                        </Button>
+                    )}
+                </DialogFooter>
+            </div>
+
+            {/* Right side: Image */}
+            <div className="w-full md:w-1/2 p-6 border-t md:border-t-0 md:border-l bg-muted/30">
+                <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-background">
+                    {isGenerating ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <p>Generating...</p>
+                      </div>
+                    ) : generatedImage ? (
+                      <Image src={generatedImage} alt="Generated image" width={400} height={400} className="object-contain w-full h-full rounded-md" data-ai-hint={prompt} />
+                    ) : (
+                        <div className="text-center p-4">
+                            <Wand2 className="mx-auto h-8 w-8" />
+                            <p className="mt-2 text-sm">Your image will appear here</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
-        <DialogFooter className="gap-2 sm:justify-between">
-            {generatedImage ? (
-                <Button onClick={handleAddToBoard} className="w-full sm:w-auto">
-                    <ImagePlus className="mr-2 h-4 w-4" />
-                    Add to Board
-                </Button>
-            ) : (
-                 <div /> 
-            )}
-            <Button onClick={handleGenerate} disabled={isGenerating} className="w-full sm:w-auto">
-                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                Generate
-            </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
