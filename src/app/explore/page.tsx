@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush, Sparkles, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { ProposalDialog } from '@/components/proposal-dialog';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -24,7 +25,7 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
         onDoubleClick={onDoubleClick}
     >
       <Image
-        src={`/images/urbanfarming.jpg`}
+        src={board.thumbnailUrl || `/images/urbanfarming.jpg`}
         alt={board.name}
         width={800}
         height={600}
@@ -32,6 +33,13 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
         data-ai-hint="vision board"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+      <div className="absolute top-4 left-4 flex gap-2">
+         {board.flairs?.map(flair => (
+              <Badge key={flair} variant="secondary" className="backdrop-blur-sm bg-black/40 text-white border-none text-sm">
+                <Star className="h-4 w-4 mr-2 text-yellow-400" /> {flair}
+              </Badge>
+            ))}
+      </div>
       <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
         <div>
           <div className="flex justify-between items-start">
@@ -63,17 +71,19 @@ export default function ExplorePage() {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   
+  const publishedBoards = useMemo(() => allBoards.filter(b => b.published), [allBoards]);
+
   const filteredBoards = useMemo(() => {
     if (!searchTerm) {
-      return allBoards;
+      return publishedBoards;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    return allBoards.filter(board =>
+    return publishedBoards.filter(board =>
         board.name.toLowerCase().includes(lowercasedFilter) ||
         (board.description && board.description.toLowerCase().includes(lowercasedFilter)) ||
         board.tags?.some(tag => tag.toLowerCase().includes(lowercasedFilter))
     );
-  }, [searchTerm, allBoards]);
+  }, [searchTerm, publishedBoards]);
   
   const currentBoard = useMemo(() => filteredBoards[currentIndex], [filteredBoards, currentIndex]);
   
@@ -82,6 +92,10 @@ export default function ExplorePage() {
   }, [router]);
 
   const handleNextBoard = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+  
+  const handlePrevBoard = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
@@ -124,7 +138,7 @@ export default function ExplorePage() {
                 <div className="flex items-center gap-1">
                  <Button asChild size="icon" className="h-11 w-11 flex-shrink-0 bg-black/50 text-white border-white/30 backdrop-blur-sm hover:bg-white/20">
                     <Link href="/boards">
-                        <Plus className="h-5 w-5" />
+                        <Brush className="h-5 w-5" />
                     </Link>
                 </Button>
                 </div>
@@ -148,7 +162,7 @@ export default function ExplorePage() {
   return (
     <div className="flex min-h-svh flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
           <Link href="/boards" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
               <Brush className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg font-headline">Dream Weaver</span>
@@ -177,7 +191,7 @@ export default function ExplorePage() {
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
           {filteredBoards.length > 0 && currentBoard ? (
             <>
-               <Button onClick={handleNextBoard} variant="outline" size="lg" className="shadow-lg hover:bg-muted flex-shrink-0 w-32">
+               <Button onClick={handlePrevBoard} variant="outline" size="lg" className="shadow-lg hover:bg-muted flex-shrink-0 w-40">
                   <ThumbsDown className="h-5 w-5 mr-2 text-destructive" />
                   Pass
               </Button>
@@ -186,18 +200,29 @@ export default function ExplorePage() {
                  <div className="overflow-hidden h-full" ref={emblaRef}>
                     <div className="flex h-full">
                         {filteredBoards.map((board) => (
-                            <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0" onClick={() => handleOpenBoard(board.id)}>
-                               <VisionBoardCard board={board} />
+                            <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0" >
+                               <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)}/>
                             </div>
                         ))}
                     </div>
                 </div>
               </div>
 
-              <Button size="lg" className="shadow-lg flex-shrink-0 w-32" onClick={() => handleOpenBoard(currentBoard.id)}>
-                <Eye className="h-5 w-5 mr-2" />
-                View
-              </Button>
+              <div className="flex flex-col gap-4">
+                 <Button size="lg" className="shadow-lg flex-shrink-0 w-40" onClick={() => handleOpenBoard(currentBoard.id)}>
+                    <Eye className="h-5 w-5 mr-2" />
+                    View
+                 </Button>
+                 <ProposalDialog board={currentBoard}>
+                    <Button size="lg" variant="secondary" className="shadow-lg flex-shrink-0 w-40">
+                        <Sparkles className="h-5 w-5 mr-2" />
+                        Collaborate
+                    </Button>
+                 </ProposalDialog>
+                  <Button size="lg" variant="ghost" className="flex-shrink-0 w-40 text-muted-foreground" onClick={handleNextBoard}>
+                    Next Project
+                 </Button>
+              </div>
             </>
           ) : (
             <div className="text-center">

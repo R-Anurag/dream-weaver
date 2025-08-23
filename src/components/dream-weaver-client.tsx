@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Board, CanvasItem, ItemType, ShapeType } from '@/types';
+import type { Board, CanvasItem, ItemType, ShapeType, Proposal } from '@/types';
 import Canvas from '@/components/canvas';
 import Toolbar from '@/components/toolbar';
 import PropertiesPanel from '@/components/properties-panel';
@@ -16,8 +16,12 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, Send, Rocket, Bell } from 'lucide-react';
 import { useSidebar } from './ui/sidebar';
+import { sampleProposals } from '@/lib/sample-data';
+import ProposalsPanel from './proposals-panel';
+import { PublishDialog } from './publish-dialog';
+
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -95,6 +99,8 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
 export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
+  const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
   const [localItems, setLocalItems] = useState<CanvasItem[]>([]);
   const { toast } = useToast();
@@ -105,7 +111,13 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     setLocalItems(board?.items || []);
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
+    setIsProposalsPanelOpen(false);
     setActiveTool('select');
+     if(board) {
+        // Mock loading proposals for the active board
+        const boardProposals = sampleProposals.filter(p => p.boardId === 'board-1'); // mock
+        setProposals(boardProposals);
+    }
   }, [board]);
 
 
@@ -171,6 +183,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const renderPanels = () => {
     if (isMobile) {
       return (
+        <>
           <Sheet open={isPropertiesPanelOpen} onOpenChange={setIsPropertiesPanelOpen}>
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
@@ -188,9 +201,18 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
               )}
             </SheetContent>
           </Sheet>
+          <Sheet open={isProposalsPanelOpen} onOpenChange={setIsProposalsPanelOpen}>
+            <SheetContent side="left" className="w-[85vw] p-0 flex flex-col">
+                 <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} />
+            </SheetContent>
+          </Sheet>
+        </>
       );
     }
 
+    if (isProposalsPanelOpen) {
+       return <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} onClose={() => setIsProposalsPanelOpen(false)} />;
+    }
     if (isPropertiesPanelOpen && selectedItem) {
       return (
         <PropertiesPanel
@@ -206,6 +228,8 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     return null;
   }
   
+  const unreadProposalsCount = proposals.filter(p => p.status === 'pending').length;
+
   return (
       <main className="flex-1 flex flex-row relative">
         <div className="flex-1 flex flex-col relative">
@@ -220,6 +244,20 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
                 {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
             <div className="flex items-center justify-end gap-2">
+                 <Button variant="outline" size="icon" className="relative bg-card shadow-lg" onClick={() => setIsProposalsPanelOpen(!isProposalsPanelOpen)}>
+                    <Bell className="h-5 w-5" />
+                    {unreadProposalsCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs">{unreadProposalsCount}</span>}
+                </Button>
+                <PublishDialog board={board}>
+                    <Button className="shadow-lg">
+                        <Rocket className="mr-2 h-4 w-4" />
+                        Publish
+                    </Button>
+                </PublishDialog>
+                 <Button variant="secondary" className="shadow-lg">
+                    <Send className="mr-2 h-4 w-4" />
+                    Share
+                </Button>
             </div>
           </header>
 

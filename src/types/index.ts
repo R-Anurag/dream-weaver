@@ -34,4 +34,19 @@ export type Board = {
   items: CanvasItem[];
   description?: string;
   tags?: string[];
+  published?: boolean;
+  thumbnailUrl?: string;
+  flairs?: string[];
 };
+
+export type Proposal = {
+  id: string;
+  boardId: string;
+  boardName: string;
+  message: string;
+  from: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  timestamp: number;
+};
+
+export type AccessLevel = 'owner' | 'collaborator' | 'viewer';

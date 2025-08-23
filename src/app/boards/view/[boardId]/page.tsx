@@ -7,10 +7,11 @@ import CanvasItemComponent from '@/components/canvas-item';
 import { sampleBoards } from '@/lib/sample-data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { ProposalDialog } from '@/components/proposal-dialog';
 
 interface ViewOnlyCanvasProps {
   board: Board | undefined;
@@ -95,8 +96,15 @@ export default function ViewBoardPage() {
                  <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
             </div>
-            <div className="w-24 flex justify-end">
-              {/* Placeholder for actions */}
+            <div className="w-auto flex justify-end">
+              {board && (
+                <ProposalDialog board={board}>
+                    <Button>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Collaborate
+                    </Button>
+                </ProposalDialog>
+              )}
             </div>
         </header>
         <main className="flex-1 flex flex-col relative p-4 md:p-8">
