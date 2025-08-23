@@ -213,15 +213,6 @@ export default function ExplorePage() {
                     <Eye className="h-5 w-5 mr-2" />
                     View
                  </Button>
-                 <ProposalDialog board={currentBoard}>
-                    <Button size="lg" variant="secondary" className="shadow-lg flex-shrink-0 w-40">
-                        <Sparkles className="h-5 w-5 mr-2" />
-                        Collaborate
-                    </Button>
-                 </ProposalDialog>
-                  <Button size="lg" variant="ghost" className="flex-shrink-0 w-40 text-muted-foreground" onClick={handleNextBoard}>
-                    Next Project
-                 </Button>
               </div>
             </>
           ) : (
