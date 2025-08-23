@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,6 +31,46 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, startGeneration] = useTransition();
   const { toast } = useToast();
+  
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        title: "Browser Not Supported",
+        description: "Your browser doesn't support speech recognition.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    
+    recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim();
+        setPrompt(transcript);
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        toast({ title: 'Speech Recognition Error', description: `An error occurred: ${event.error}`, variant: 'destructive' });
+        setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+  }, [isOpen, toast]);
+
 
   const handleGenerate = () => {
     if (!prompt) {
@@ -65,11 +105,21 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
   };
   
   const handleMicClick = () => {
-    toast({
-        title: "Coming Soon!",
-        description: "Voice input for image generation is on its way."
-    })
-  }
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      try {
+        recognition.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Could not start recognition', error);
+        toast({ title: 'Could Not Start', description: 'Please check microphone permissions.', variant: 'destructive' });
+      }
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -78,7 +128,7 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
         <DialogHeader>
           <DialogTitle>Generate Image with AI</DialogTitle>
           <DialogDescription>
-            Describe the image you want to create. Be as specific as you like.
+            Describe the image you want to create. Or click the mic and say it!
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -93,9 +143,9 @@ export function ImageGenerationDialog({ onAddItem, children }: ImageGenerationDi
                   disabled={isGenerating}
                   className="pr-10"
                 />
-                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={handleMicClick}>
-                    <Mic className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-                </div>
+                 <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicClick} disabled={isGenerating}>
+                    <Mic className={cn("h-5 w-5 text-muted-foreground hover:text-foreground", isListening && "text-destructive animate-pulse")} />
+                </button>
             </div>
           </div>
           <div className="aspect-square w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-secondary/50">
