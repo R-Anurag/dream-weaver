@@ -144,7 +144,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     newHistory[historyIndex] = newItems;
     setHistory(newHistory);
     if(board) onUpdateItems(board.id, newItems);
-  }, [localItems, updateItems, board, history, historyIndex]);
+  }, [localItems, board, history, historyIndex]);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -299,10 +299,6 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
                         Publish
                     </Button>
                 </PublishDialog>
-                 <Button variant="secondary" className="shadow-lg">
-                    <Send className="mr-2 h-4 w-4" />
-                    Share
-                </Button>
             </div>
           </header>
 
