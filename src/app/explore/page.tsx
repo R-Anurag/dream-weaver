@@ -153,7 +153,7 @@ export default function ExplorePage() {
   if (isMobile) {
     return (
       <div className="min-h-svh w-screen bg-black relative overflow-hidden">
-        <header className="p-4 absolute top-0 left-0 right-0 z-20">
+        <header className="p-4 absolute top-0 left-0 right-0 z-30">
             <div className="flex items-center gap-2 max-w-md mx-auto">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/80 pointer-events-none" />
