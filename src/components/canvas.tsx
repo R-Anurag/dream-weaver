@@ -6,7 +6,7 @@ import type { Board, CanvasItem, ItemType } from '@/types';
 import CanvasItemComponent from '@/components/canvas-item';
 
 interface CanvasProps {
-  board: Board | undefined;
+  boardItems: CanvasItem[];
   onUpdateItem: (item: CanvasItem) => void;
   onAddItem: (item: CanvasItem) => void;
   selectedItemId: string | null;
@@ -19,7 +19,7 @@ interface CanvasProps {
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
 export default function Canvas({ 
-  board, 
+  boardItems,
   onUpdateItem, 
   onAddItem,
   selectedItemId, 
@@ -133,8 +133,8 @@ export default function Canvas({
     );
   };
 
-  const drawingItems = board ? board.items.filter(item => item.type === 'drawing') : [];
-  const otherItems = board ? board.items.filter(item => item.type !== 'drawing') : [];
+  const drawingItems = boardItems ? boardItems.filter(item => item.type === 'drawing') : [];
+  const otherItems = boardItems ? boardItems.filter(item => item.type !== 'drawing') : [];
 
   return (
     <div

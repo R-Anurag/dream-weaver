@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusSquare, Trash2, Check, X, Edit2, Compass, Brush, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PlusSquare, Trash2, Check, X, Edit2, Compass, Brush, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react';
 import type { Board } from '@/types';
 import {
   AlertDialog,
@@ -22,6 +22,8 @@ import { useSidebar } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 
 interface BoardsSidebarProps {
@@ -64,6 +66,13 @@ export default function BoardsSidebar({
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const { toggleSidebar, state } = useSidebar();
+  const { signOut, user } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  }
   
   const handleStartEditing = (board: Board) => {
     setEditingBoardId(board.id);
@@ -162,8 +171,16 @@ export default function BoardsSidebar({
           ))}
         </div>
       </ScrollArea>
-      <div className="text-xs text-muted-foreground mt-4 text-center">
-        Visualize your goals. Manifest your dreams.
+      <Separator className="my-4" />
+      <div className="mt-auto -mx-4 p-2">
+         {user && (
+            <div className="flex items-center justify-between p-2">
+                <span className="text-sm font-medium truncate">{user.email}</span>
+                <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sign out">
+                   <LogOut className="h-5 w-5 text-muted-foreground" />
+                </Button>
+            </div>
+         )}
       </div>
     </div>
   );

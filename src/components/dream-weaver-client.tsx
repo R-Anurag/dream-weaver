@@ -82,8 +82,7 @@ const createNewItem = (type: ItemType, content: string = '', shape: ShapeType = 
   }
 };
 
-export const WelcomeBoard: Board = {
-  id: 'welcome-board',
+export const WelcomeBoard: Omit<Board, 'id'> = {
   name: 'Welcome ✨',
   items: [
     {
@@ -98,51 +97,53 @@ export const WelcomeBoard: Board = {
   published: false,
 };
 
-export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: { boards: Board[], setBoards: (boards: Board[] | ((prev: Board[]) => Board[])) => void, activeBoardId: string | null }) {
+export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [activeTool, setActiveTool] = useState<'select' | 'pencil' | 'eraser'>('select');
+  const [localItems, setLocalItems] = useState<CanvasItem[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
   
-  const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
-  
   useEffect(() => {
+    setLocalItems(board?.items || []);
     setSelectedItemId(null);
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
     setActiveTool('select');
-  }, [activeBoardId]);
+  }, [board]);
 
   useEffect(() => {
-    if (activeBoard?.id) {
-        const storedProposals = localStorage.getItem(`proposals_${activeBoard.id}`);
+    if (board?.id) {
+        const storedProposals = localStorage.getItem(`proposals_${board.id}`);
         const localProposals: Proposal[] = storedProposals ? JSON.parse(storedProposals) : [];
-        const sampleForBoard = sampleProposals.filter(sp => sp.boardId === activeBoard.id);
+        const sampleForBoard = sampleProposals.filter(sp => sp.boardId === board.id);
         const combinedProposals = [...localProposals, ...sampleForBoard.filter(sp => !localProposals.some(lp => lp.id === sp.id))];
         setProposals(combinedProposals);
     } else {
         setProposals([]);
     }
-  }, [activeBoard]);
+  }, [board]);
 
   const pendingProposalsCount = useMemo(() => {
     return proposals.filter(p => p.status === 'pending').length;
   }, [proposals]);
 
+  const updateItems = (newItems: CanvasItem[]) => {
+      setLocalItems(newItems);
+      if(board) {
+          onUpdateItems(board.id, newItems);
+      }
+  }
+
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
-    setBoards(prevBoards =>
-      prevBoards.map(board =>
-        board.id === activeBoardId
-          ? { ...board, items: board.items.map(item => (item.id === updatedItem.id ? updatedItem : item)) }
-          : board
-      )
-    );
-  }, [activeBoardId, setBoards]);
+    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
+    updateItems(newItems);
+  }, [localItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
@@ -151,65 +152,50 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
       }
       setActiveTool('select');
       
-      setBoards(prevBoards =>
-        prevBoards.map(board => {
-          if (board.id !== activeBoardId) return board;
-          // Don't reorder for drawing items
-          if (board.items.find(item => item.id === itemId)?.type === 'drawing') return board;
-
-          const itemIndex = board.items.findIndex(item => item.id === itemId);
-          if (itemIndex === -1 || itemIndex === board.items.length - 1) return board;
-          
-          const itemToMove = board.items[itemIndex];
-          const newItems = [...board.items];
-          newItems.splice(itemIndex, 1);
+      const itemToMove = localItems.find(item => item.id === itemId);
+      if (itemToMove?.type !== 'drawing') {
+          const newItems = localItems.filter(item => item.id !== itemId);
           newItems.push(itemToMove);
-
-          return { ...board, items: newItems };
-        })
-      );
+          updateItems(newItems);
+      }
     } else {
       setSelectedItemId(null);
     }
-  }, [activeBoardId, setBoards, selectedItemId]);
+  }, [selectedItemId, localItems]);
 
-  const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
+  const selectedItem = localItems.find(i => i.id === selectedItemId);
 
   const handleAddItem = (type: ItemType, content?: string, shape?: ShapeType) => {
-    if (!activeBoardId) {
+    if (!board) {
         toast({ title: "No board selected", description: "Please select or create a board first.", variant: "destructive" });
         return;
     }
     const newItem = createNewItem(type, content, shape);
-    setBoards(prevBoards => prevBoards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, newItem] } : b));
+    updateItems([...localItems, newItem]);
+
     if (type !== 'drawing') {
       handleSelectItem(newItem.id);
     }
   };
 
   const handleAddDrawingItem = useCallback((item: CanvasItem) => {
-    if (!activeBoardId) return;
-    setBoards(prevBoards => prevBoards.map(b => b.id === activeBoardId ? { ...b, items: [...b.items, item] } : b));
-  }, [activeBoardId, setBoards]);
+    if (!board) return;
+    updateItems([...localItems, item]);
+  }, [board, localItems]);
   
   const handleDeleteItem = useCallback((itemIdToDelete: string) => {
-    if (!itemIdToDelete || !activeBoardId) return;
-    setBoards(boards.map(b => b.id === activeBoardId ? { ...b, items: b.items.filter(i => i.id !== itemIdToDelete) } : b));
+    if (!itemIdToDelete || !board) return;
+    updateItems(localItems.filter(i => i.id !== itemIdToDelete));
     if (selectedItemId === itemIdToDelete) {
         setSelectedItemId(null);
         setIsPropertiesPanelOpen(false);
     }
-  }, [activeBoardId, boards, selectedItemId, setBoards]);
+  }, [board, localItems, selectedItemId]);
 
   const handlePublish = (details: Partial<Board>) => {
-    if (!activeBoardId) return;
-    setBoards(prevBoards =>
-      prevBoards.map(board =>
-        board.id === activeBoardId
-          ? { ...board, ...details, published: true }
-          : board
-      )
-    );
+    if (!board) return;
+    // This should now be handled at the page level to update Firestore
+    console.log("Publishing", details);
     toast({
       title: "Board Published!",
       description: "Your vision board is now live on the Explore page.",
@@ -220,7 +206,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const handleUpdateProposal = (updatedProposal: Proposal) => {
     const updatedProposals = proposals.map(p => p.id === updatedProposal.id ? updatedProposal : p);
     setProposals(updatedProposals);
-    localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
+    localStorage.setItem(`proposals_${board?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
   };
 
   const renderPanels = () => {
@@ -250,7 +236,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                     <SheetTitle>Proposals Inbox</SheetTitle>
                     <SheetDescription className="sr-only">View and manage collaboration proposals for this board.</SheetDescription>
                 </SheetHeader>
-                {activeBoard && <ProposalsPanel board={activeBoard} proposals={proposals} onUpdateProposal={handleUpdateProposal} onClose={() => setIsProposalsPanelOpen(false)} />}
+                {board && <ProposalsPanel board={board} proposals={proposals} onUpdateProposal={handleUpdateProposal} onClose={() => setIsProposalsPanelOpen(false)} />}
             </SheetContent>
           </Sheet>
         </>
@@ -269,10 +255,10 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
       );
     }
 
-    if (isProposalsPanelOpen && activeBoard) {
+    if (isProposalsPanelOpen && board) {
       return (
         <ProposalsPanel
-          board={activeBoard}
+          board={board}
           proposals={proposals}
           onUpdateProposal={handleUpdateProposal}
           onClose={() => setIsProposalsPanelOpen(false)}
@@ -289,7 +275,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
           variant="ghost"
           size="icon"
           className="bg-card shadow-lg border border-border"
-          aria-label={activeBoard?.published ? "Update Board" : "Publish Board"}
+          aria-label={board?.published ? "Update Board" : "Publish Board"}
           >
           <UploadCloud className="h-5 w-5" />
       </Button>
@@ -310,7 +296,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                 {state === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
             </Button>
             <div className="flex items-center justify-end gap-2">
-                {activeBoard?.published && (
+                {board?.published && (
                     <Button
                         onClick={() => setIsProposalsPanelOpen(true)}
                         variant="ghost"
@@ -326,9 +312,9 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
                         )}
                     </Button>
                 )}
-                 {activeBoard && (
+                 {board && (
                      <PublishDialog
-                        board={activeBoard}
+                        board={board}
                         onPublish={handlePublish}
                         isOpen={isPublishing}
                         onOpenChange={setIsPublishing}
@@ -341,7 +327,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
 
           <Toolbar onAddItem={handleAddItem} activeTool={activeTool} onSetTool={setActiveTool} />
           <Canvas
-            board={activeBoard}
+            boardItems={localItems}
             onUpdateItem={handleUpdateItem}
             onAddItem={handleAddDrawingItem}
             selectedItemId={selectedItemId}

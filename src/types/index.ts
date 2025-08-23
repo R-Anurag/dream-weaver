@@ -32,6 +32,7 @@ export type Board = {
   id: string;
   name: string;
   items: CanvasItem[];
+  userId?: string;
   description?: string;
   tags?: string[];
   flairs?: string[];
