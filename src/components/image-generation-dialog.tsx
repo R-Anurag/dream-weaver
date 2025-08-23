@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader2, Wand2, ImagePlus, Mic } from 'lucide-react';
 import { generateImage } from '@/ai/flows/image-generation-flow';
-import { useToast } from './ui/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
