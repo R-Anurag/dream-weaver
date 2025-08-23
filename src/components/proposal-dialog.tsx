@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useTransition, useEffect, useCallback } from 'react';
+import React, { useState, useTransition, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -59,7 +59,8 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
   
   const { toast } = useToast();
   const { displayText: typedBody, type: typeBody, isTyping } = useTypewriter();
-  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const currentHeading = headings[selectedHeadingIndex];
 
   useEffect(() => {
@@ -80,6 +81,12 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
       setProposalBody(typedBody);
     }
   }, [typedBody]);
+
+  useEffect(() => {
+    if (isTyping && textareaRef.current) {
+        textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+    }
+  }, [typedBody, isTyping]);
 
 
   const handleGenerateHeadings = () => {
@@ -187,6 +194,7 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
                  <div className="flex-1 flex flex-col">
                     <Label htmlFor="proposal-body" className="text-sm font-semibold mb-2">Your Proposal</Label>
                     <Textarea
+                        ref={textareaRef}
                         id="proposal-body"
                         placeholder="Click 'Generate' to create a proposal from the selected idea, or write your own from scratch."
                         value={proposalBody}
