@@ -42,11 +42,14 @@ export default function Canvas({
     };
   };
 
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+        onSelectItem(null);
+    }
+  }
+
   const handleInteractionStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) {
-      if (activeTool === 'select' && !('touches' in e)) { // Don't deselect on touch drag start on canvas background
-          onSelectItem(null);
-      }
       return;
     }
     if (activeTool !== 'pencil') return;
@@ -140,6 +143,7 @@ export default function Canvas({
     <div
       id="canvas"
       className="flex-1 w-full h-full bg-background relative overflow-auto touch-none"
+      onClick={handleCanvasClick}
       onMouseDown={handleInteractionStart}
       onMouseMove={handleInteractionMove}
       onMouseUp={handleInteractionEnd}

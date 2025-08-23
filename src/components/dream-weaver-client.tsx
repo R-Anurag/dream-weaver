@@ -134,27 +134,25 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   }, [localItems, updateItems]);
 
   const handleSelectItem = useCallback((itemId: string | null) => {
+    if (selectedItemId === itemId) return;
+    
+    setSelectedItemId(itemId);
+    setActiveTool('select');
+    
+    // Bring to front logic
     if (itemId) {
-      if (selectedItemId !== itemId) {
-         setSelectedItemId(itemId);
-      }
-      setActiveTool('select');
-      
-      const itemToMove = localItems.find(item => item.id === itemId);
-      if (itemToMove && itemToMove.type !== 'drawing') {
-          const newItems = localItems.filter(item => item.id !== itemId);
-          newItems.push(itemToMove);
-          updateItems(newItems, true); // explicitly save on reorder
-      }
-    } else {
-      setSelectedItemId(null);
+        const itemToMove = localItems.find(item => item.id === itemId);
+        if (itemToMove && itemToMove.type !== 'drawing') {
+            const newItems = localItems.filter(item => item.id !== itemId);
+            newItems.push(itemToMove);
+            updateItems(newItems, true); // explicitly save on reorder
+        }
     }
   }, [selectedItemId, localItems, updateItems]);
 
+
   useEffect(() => {
-    if(selectedItemId && !isPropertiesPanelOpen) {
-       // if an item is selected but panel is closed, keep it closed
-    } else if (selectedItemId && !isPropertiesPanelOpen) {
+    if (selectedItemId && !isPropertiesPanelOpen) {
         setIsPropertiesPanelOpen(true);
     } else if (!selectedItemId && isPropertiesPanelOpen) {
         setIsPropertiesPanelOpen(false);
