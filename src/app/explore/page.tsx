@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Search, Eye, ThumbsDown, ArrowLeft, Plus } from 'lucide-react';
+import { Search, Eye, ThumbsDown, ArrowLeft, Plus, Brush } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -191,11 +191,10 @@ export default function ExplorePage() {
     <div className="flex min-h-svh flex-col bg-background overflow-hidden">
       <header className="p-4 md:p-6 border-b bg-background/95 backdrop-blur-sm z-10 flex-shrink-0">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <Button asChild variant="outline">
-            <Link href="/boards">
-                <ArrowLeft className="mr-2 h-4 w-4" /> My Boards
-            </Link>
-          </Button>
+          <Link href="/boards" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
+              <Brush className="h-6 w-6 text-primary" />
+              <span className="font-bold text-lg font-headline">Dream Weaver</span>
+          </Link>
           <div className="flex items-center gap-2">
             <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
@@ -252,5 +251,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    

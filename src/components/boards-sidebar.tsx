@@ -86,7 +86,7 @@ export default function BoardsSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border p-4 shadow-md z-20">
       <div className="flex items-center justify-between mb-4">
         <Link href="/" className="flex items-center gap-2">
-            <Brush className="h-8 w-8 text-accent" />
+            <Brush className="h-8 w-8 text-primary" />
             <span className="font-bold text-xl font-headline">Dream Weaver</span>
         </Link>
          <Button
