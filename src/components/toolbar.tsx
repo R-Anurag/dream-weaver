@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Pencil, Eraser } from 'lucide-react';
+import { Image as ImageIcon, Type, Star, StickyNote, Square, Circle, Pencil, Eraser, Wand2 } from 'lucide-react';
 import type { ItemType, ShapeType } from '@/types';
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { ImageGenerationDialog } from './image-generation-dialog';
 
 interface ToolbarProps {
   onAddItem: (type: ItemType, content?: string, shape?: ShapeType) => void;
@@ -80,6 +81,11 @@ export default function Toolbar({ onAddItem, activeTool, onSetTool }: ToolbarPro
       <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} aria-label="Add Image">
         <ImageIcon className="h-5 w-5" />
       </Button>
+       <ImageGenerationDialog onAddItem={handleAddItemAndSelect}>
+           <Button variant="ghost" size="icon" aria-label="Generate Image">
+                <Wand2 className="h-5 w-5" />
+           </Button>
+       </ImageGenerationDialog>
       <Button variant="ghost" size="icon" onClick={() => handleAddItemAndSelect('text')} aria-label="Add Text">
         <Type className="h-5 w-5" />
       </Button>
