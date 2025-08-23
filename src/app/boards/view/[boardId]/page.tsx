@@ -7,11 +7,13 @@ import CanvasItemComponent from '@/components/canvas-item';
 import { sampleBoards } from '@/lib/sample-data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ProposalDialog } from '@/components/proposal-dialog';
+import { getBoards } from '@/lib/board-service';
+
 
 interface ViewOnlyCanvasProps {
   board: Board | undefined;
@@ -56,30 +58,37 @@ export default function ViewBoardPage() {
   const params = useParams();
   const boardId = params.boardId as string;
   const [board, setBoard] = useState<Board | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!boardId) return;
 
-    // Check sample boards
-    const sampleBoard = sampleBoards.find(b => b.id === boardId);
-    if (sampleBoard) {
-      setBoard(sampleBoard);
-    } else {
-      // If not in sample, check local storage
+    const findBoard = async () => {
+      setIsLoading(true);
+      // Check sample boards first
+      const sampleBoard = sampleBoards.find(b => b.id === boardId);
+      if (sampleBoard) {
+        setBoard(sampleBoard);
+        setIsLoading(false);
+        return;
+      }
+
+      // If not in sample, check "database" (localStorage via service)
       try {
-        const savedBoards = localStorage.getItem('dreamWeaverBoards');
-        if (savedBoards) {
-          const localBoards: Board[] = JSON.parse(savedBoards);
-          const userBoard = localBoards.find(b => b.id === boardId);
-          if (userBoard) {
-            setBoard(userBoard);
-          }
+        const userBoards = await getBoards();
+        const userBoard = userBoards.find(b => b.id === boardId);
+        if (userBoard) {
+          setBoard(userBoard);
         }
       } catch (error) {
-        console.error("Failed to load board from localStorage", error);
+        console.error("Failed to load board", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    findBoard();
 
   }, [boardId]);
 
@@ -93,7 +102,7 @@ export default function ViewBoardPage() {
                 </Link>
             </Button>
             <div className="flex-1 text-center min-w-0">
-                 <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name}</h1>
+                 <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name || 'Loading...'}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
             </div>
             <div className="w-auto flex justify-end">
@@ -108,7 +117,13 @@ export default function ViewBoardPage() {
             </div>
         </header>
         <main className="flex-1 flex flex-col relative p-4 md:p-8">
-            <ViewOnlyCanvas board={board} />
+            {isLoading ? (
+                <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : (
+                <ViewOnlyCanvas board={board} />
+            )}
         </main>
     </div>
   );
