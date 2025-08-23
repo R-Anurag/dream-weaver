@@ -73,6 +73,41 @@ export default function ExplorePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { toast } = useToast();
   
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      // Browser doesn't support speech recognition
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      setSearchTerm(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      if (event.error !== 'no-speech') {
+        toast({ title: 'Speech Recognition Error', description: `An error occurred: ${event.error}`, variant: 'destructive' });
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+  }, [toast]);
+  
   const publishedBoards = useMemo(() => allBoards.filter(b => b.published), [allBoards]);
 
   const filteredBoards = useMemo(() => {
@@ -106,10 +141,28 @@ export default function ExplorePage() {
   }, []);
   
   const handleMicSearch = () => {
-    toast({
-        title: "Coming Soon!",
-        description: "Voice search will be available in a future update."
-    });
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+        toast({
+            title: "Browser Not Supported",
+            description: "Your browser doesn't support speech recognition.",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      try {
+        setSearchTerm('');
+        recognition.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Could not start recognition', error);
+        toast({ title: 'Could Not Start', description: 'Please check microphone permissions.', variant: 'destructive' });
+      }
+    }
   };
 
   useEffect(() => {
@@ -144,7 +197,7 @@ export default function ExplorePage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicSearch}>
-                        <Mic className="h-5 w-5 text-white/80 hover:text-white" />
+                        <Mic className={cn("h-5 w-5 text-white/80 hover:text-white", isListening && "text-destructive animate-pulse")} />
                     </button>
                 </div>
                 <div className="flex items-center gap-1">
@@ -189,7 +242,7 @@ export default function ExplorePage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <button className="absolute inset-y-0 right-0 flex items-center pr-3" onClick={handleMicSearch}>
-                    <Mic className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                    <Mic className={cn("h-5 w-5 text-muted-foreground hover:text-foreground", isListening && "text-destructive animate-pulse")} />
                 </button>
               </div>
           </div>
