@@ -64,7 +64,7 @@ export default function HomePage() {
               <Link href="/explore">Explore</Link>
             </Button>
             <Button asChild>
-                <Link href="/boards">
+                <Link href="/login">
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
@@ -103,7 +103,7 @@ export default function HomePage() {
                     </p>
                     <div className="mt-10 flex justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                     <Button asChild size="lg">
-                        <Link href="/boards">Start Weaving Your Dream</Link>
+                        <Link href="/login">Start Weaving Your Dream</Link>
                     </Button>
                     <Button asChild size="lg" variant="outline">
                         <Link href="/explore">Explore Projects</Link>
@@ -199,7 +199,7 @@ export default function HomePage() {
                     <h2 className="text-3xl font-bold font-headline mb-4">Ready to Start Your Journey?</h2>
                     <p className="text-muted-foreground mb-8">Your next big idea is just a vision board away.</p>
                     <Button asChild size="lg">
-                        <Link href="/boards">
+                        <Link href="/login">
                             Create Your First Board for Free
                         </Link>
                     </Button>
