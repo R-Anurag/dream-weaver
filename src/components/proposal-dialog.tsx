@@ -58,7 +58,7 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
   const [isBodyLoading, setIsBodyLoading] = useState(false);
   
   const { toast } = useToast();
-  const { displayText: typedBody, type: typeBody, isTyping } = useTypewriter();
+  const { displayText: typedBody, type: typeBody, isTyping } = useTypewriter(undefined, 20);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const currentHeading = headings[selectedHeadingIndex];
@@ -83,7 +83,7 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
   }, [typedBody]);
 
   useEffect(() => {
-    if (isTyping && textareaRef.current) {
+    if (textareaRef.current) {
         textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
     }
   }, [typedBody, isTyping]);
@@ -201,7 +201,6 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
                         onChange={(e) => setProposalBody(e.target.value)}
                         rows={10}
                         className={cn("text-base flex-1 resize-none", isTyping && "typewriter-text")}
-                        disabled={isTyping || isBodyLoading}
                     />
                  </div>
                  {isBodyLoading && !isTyping && (
