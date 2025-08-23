@@ -15,9 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from './ui/use-toast';
 import type { Board } from '@/types';
-import { Rocket, Copy, Check } from 'lucide-react';
+import { Rocket, Copy, Check, Save } from 'lucide-react';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 
 interface PublishDialogProps {
   board: Board | undefined;
@@ -29,11 +30,21 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
   const [isPublished, setIsPublished] = useState(board?.published || false);
   const [shareableLink, setShareableLink] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
+  
+  // New states for board metadata
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState('');
+  const [flairs, setFlairs] = useState('');
+
   const { toast } = useToast();
   
   useEffect(() => {
     if (board) {
       setIsPublished(board.published || false);
+      setDescription(board.description || '');
+      setTags((board.tags || []).join(', '));
+      setFlairs((board.flairs || []).join(', '));
+
       if (board.published) {
         setShareableLink(`${window.location.origin}/boards/view/${board.id}`);
       }
@@ -44,15 +55,28 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
     if (!board) return;
     setIsPublished(published);
     if (published) {
-      // In a real app, you'd update the backend here.
-      // For now, we'll just generate the link.
       setShareableLink(`${window.location.origin}/boards/view/${board.id}`);
       toast({ title: "Board Published!", description: "Anyone with the link can now view your board." });
     } else {
        toast({ title: "Board Unpublished", description: "Your board is now private." });
     }
-    // Here you would call a function to update the board's published status in your state/DB.
+    // In a real app, this would trigger a state update in the parent.
+    console.log("Toggled published status to:", published);
   };
+  
+  const handleSaveChanges = () => {
+    if (!board) return;
+    // In a real app, you would call an `onUpdateBoard` prop function.
+    const updatedBoardDetails = {
+        description,
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        flairs: flairs.split(',').map(f => f.trim()).filter(Boolean),
+        published: isPublished
+    }
+    console.log("Saving changes:", updatedBoardDetails);
+    toast({ title: "Changes Saved!", description: "Your board details have been updated."});
+    setIsOpen(false);
+  }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);
@@ -65,14 +89,43 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Publish & Share</DialogTitle>
           <DialogDescription>
-            Publish your board to get a shareable, view-only link.
+            Edit your board's public details and publish it to the world.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                    id="description" 
+                    placeholder="Describe your vision board..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-[80px]"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Input 
+                    id="tags" 
+                    placeholder="e.g., sustainability, community, tech"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="flairs">Flairs (comma-separated)</Label>
+                <Input 
+                    id="flairs" 
+                    placeholder="e.g., Featured, Top 5%"
+                    value={flairs}
+                    onChange={(e) => setFlairs(e.target.value)}
+                />
+            </div>
+
             <div className="flex items-center space-x-4 rounded-lg border p-4">
                 <Rocket className="h-6 w-6 text-primary" />
                 <div className="flex-1 space-y-1">
@@ -84,6 +137,7 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
                     </p>
                 </div>
                 <Switch
+                    id="publish-switch"
                     checked={isPublished}
                     onCheckedChange={handlePublishToggle}
                 />
@@ -101,7 +155,12 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
                 </div>
             )}
         </div>
-
+        <DialogFooter>
+            <Button onClick={handleSaveChanges}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
