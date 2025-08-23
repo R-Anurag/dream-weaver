@@ -6,6 +6,31 @@ import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Move, Settings, Trash2 } from 'lucide-react';
+import { Alegreya, Architects_Daughter, Caveat } from 'next/font/google';
+
+const alegreya = Alegreya({
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-alegreya',
+});
+
+const architectsDaughter = Architects_Daughter({
+    subsets: ['latin'],
+    weight: '400',
+    variable: '--font-architects-daughter',
+});
+
+const caveat = Caveat({
+    subsets: ['latin'],
+    variable: '--font-caveat',
+});
+
+const fontMapping: { [key: string]: { className: string } } = {
+  Alegreya: alegreya,
+  'Architects Daughter': architectsDaughter,
+  Caveat: caveat,
+};
+
 
 interface CanvasItemProps {
   item: CanvasItem;
@@ -86,6 +111,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     onDelete(item.id);
   }
 
+  const fontClass = fontMapping[item.style.fontFamily]?.className || alegreya.className;
+
   return (
     <div
       className={cn("absolute")}
@@ -104,10 +131,9 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           )}
           {item.type === 'text' && (
              <div
-                className="w-full h-full p-2 bg-transparent overflow-hidden pointer-events-none"
+                className={cn("w-full h-full p-2 bg-transparent overflow-hidden pointer-events-none", fontClass)}
                 style={{
                   color: item.style.color,
-                  fontFamily: item.style.fontFamily,
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                 }}
@@ -117,11 +143,10 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
           )}
           {item.type === 'post-it' && (
              <div
-                className="w-full h-full p-4 rounded-sm shadow-md overflow-hidden pointer-events-none"
+                className={cn("w-full h-full p-4 rounded-sm shadow-md overflow-hidden pointer-events-none", fontClass)}
                 style={{
                   backgroundColor: item.style.backgroundColor,
                   color: item.style.color,
-                  fontFamily: item.style.fontFamily,
                   fontSize: item.style.fontSize,
                   textAlign: item.style.textAlign,
                   whiteSpace: 'pre-wrap'

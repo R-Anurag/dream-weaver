@@ -10,7 +10,8 @@ import { Trash2, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface PropertiesPanelProps {
   item: CanvasItem;
@@ -48,13 +49,14 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
         onUpdateItem({ ...item, style: { ...item.style, [key]: value } });
     };
     const isMobile = useIsMobile();
+    const fontFamilies = ['Alegreya', 'Architects Daughter', 'Caveat'];
 
     const content = (
         <>
             <ScrollArea className="flex-1">
                 <div className="space-y-4 p-4">
-                    {(item.type === 'text' || item.type === 'post-it' || item.type === 'shape') && (
-                         item.type !== 'post-it' && <div className="flex items-center justify-between">
+                    {(item.type === 'text' || item.type === 'shape' || item.type === 'post-it') && (
+                         <div className="flex items-center justify-between">
                             <Label>Background</Label>
                             <ColorPicker color={item.style.backgroundColor} onChange={(c) => updateStyle('backgroundColor', c)} />
                         </div>
@@ -64,6 +66,19 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                             <div className="flex items-center justify-between">
                                <Label>Text Color</Label>
                                <ColorPicker color={item.style.color} onChange={(c) => updateStyle('color', c)} />
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <Label>Font</Label>
+                                <Select value={item.style.fontFamily} onValueChange={(v) => updateStyle('fontFamily', v)}>
+                                    <SelectTrigger className="w-40 h-8">
+                                        <SelectValue placeholder="Select font" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {fontFamilies.map(font => (
+                                            <SelectItem key={font} value={font} style={{fontFamily: font}}>{font}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label>Font Size</Label>
