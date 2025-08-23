@@ -216,7 +216,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     >
         <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 rounded-lg")}>
           {item.type === 'image' && (
-            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
+            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md" data-ai-hint="dream board" />
           )}
           {item.type === 'text' && (
              <textarea
@@ -250,7 +250,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
              />
           )}
           {item.type === 'shape' && (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
                 <Shape item={item} />
             </svg>
           )}
