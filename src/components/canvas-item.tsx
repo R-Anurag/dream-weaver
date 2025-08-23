@@ -15,8 +15,6 @@ interface CanvasItemProps {
   onSelect: (id: string | null) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  isVoiceRecording: boolean;
-  onVoiceRecord: (itemId: string) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -38,7 +36,7 @@ const Shape = ({ item }: { item: CanvasItem }) => {
   }
 };
 
-export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete, isVoiceRecording, onVoiceRecord }: CanvasItemProps) {
+export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete }: CanvasItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef({
     type: null as 'move' | 'resize' | null,
@@ -202,6 +200,12 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   const resizeHandles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
   const canHaveVoice = item.type === 'text' || item.type === 'post-it';
 
+  const handleVoiceTranscript = (transcript: string) => {
+    if (transcript) {
+        onUpdate({ ...item, content: item.content ? `${item.content} ${transcript}` : transcript });
+    }
+  };
+
   return (
     <div
       ref={itemRef}
@@ -287,19 +291,13 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
                   <Move className="w-4 h-4 text-accent-foreground" />
                 </div>
                 {canHaveVoice && (
-                     <button
-                        data-control
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onVoiceRecord(item.id);
-                        }}
-                        className={cn(
-                            "p-1 bg-accent border-2 border-white rounded-full cursor-pointer",
-                            isVoiceRecording && "bg-destructive animate-pulse"
-                        )}
-                    >
-                        <Mic className="w-4 h-4 text-accent-foreground" />
-                    </button>
+                     <VoiceInputButton
+                        onTranscript={handleVoiceTranscript}
+                        onStart={() => onSelect(item.id)}
+                        className="p-1 bg-accent border-2 border-white rounded-full h-auto w-auto"
+                        iconClassName='w-4 h-4 text-accent-foreground'
+                        tooltipContent={null}
+                    />
                 )}
                 <div
                     data-control

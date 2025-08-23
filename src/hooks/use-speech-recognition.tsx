@@ -5,9 +5,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SpeechRecognitionOptions {
   onStop?: (transcript: string) => void;
+  onStart?: () => void;
 }
 
-export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) => {
+export const useSpeechRecognition = ({ onStop, onStart }: SpeechRecognitionOptions = {}) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
@@ -34,20 +35,20 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
 
       recognition.onresult = (event) => {
         let finalTranscript = '';
+        let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
           }
         }
-        setTranscript(prev => prev + (finalTranscript.startsWith(prev) ? finalTranscript.substring(prev.length) : finalTranscript));
+        setTranscript(prev => prev + finalTranscript);
       };
       
       recognition.onend = () => {
-        if (isListening) {
-            recognition.start();
-        } else {
-            handleStop();
-        }
+        setIsListening(false);
+        handleStop();
       };
 
       recognition.onerror = (event) => {
@@ -61,11 +62,14 @@ export const useSpeechRecognition = ({ onStop }: SpeechRecognitionOptions = {}) 
         recognitionRef.current.stop();
       }
     };
-  }, [isListening, handleStop]);
+  }, [handleStop]);
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       setTranscript(''); 
+      if (onStart) {
+        onStart();
+      }
       recognitionRef.current.start();
       setIsListening(true);
     }

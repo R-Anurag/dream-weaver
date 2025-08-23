@@ -22,7 +22,6 @@ import ProposalsPanel from './proposals-panel';
 import { sampleProposals } from '@/lib/sample-data';
 import { Badge } from './ui/badge';
 import { useSidebar } from './ui/sidebar';
-import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -109,9 +108,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
-  const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
-      onStop: () => setSelectedItemId(null) // Deselect item when listening stops
-  });
   
   const activeBoard = useMemo(() => boards.find(b => b.id === activeBoardId), [boards, activeBoardId]);
   
@@ -148,21 +144,9 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     );
   }, [activeBoardId, setBoards]);
 
-  // Update text item with voice transcript
-  useEffect(() => {
-      if (transcript && selectedItemId) {
-          const itemToUpdate = activeBoard?.items.find(item => item.id === selectedItemId);
-          if (itemToUpdate && (itemToUpdate.type === 'text' || itemToUpdate.type === 'post-it')) {
-              handleUpdateItem({ ...itemToUpdate, content: transcript });
-          }
-      }
-  }, [transcript, selectedItemId, activeBoard, handleUpdateItem]);
-
   const handleSelectItem = useCallback((itemId: string | null) => {
     if (itemId) {
-      if (selectedItemId === itemId) {
-        // Don't re-open if already selected
-      } else {
+      if (selectedItemId !== itemId) {
          setSelectedItemId(itemId);
       }
       setActiveTool('select');
@@ -185,11 +169,9 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
         })
       );
     } else {
-      if (!isListening) {
-        setSelectedItemId(null);
-      }
+      setSelectedItemId(null);
     }
-  }, [activeBoardId, setBoards, isListening, selectedItemId]);
+  }, [activeBoardId, setBoards, selectedItemId]);
 
   const selectedItem = activeBoard?.items.find(i => i.id === selectedItemId);
 
@@ -241,16 +223,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
     localStorage.setItem(`proposals_${activeBoard?.id}`, JSON.stringify(updatedProposals.filter(p => !sampleProposals.some(sp => sp.id === p.id))));
   };
 
-  const handleVoiceRecord = useCallback((itemId: string) => {
-    if (isListening) {
-      stopListening();
-    } else {
-      handleSelectItem(itemId);
-      startListening();
-    }
-  }, [isListening, stopListening, startListening, handleSelectItem]);
-
-
   const renderPanels = () => {
     if (isMobile) {
       return (
@@ -259,6 +231,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
               <SheetHeader className="p-4 border-b">
                   <SheetTitle className="capitalize text-lg">{selectedItem?.type} Properties</SheetTitle>
+                   <SheetDescription className="sr-only">Edit the properties of the selected canvas item.</SheetDescription>
               </SheetHeader>
               {selectedItem && (
                  <PropertiesPanel
@@ -275,6 +248,7 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             <SheetContent side="bottom" className="h-auto max-h-[80vh] p-0 flex flex-col">
                 <SheetHeader className="p-4 border-b">
                     <SheetTitle>Proposals Inbox</SheetTitle>
+                    <SheetDescription className="sr-only">View and manage collaboration proposals for this board.</SheetDescription>
                 </SheetHeader>
                 {activeBoard && <ProposalsPanel board={activeBoard} proposals={proposals} onUpdateProposal={handleUpdateProposal} onClose={() => setIsProposalsPanelOpen(false)} />}
             </SheetContent>
@@ -375,8 +349,6 @@ export default function DreamWeaverClient({ boards, setBoards, activeBoardId }: 
             onEditItem={() => setIsPropertiesPanelOpen(true)}
             onDeleteItem={handleDeleteItem}
             activeTool={activeTool}
-            isVoiceRecording={isListening && selectedItemId !== null}
-            onVoiceRecord={handleVoiceRecord}
           />
         </div>
         {renderPanels()}
