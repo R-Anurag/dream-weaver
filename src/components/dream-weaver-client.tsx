@@ -151,6 +151,17 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     }
   }, [selectedItemId, localItems, updateItems]);
 
+  useEffect(() => {
+    if(selectedItemId && !isPropertiesPanelOpen) {
+       // if an item is selected but panel is closed, keep it closed
+    } else if (selectedItemId && !isPropertiesPanelOpen) {
+        setIsPropertiesPanelOpen(true);
+    } else if (!selectedItemId && isPropertiesPanelOpen) {
+        setIsPropertiesPanelOpen(false);
+    }
+  }, [selectedItemId, isPropertiesPanelOpen]);
+
+
   const selectedItem = localItems.find(i => i.id === selectedItemId);
 
   const handleAddItem = (type: ItemType, content?: string, shape?: ShapeType) => {
@@ -277,3 +288,5 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       </main>
   );
 }
+
+    

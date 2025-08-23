@@ -121,3 +121,5 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
         </aside>
     );
 }
+
+    

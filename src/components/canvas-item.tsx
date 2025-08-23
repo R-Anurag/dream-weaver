@@ -179,9 +179,9 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       onSelect(item.id);
       return;
     }
-    // Start move interaction only if not clicking a resize handle
-    if (!(e.target as HTMLElement).closest('[data-resize-handle]')) {
-        handleInteractionStart(e, 'move');
+    // Start move interaction only if not clicking a resize handle or a control button
+    if (!(e.target as HTMLElement).closest('[data-resize-handle]') && !(e.target as HTMLElement).closest('[data-control]')) {
+        onSelect(item.id)
     }
   }
 
@@ -191,8 +191,8 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
       e.stopPropagation();
       return;
     }
-    if (!(e.target as HTMLElement).closest('[data-resize-handle]')) {
-        handleInteractionStart(e, 'move');
+    if (!(e.target as HTMLElement).closest('[data-resize-handle]') && !(e.target as HTMLElement).closest('[data-control]')) {
+        onSelect(item.id)
     }
   }
 
@@ -303,3 +303,5 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     </div>
   );
 }
+
+    
