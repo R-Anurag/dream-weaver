@@ -118,15 +118,15 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
         const boardProposals = sampleProposals.filter(p => p.boardId === 'board-1'); // mock
         setProposals(boardProposals);
     }
-  }, [board]);
+  }, [board?.id]);
 
 
-  const updateItems = (newItems: CanvasItem[], updateStorage: boolean = true) => {
+  const updateItems = useCallback((newItems: CanvasItem[], updateStorage: boolean = true) => {
       setLocalItems(newItems);
       if(board && updateStorage) {
           onUpdateItems(board.id, newItems);
       }
-  }
+  }, [board, onUpdateItems]);
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     updateItems(localItems.map(item => (item.id === updatedItem.id ? updatedItem : item)));
@@ -284,3 +284,5 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
       </main>
   );
 }
+
+    
