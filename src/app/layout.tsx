@@ -25,10 +25,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={alegreya.variable}>
       <body className="font-body antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <AuthProvider>
-                {children}
-            </AuthProvider>
-            <Toaster />
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
