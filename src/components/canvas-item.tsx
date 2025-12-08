@@ -42,6 +42,7 @@ interface CanvasItemProps {
   onDelete: (id: string) => void;
   onDoubleClick: (id: string) => void;
   onStopEditing: () => void;
+  onItemPointerDown: () => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -72,7 +73,8 @@ export default function CanvasItemComponent({
     onEdit, 
     onDelete,
     onDoubleClick,
-    onStopEditing
+    onStopEditing,
+    onItemPointerDown
 }: CanvasItemProps) {
   const interactionRef = useRef<{
     startX: number;
@@ -93,6 +95,7 @@ export default function CanvasItemComponent({
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    onItemPointerDown();
     interactionRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -102,7 +105,7 @@ export default function CanvasItemComponent({
     
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
-  }, [item.x, item.y]);
+  }, [item.x, item.y, onItemPointerDown]);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
     if (!interactionRef.current) return;

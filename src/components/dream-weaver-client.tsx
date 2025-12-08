@@ -98,6 +98,7 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
 };
 
 export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
+  const [localItems, setLocalItems] = useState<CanvasItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
@@ -108,14 +109,13 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const [history, setHistory] = useState<CanvasItem[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const localItems = history[historyIndex] || [];
-
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
   
   useEffect(() => {
     const initialItems = board?.items || [];
+    setLocalItems(initialItems);
     setHistory([initialItems]);
     setHistoryIndex(0);
     setSelectedItemId(null);
@@ -129,35 +129,30 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     }
   }, [board?.id]);
 
-
-  const updateItems = useCallback((newItems: CanvasItem[], recordHistory: boolean = true) => {
-    if (board) {
-      if (recordHistory) {
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(newItems);
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
-      } else {
-        const newHistory = [...history];
-        newHistory[historyIndex] = newItems;
-        setHistory(newHistory);
-      }
-      onUpdateItems(board.id, newItems);
+  const recordHistory = (newItems: CanvasItem[]) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newItems);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+  
+  const updateItemsAndSave = (newItems: CanvasItem[]) => {
+    setLocalItems(newItems);
+    if(board) {
+        onUpdateItems(board.id, newItems);
     }
-  }, [board, onUpdateItems, history, historyIndex]);
+  };
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    updateItems(newItems, false);
-  }, [localItems, updateItems]);
+    updateItemsAndSave(newItems);
+  }, [localItems, updateItemsAndSave]);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       setHistoryIndex(newIndex);
-      if (board) {
-        onUpdateItems(board.id, history[newIndex]);
-      }
+      updateItemsAndSave(history[newIndex]);
     }
   };
 
@@ -165,25 +160,26 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
       setHistoryIndex(newIndex);
-      if (board) {
-        onUpdateItems(board.id, history[newIndex]);
-      }
+      updateItemsAndSave(history[newIndex]);
     }
   };
 
   const handleSelectItem = useCallback((itemId: string | null) => {
+    if (editingItemId && editingItemId !== itemId) {
+        // If we are editing and we click on another item, save the current work
+        recordHistory(localItems);
+    }
     setSelectedItemId(itemId);
-    setEditingItemId(null); // Exit editing mode when selecting another item
+    setEditingItemId(null);
     if (itemId) {
       const item = localItems.find(i => i.id === itemId);
       if (item) {
-        // Bring to front
         const otherItems = localItems.filter(i => i.id !== itemId);
         const newItems = [...otherItems, item];
-        updateItems(newItems, false);
+        updateItemsAndSave(newItems);
       }
     }
-  }, [localItems, updateItems]);
+  }, [localItems, editingItemId, updateItemsAndSave]);
   
   const handleEditItemProperties = (itemId: string) => {
     setSelectedItemId(itemId);
@@ -194,18 +190,15 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   const handleItemDoubleClick = (itemId: string) => {
     const item = localItems.find(i => i.id === itemId);
     if(item && (item.type === 'text' || item.type === 'post-it')) {
+        recordHistory(localItems); // Save state before editing
         setEditingItemId(itemId);
         setSelectedItemId(itemId);
     }
   }
 
   const handleStopEditing = () => {
-    // A bit of a hack to ensure the final onUpdateItem has fired before we potentially record history
-    setTimeout(() => {
-        const currentItems = history[historyIndex];
-        updateItems(currentItems, true);
-        setEditingItemId(null);
-    }, 10);
+    recordHistory(localItems); // Save final state after editing
+    setEditingItemId(null);
   }
 
 
@@ -217,7 +210,10 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
         return;
     }
     const newItem = createNewItem(type, content, shape);
-    updateItems([...localItems, newItem]);
+    const newItems = [...localItems, newItem];
+    updateItemsAndSave(newItems);
+    recordHistory(newItems);
+
 
     if (type !== 'drawing') {
       handleSelectItem(newItem.id);
@@ -226,12 +222,17 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
   const handleAddDrawingItem = useCallback((item: CanvasItem) => {
     if (!board) return;
-    updateItems([...localItems, item]);
-  }, [board, localItems, updateItems]);
+    const newItems = [...localItems, item];
+    updateItemsAndSave(newItems);
+    recordHistory(newItems);
+  }, [board, localItems, updateItemsAndSave]);
   
   const handleDeleteItem = useCallback((itemIdToDelete: string) => {
     if (!itemIdToDelete || !board) return;
-    updateItems(localItems.filter(i => i.id !== itemIdToDelete));
+    const newItems = localItems.filter(i => i.id !== itemIdToDelete);
+    updateItemsAndSave(newItems);
+    recordHistory(newItems);
+    
     if (selectedItemId === itemIdToDelete) {
         setSelectedItemId(null);
         setIsPropertiesPanelOpen(false);
@@ -239,13 +240,19 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     if (editingItemId === itemIdToDelete) {
         setEditingItemId(null);
     }
-  }, [board, localItems, selectedItemId, editingItemId, updateItems]);
+  }, [board, localItems, selectedItemId, editingItemId, updateItemsAndSave]);
 
 
   const closePropertiesPanel = () => {
     setIsPropertiesPanelOpen(false);
     setSelectedItemId(null);
   };
+  
+   const handlePointerUp = useCallback(() => {
+    // Record history after a drag/move operation is completed.
+    recordHistory(localItems);
+  }, [localItems]);
+
 
   const renderPanels = () => {
     if (isMobile) {
@@ -302,7 +309,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
   return (
       <main className="flex-1 flex flex-row relative">
-        <div className="flex-1 flex flex-col relative">
+        <div className="flex-1 flex flex-col relative" onPointerUp={handlePointerUp}>
           <header className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
              <Button
                 onClick={toggleSidebar}
