@@ -10,9 +10,12 @@ interface CanvasProps {
   onUpdateItem: (item: CanvasItem) => void;
   onAddItem: (item: CanvasItem) => void;
   selectedItemId: string | null;
+  editingItemId: string | null;
   onSelectItem: (id: string | null) => void;
   onEditItem: (id: string) => void;
   onDeleteItem: (id: string) => void;
+  onItemDoubleClick: (id: string) => void;
+  onStopEditing: () => void;
   activeTool: 'select' | 'pencil' | 'eraser';
 }
 
@@ -23,9 +26,12 @@ export default function Canvas({
   onUpdateItem, 
   onAddItem,
   selectedItemId, 
+  editingItemId,
   onSelectItem, 
   onEditItem, 
   onDeleteItem,
+  onItemDoubleClick,
+  onStopEditing,
   activeTool
 }: CanvasProps) {
 
@@ -45,6 +51,9 @@ export default function Canvas({
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
         onSelectItem(null);
+        if (editingItemId) {
+          onStopEditing();
+        }
     }
   }
 
@@ -168,9 +177,12 @@ export default function Canvas({
           item={item}
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
+          isEditing={item.id === editingItemId}
           onSelect={onSelectItem}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
+          onDoubleClick={onItemDoubleClick}
+          onStopEditing={onStopEditing}
         />
       ))}
     </div>

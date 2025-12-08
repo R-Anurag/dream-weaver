@@ -16,7 +16,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { PanelLeftOpen, PanelLeftClose, Send, Rocket, Bell } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, Rocket, Bell } from 'lucide-react';
 import { useSidebar } from './ui/sidebar';
 import { sampleProposals } from '@/lib/sample-data';
 import ProposalsPanel from './proposals-panel';
@@ -99,6 +99,7 @@ export const WelcomeBoard: Omit<Board, 'id'> = {
 
 export default function DreamWeaverClient({ board, onUpdateItems }: { board: Board | undefined, onUpdateItems: (boardId: string, items: CanvasItem[]) => void }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [isProposalsPanelOpen, setIsProposalsPanelOpen] = useState(false);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -118,6 +119,7 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
     setHistory([initialItems]);
     setHistoryIndex(0);
     setSelectedItemId(null);
+    setEditingItemId(null);
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
     setActiveTool('select');
@@ -128,23 +130,26 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
   }, [board?.id]);
 
 
-  const updateItems = useCallback((newItems: CanvasItem[]) => {
+  const updateItems = useCallback((newItems: CanvasItem[], recordHistory: boolean = true) => {
     if (board) {
+      if (recordHistory) {
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(newItems);
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
-        onUpdateItems(board.id, newItems);
+      } else {
+        const newHistory = [...history];
+        newHistory[historyIndex] = newItems;
+        setHistory(newHistory);
+      }
+      onUpdateItems(board.id, newItems);
     }
   }, [board, onUpdateItems, history, historyIndex]);
-  
+
   const handleUpdateItem = useCallback((updatedItem: CanvasItem) => {
     const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    const newHistory = [...history];
-    newHistory[historyIndex] = newItems;
-    setHistory(newHistory);
-    if(board) onUpdateItems(board.id, newItems);
-  }, [localItems, board, history, historyIndex]);
+    updateItems(newItems, false);
+  }, [localItems, updateItems]);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -168,24 +173,41 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
 
   const handleSelectItem = useCallback((itemId: string | null) => {
     setSelectedItemId(itemId);
+    setEditingItemId(null); // Exit editing mode when selecting another item
     if (itemId) {
       const item = localItems.find(i => i.id === itemId);
       if (item) {
         // Bring to front
         const otherItems = localItems.filter(i => i.id !== itemId);
         const newItems = [...otherItems, item];
-        const newHistory = [...history];
-        newHistory[historyIndex] = newItems;
-        setHistory(newHistory);
-        if (board) onUpdateItems(board.id, newItems);
+        updateItems(newItems, false);
       }
     }
-  }, [localItems, onUpdateItems, board, history, historyIndex]);
-
-  const handleEditItem = (itemId: string) => {
+  }, [localItems, updateItems]);
+  
+  const handleEditItemProperties = (itemId: string) => {
     setSelectedItemId(itemId);
+    setEditingItemId(null);
     setIsPropertiesPanelOpen(true);
   }
+
+  const handleItemDoubleClick = (itemId: string) => {
+    const item = localItems.find(i => i.id === itemId);
+    if(item && (item.type === 'text' || item.type === 'post-it')) {
+        setEditingItemId(itemId);
+        setSelectedItemId(itemId);
+    }
+  }
+
+  const handleStopEditing = () => {
+    // A bit of a hack to ensure the final onUpdateItem has fired before we potentially record history
+    setTimeout(() => {
+        const currentItems = history[historyIndex];
+        updateItems(currentItems, true);
+        setEditingItemId(null);
+    }, 10);
+  }
+
 
   const selectedItem = localItems.find(i => i.id === selectedItemId);
 
@@ -214,7 +236,11 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
         setSelectedItemId(null);
         setIsPropertiesPanelOpen(false);
     }
-  }, [board, localItems, selectedItemId, updateItems]);
+    if (editingItemId === itemIdToDelete) {
+        setEditingItemId(null);
+    }
+  }, [board, localItems, selectedItemId, editingItemId, updateItems]);
+
 
   const closePropertiesPanel = () => {
     setIsPropertiesPanelOpen(false);
@@ -316,9 +342,12 @@ export default function DreamWeaverClient({ board, onUpdateItems }: { board: Boa
             onUpdateItem={handleUpdateItem}
             onAddItem={handleAddDrawingItem}
             selectedItemId={selectedItemId}
+            editingItemId={editingItemId}
             onSelectItem={handleSelectItem}
-            onEditItem={handleEditItem}
+            onEditItem={handleEditItemProperties}
             onDeleteItem={handleDeleteItem}
+            onItemDoubleClick={handleItemDoubleClick}
+            onStopEditing={handleStopEditing}
             activeTool={activeTool}
           />
         </div>
