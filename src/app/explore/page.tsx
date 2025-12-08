@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { ProposalDialog } from '@/components/proposal-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { searchBoards } from '@/ai/flows/search-flow';
+import { getBoards } from '@/lib/board-service';
 
 
 const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick?: () => void }) => {
@@ -63,8 +64,9 @@ const VisionBoardCard = ({ board, onDoubleClick }: { board: Board, onDoubleClick
 
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [allBoards] = useState<Board[]>(() => sampleBoards.filter(b => b.published));
-  const [filteredBoardIds, setFilteredBoardIds] = useState<string[]>(() => allBoards.map(b => b.id));
+  const [allBoards, setAllBoards] = useState<Board[]>([]);
+  const [isBoardsLoading, setIsBoardsLoading] = useState(true);
+  const [filteredBoardIds, setFilteredBoardIds] = useState<string[]>([]);
   const [isSearching, startSearchTransition] = useTransition();
 
   const router = useRouter();
@@ -79,6 +81,28 @@ export default function ExplorePage() {
   
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    const loadBoards = async () => {
+        setIsBoardsLoading(true);
+        try {
+            const userBoards = await getBoards();
+            const publishedUserBoards = userBoards.filter(b => b.published);
+            // Combine sample boards and user's published boards, avoiding duplicates
+            const combined = [...sampleBoards, ...publishedUserBoards];
+            const uniqueBoards = Array.from(new Map(combined.map(b => [b.id, b])).values());
+            setAllBoards(uniqueBoards.filter(b => b.published));
+            setFilteredBoardIds(uniqueBoards.filter(b => b.published).map(b => b.id));
+        } catch (error) {
+            console.error("Failed to load boards:", error);
+            setAllBoards(sampleBoards.filter(b => b.published)); // Fallback to sample boards
+            setFilteredBoardIds(sampleBoards.filter(b => b.published).map(b => b.id));
+        } finally {
+            setIsBoardsLoading(false);
+        }
+    };
+    loadBoards();
+  }, []);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -240,15 +264,21 @@ export default function ExplorePage() {
             </div>
         </header>
         <div className="w-full h-svh">
-            <div className="overflow-hidden h-full" ref={emblaRef}>
-                <div className="flex h-full flex-col">
-                    {filteredBoards.map((board) => (
-                        <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0">
-                           <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)} />
-                        </div>
-                    ))}
+             {(isBoardsLoading || (isSearching && filteredBoards.length === 0)) ? (
+                 <div className="w-full h-full flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-white" />
                 </div>
-            </div>
+             ) : (
+                <div className="overflow-hidden h-full" ref={emblaRef}>
+                    <div className="flex h-full flex-col">
+                        {filteredBoards.map((board) => (
+                            <div key={board.id} className="relative flex-[0_0_100%] w-full h-full min-h-0">
+                               <VisionBoardCard board={board} onDoubleClick={() => handleOpenBoard(board.id)} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+             )}
         </div>
       </div>
     );
@@ -290,7 +320,7 @@ export default function ExplorePage() {
       </header>
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-0">
         <div className="w-full flex items-center justify-center gap-8 h-full max-h-[75vh]">
-          {isSearching ? (
+          {isBoardsLoading || (isSearching && filteredBoards.length === 0) ? (
             <div className="text-center">
               <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
               <h3 className="mt-4 text-xl font-semibold">Searching...</h3>

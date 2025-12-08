@@ -24,18 +24,20 @@ import { ScrollArea } from './ui/scroll-area';
 interface PublishDialogProps {
   board: Board | undefined;
   children: React.ReactNode;
+  onUpdateBoard: (boardId: string, updates: Partial<Omit<Board, 'id'>>) => Promise<Board>;
 }
 
-export function PublishDialog({ board, children }: PublishDialogProps) {
+export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPublished, setIsPublished] = useState(board?.published || false);
   const [shareableLink, setShareableLink] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
   
-  // New states for board metadata
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [flairs, setFlairs] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+
 
   const { toast } = useToast();
   
@@ -45,6 +47,7 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
       setDescription(board.description || '');
       setTags((board.tags || []).join(', '));
       setFlairs((board.flairs || []).join(', '));
+      setThumbnailUrl(board.thumbnailUrl || '');
 
       if (board.published) {
         setShareableLink(`${window.location.origin}/boards/view/${board.id}`);
@@ -57,26 +60,32 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
     setIsPublished(published);
     if (published) {
       setShareableLink(`${window.location.origin}/boards/view/${board.id}`);
-      toast({ title: "Board Published!", description: "Anyone with the link can now view your board." });
-    } else {
-       toast({ title: "Board Unpublished", description: "Your board is now private." });
     }
-    // In a real app, this would trigger a state update in the parent.
-    console.log("Toggled published status to:", published);
   };
   
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (!board) return;
-    // In a real app, you would call an `onUpdateBoard` prop function.
+    
     const updatedBoardDetails = {
         description,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         flairs: flairs.split(',').map(f => f.trim()).filter(Boolean),
-        published: isPublished
+        published: isPublished,
+        thumbnailUrl: thumbnailUrl
     }
-    console.log("Saving changes:", updatedBoardDetails);
-    toast({ title: "Changes Saved!", description: "Your board details have been updated."});
-    setIsOpen(false);
+
+    try {
+        await onUpdateBoard(board.id, updatedBoardDetails);
+        toast({ title: "Changes Saved!", description: "Your board details have been updated."});
+        if (isPublished) {
+            toast({ title: "Board Published!", description: "Anyone with the link can now view your board." });
+        } else {
+            toast({ title: "Board Unpublished", description: "Your board is now private." });
+        }
+        setIsOpen(false);
+    } catch(error) {
+        toast({ title: "Error Saving", description: "Could not save your changes. Please try again.", variant: "destructive" });
+    }
   }
 
   const copyToClipboard = () => {
@@ -109,6 +118,15 @@ export function PublishDialog({ board, children }: PublishDialogProps) {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             className="min-h-[120px]"
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="thumbnailUrl">Cover Image URL</Label>
+                        <Input 
+                            id="thumbnailUrl" 
+                            placeholder="https://example.com/image.png"
+                            value={thumbnailUrl}
+                            onChange={(e) => setThumbnailUrl(e.target.value)}
                         />
                     </div>
                     <div className="space-y-2">
