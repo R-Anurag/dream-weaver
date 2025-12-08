@@ -30,7 +30,7 @@ interface PublishDialogProps {
 
 export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isPublished, setIsPublished] = useState(board?.published || false);
+  const [isPublished, setIsPublished] = useState(false);
   const [shareableLink, setShareableLink] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
   
@@ -44,7 +44,7 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
   const { toast } = useToast();
   
   useEffect(() => {
-    if (board) {
+    if (isOpen && board) {
       setIsPublished(board.published || false);
       setDescription(board.description || '');
       setTags((board.tags || []).join(', '));
@@ -53,9 +53,11 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
 
       if (board.published) {
         setShareableLink(`${window.location.origin}/boards/view/${board.id}`);
+      } else {
+        setShareableLink('');
       }
     }
-  }, [board, isOpen]);
+  }, [isOpen, board]);
 
   const handlePublishToggle = (published: boolean) => {
     if (!board) return;
