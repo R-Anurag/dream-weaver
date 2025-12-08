@@ -21,11 +21,12 @@ export default function BoardsPage() {
         const fetchedBoards = await getBoards();
         setBoards(fetchedBoards);
         if (fetchedBoards.length > 0) {
-          setActiveBoardId(fetchedBoards[0].id);
+          const lastActiveBoardId = localStorage.getItem('lastActiveBoardId');
+          const boardToSelect = fetchedBoards.find(b => b.id === lastActiveBoardId) || fetchedBoards[0];
+          setActiveBoardId(boardToSelect.id);
         }
       } catch (error) {
         console.error("Failed to load boards", error);
-        // Handle error state if needed
       } finally {
         setIsLoading(false);
       }
@@ -49,7 +50,13 @@ export default function BoardsPage() {
       setBoards(prevBoards => {
         const newBoards = prevBoards.filter(b => b.id !== boardId);
         if (activeBoardId === boardId) {
-          setActiveBoardId(newBoards.length > 0 ? newBoards[0].id : null);
+          const newActiveId = newBoards.length > 0 ? newBoards[0].id : null;
+          setActiveBoardId(newActiveId);
+           if (newActiveId) {
+            localStorage.setItem('lastActiveBoardId', newActiveId);
+          } else {
+            localStorage.removeItem('lastActiveBoardId');
+          }
         }
         return newBoards;
       });
@@ -58,32 +65,33 @@ export default function BoardsPage() {
     }
   };
 
-  const handleRenameBoard = async (boardId: string, newName: string) => {
+  const handleUpdateBoard = useCallback(async (boardId: string, updates: Partial<Omit<Board, 'id'>>) => {
     try {
-      const updated = await updateBoard(boardId, { name: newName });
-      setBoards(boards.map(b => b.id === boardId ? updated : b));
+        const updatedBoard = await updateBoard(boardId, updates);
+        setBoards(prevBoards =>
+            prevBoards.map(board =>
+            board.id === boardId ? updatedBoard : board
+            )
+        );
+        return updatedBoard;
     } catch (error) {
-      console.error("Failed to rename board", error);
+        console.error("Failed to update board", error);
+        throw error;
     }
+  }, []);
+  
+  const handleRenameBoard = (boardId: string, newName: string) => {
+    handleUpdateBoard(boardId, { name: newName });
+  };
+  
+  const handleUpdateBoardItems = (boardId: string, items: Board['items']) => {
+      handleUpdateBoard(boardId, { items });
   };
 
-  const handleUpdateBoardItems = async (boardId: string, items: Board['items']) => {
-    try {
-      // Note: In a real DB, you might not want to replace the whole items array
-      // on every small change, but for this service it's fine.
-      const updated = await updateBoard(boardId, { items });
-      setBoards(prevBoards =>
-        prevBoards.map(board =>
-          board.id === boardId ? updated : board
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update board items", error);
-    }
-  };
 
   const handleSelectBoard = (boardId: string) => {
     setActiveBoardId(boardId);
+    localStorage.setItem('lastActiveBoardId', boardId);
   };
   
   const renderLoadingState = () => (
@@ -121,6 +129,7 @@ export default function BoardsPage() {
           key={activeBoardId}
           board={boards.find(b => b.id === activeBoardId)}
           onUpdateItems={handleUpdateBoardItems}
+          onUpdateBoard={handleUpdateBoard}
         />
       </SidebarInset>
     </div>

@@ -18,12 +18,13 @@ interface PropertiesPanelProps {
   onUpdateItem: (item: CanvasItem) => void;
   onDeleteItem: () => void;
   onClose: () => void;
+  onFinalChange: () => void;
 }
 
-const ColorPicker = ({ color, onChange }: { color: string; onChange: (color: string) => void }) => {
+const ColorPicker = ({ color, onChange, onFinalChange }: { color: string; onChange: (color: string) => void; onFinalChange: () => void; }) => {
     const colors = ['#FFFFFF', '#E6E6FA', '#FFFACD', '#FFB380', '#ADD8E6', '#90EE90', '#FFC0CB', '#C0C0C0', '#000000'];
     return (
-        <Popover>
+        <Popover onOpenChange={(open) => !open && onFinalChange()}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="w-8 h-8">
                     <div className="w-5 h-5 rounded-sm border" style={{ backgroundColor: color }} />
@@ -44,7 +45,7 @@ const ColorPicker = ({ color, onChange }: { color: string; onChange: (color: str
 };
 
 
-export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onClose }: PropertiesPanelProps) {
+export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onClose, onFinalChange }: PropertiesPanelProps) {
     const updateStyle = (key: string, value: any) => {
         onUpdateItem({ ...item, style: { ...item.style, [key]: value } });
     };
@@ -61,41 +62,41 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>X</Label>
-                            <Input type="number" value={Math.round(item.x)} onChange={(e) => updateProperty('x', parseInt(e.target.value))} className="w-full h-8" />
+                            <Input type="number" value={Math.round(item.x)} onChange={(e) => updateProperty('x', parseInt(e.target.value))} onBlur={onFinalChange} className="w-full h-8" />
                         </div>
                         <div className="space-y-2">
                             <Label>Y</Label>
-                            <Input type="number" value={Math.round(item.y)} onChange={(e) => updateProperty('y', parseInt(e.target.value))} className="w-full h-8" />
+                            <Input type="number" value={Math.round(item.y)} onChange={(e) => updateProperty('y', parseInt(e.target.value))} onBlur={onFinalChange} className="w-full h-8" />
                         </div>
                          <div className="space-y-2">
                             <Label>Width</Label>
-                            <Input type="number" value={Math.round(item.width)} onChange={(e) => updateProperty('width', parseInt(e.target.value))} className="w-full h-8" />
+                            <Input type="number" value={Math.round(item.width)} onChange={(e) => updateProperty('width', parseInt(e.target.value))} onBlur={onFinalChange} className="w-full h-8" />
                         </div>
                          <div className="space-y-2">
                             <Label>Height</Label>
-                            <Input type="number" value={Math.round(item.height)} onChange={(e) => updateProperty('height', parseInt(e.target.value))} className="w-full h-8" />
+                            <Input type="number" value={Math.round(item.height)} onChange={(e) => updateProperty('height', parseInt(e.target.value))} onBlur={onFinalChange} className="w-full h-8" />
                         </div>
                     </div>
                      <div className="flex items-center justify-between">
                         <Label>Rotation</Label>
-                        <Input type="number" value={Math.round(item.rotation)} onChange={(e) => onUpdateItem({...item, rotation: parseInt(e.target.value)})} className="w-20 h-8" />
+                        <Input type="number" value={Math.round(item.rotation)} onChange={(e) => updateProperty('rotation', parseInt(e.target.value))} onBlur={onFinalChange} className="w-20 h-8" />
                     </div>
 
                     {(item.type === 'text' || item.type === 'shape' || item.type === 'post-it') && (
                          <div className="flex items-center justify-between">
                             <Label>Background</Label>
-                            <ColorPicker color={item.style.backgroundColor} onChange={(c) => updateStyle('backgroundColor', c)} />
+                            <ColorPicker color={item.style.backgroundColor} onChange={(c) => updateStyle('backgroundColor', c)} onFinalChange={onFinalChange} />
                         </div>
                     )}
                     {(item.type === 'text' || item.type === 'post-it') && (
                         <>
                             <div className="flex items-center justify-between">
                                <Label>Text Color</Label>
-                               <ColorPicker color={item.style.color} onChange={(c) => updateStyle('color', c)} />
+                               <ColorPicker color={item.style.color} onChange={(c) => updateStyle('color', c)} onFinalChange={onFinalChange} />
                             </div>
                              <div className="flex items-center justify-between">
                                 <Label>Font</Label>
-                                <Select value={item.style.fontFamily} onValueChange={(v) => updateStyle('fontFamily', v)}>
+                                <Select value={item.style.fontFamily} onValueChange={(v) => { updateStyle('fontFamily', v); onFinalChange(); }}>
                                     <SelectTrigger className="w-40 h-8">
                                         <SelectValue placeholder="Select font" />
                                     </SelectTrigger>
@@ -108,14 +109,14 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label>Font Size</Label>
-                                <Input type="number" value={item.style.fontSize} onChange={(e) => updateStyle('fontSize', parseInt(e.target.value))} className="w-20 h-8" />
+                                <Input type="number" value={item.style.fontSize} onChange={(e) => updateStyle('fontSize', parseInt(e.target.value))} onBlur={onFinalChange} className="w-20 h-8" />
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label>Align</Label>
                                 <div className="flex items-center gap-1">
-                                    <Button variant={item.style.textAlign === 'left' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => updateStyle('textAlign', 'left')}><AlignLeft className="h-4 w-4" /></Button>
-                                    <Button variant={item.style.textAlign === 'center' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => updateStyle('textAlign', 'center')}><AlignCenter className="h-4 w-4" /></Button>
-                                    <Button variant={item.style.textAlign === 'right' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => updateStyle('textAlign', 'right')}><AlignRight className="h-4 w-4" /></Button>
+                                    <Button variant={item.style.textAlign === 'left' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => { updateStyle('textAlign', 'left'); onFinalChange(); }}><AlignLeft className="h-4 w-4" /></Button>
+                                    <Button variant={item.style.textAlign === 'center' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => { updateStyle('textAlign', 'center'); onFinalChange(); }}><AlignCenter className="h-4 w-4" /></Button>
+                                    <Button variant={item.style.textAlign === 'right' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => { updateStyle('textAlign', 'right'); onFinalChange(); }}><AlignRight className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                         </>
@@ -124,11 +125,11 @@ export default function PropertiesPanel({ item, onUpdateItem, onDeleteItem, onCl
                          <>
                             <div className="flex items-center justify-between">
                                <Label>Border Color</Label>
-                               <ColorPicker color={item.style.borderColor} onChange={(c) => updateStyle('borderColor', c)} />
+                               <ColorPicker color={item.style.borderColor} onChange={(c) => updateStyle('borderColor', c)} onFinalChange={onFinalChange} />
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label>Border Width</Label>
-                                <Input type="number" value={item.style.borderWidth} min="0" max="20" onChange={(e) => updateStyle('borderWidth', parseInt(e.target.value))} className="w-20 h-8" />
+                                <Input type="number" value={item.style.borderWidth} min="0" max="20" onChange={(e) => updateStyle('borderWidth', parseInt(e.target.value))} onBlur={onFinalChange} className="w-20 h-8" />
                             </div>
                         </>
                     )}

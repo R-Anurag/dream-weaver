@@ -1,18 +1,21 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import type { Board, CanvasItem, ItemType } from '@/types';
 import CanvasItemComponent from '@/components/canvas-item';
 
 interface CanvasProps {
   boardItems: CanvasItem[];
-  onUpdateItem: (item: CanvasItem) => void;
+  onUpdateItem: (item: CanvasItem, recordHistory?: boolean) => void;
   onAddItem: (item: CanvasItem) => void;
   selectedItemId: string | null;
+  editingItemId: string | null;
   onSelectItem: (id: string | null) => void;
   onEditItem: (id: string) => void;
   onDeleteItem: (id: string) => void;
+  onItemDoubleClick: (id: string) => void;
+  onStopEditing: () => void;
   activeTool: 'select' | 'pencil' | 'eraser';
 }
 
@@ -23,14 +26,19 @@ export default function Canvas({
   onUpdateItem, 
   onAddItem,
   selectedItemId, 
+  editingItemId,
   onSelectItem, 
   onEditItem, 
   onDeleteItem,
+  onItemDoubleClick,
+  onStopEditing,
   activeTool
 }: CanvasProps) {
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentDrawing, setCurrentDrawing] = useState<CanvasItem | null>(null);
+  
+  const isDraggingItem = useRef(false);
 
   const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = e.currentTarget.getBoundingClientRect();
@@ -43,8 +51,11 @@ export default function Canvas({
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !isDraggingItem.current) {
         onSelectItem(null);
+        if (editingItemId) {
+          onStopEditing();
+        }
     }
   }
 
@@ -110,12 +121,14 @@ export default function Canvas({
   };
 
   const handleInteractionEnd = () => {
-    if (!isDrawing || !currentDrawing) return;
-    setIsDrawing(false);
-    if (currentDrawing.style.points && currentDrawing.style.points.length > 1) {
-      onAddItem(currentDrawing);
+    if (isDrawing && currentDrawing) {
+        if (currentDrawing.style.points && currentDrawing.style.points.length > 1) {
+          onAddItem(currentDrawing);
+        }
+        setCurrentDrawing(null);
     }
-    setCurrentDrawing(null);
+    setIsDrawing(false);
+    isDraggingItem.current = false;
   };
 
   const renderDrawing = (item: CanvasItem) => {
@@ -138,6 +151,10 @@ export default function Canvas({
 
   const drawingItems = boardItems ? boardItems.filter(item => item.type === 'drawing') : [];
   const otherItems = boardItems ? boardItems.filter(item => item.type !== 'drawing') : [];
+  
+  const handleItemPointerDown = () => {
+    isDraggingItem.current = true;
+  }
 
   return (
     <div
@@ -168,9 +185,13 @@ export default function Canvas({
           item={item}
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
+          isEditing={item.id === editingItemId}
           onSelect={onSelectItem}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
+          onDoubleClick={onItemDoubleClick}
+          onStopEditing={onStopEditing}
+          onItemPointerDown={handleItemPointerDown}
         />
       ))}
     </div>

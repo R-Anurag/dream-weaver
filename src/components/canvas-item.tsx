@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import type { CanvasItem } from '@/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -36,9 +36,13 @@ interface CanvasItemProps {
   item: CanvasItem;
   onUpdate: (item: CanvasItem) => void;
   isSelected: boolean;
+  isEditing: boolean;
   onSelect: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onDoubleClick: (id: string) => void;
+  onStopEditing: () => void;
+  onItemPointerDown: () => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -60,7 +64,18 @@ const Shape = ({ item }: { item: CanvasItem }) => {
   }
 };
 
-export default function CanvasItemComponent({ item, onUpdate, isSelected, onSelect, onEdit, onDelete }: CanvasItemProps) {
+export default function CanvasItemComponent({ 
+    item, 
+    onUpdate, 
+    isSelected, 
+    isEditing,
+    onSelect, 
+    onEdit, 
+    onDelete,
+    onDoubleClick,
+    onStopEditing,
+    onItemPointerDown
+}: CanvasItemProps) {
   const interactionRef = useRef<{
     startX: number;
     startY: number;
@@ -68,8 +83,19 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     initialY: number;
   } | null>(null);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.select();
+    }
+  }, [isEditing]);
+
+
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    onItemPointerDown();
     interactionRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -79,7 +105,7 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
-  }, [item.x, item.y]);
+  }, [item.x, item.y, onItemPointerDown]);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
     if (!interactionRef.current) return;
@@ -98,7 +124,9 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
   
   const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    onSelect(item.id);
+    if (!isEditing) {
+      onSelect(item.id);
+    }
   }
 
   const handleEditClick = (e: React.MouseEvent) => {
@@ -111,7 +139,80 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
     onDelete(item.id);
   }
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onUpdate({ ...item, content: e.target.value });
+  };
+  
   const fontClass = fontMapping[item.style.fontFamily]?.className || alegreya.className;
+
+  const itemContent = () => {
+    if (isEditing && (item.type === 'text' || item.type === 'post-it')) {
+        return (
+             <textarea
+                ref={textareaRef}
+                value={item.content}
+                onChange={handleTextChange}
+                onBlur={onStopEditing}
+                className={cn(
+                    "absolute inset-0 w-full h-full bg-transparent resize-none outline-none overflow-hidden",
+                    item.type === 'text' ? 'p-2' : 'p-4',
+                    fontClass
+                )}
+                style={{
+                    color: item.style.color,
+                    fontSize: item.style.fontSize,
+                    textAlign: item.style.textAlign,
+                    lineHeight: 1.2
+                }}
+            />
+        )
+    }
+
+    switch(item.type) {
+        case 'image':
+            return <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />;
+        case 'text':
+             return (
+                 <div
+                    className={cn("w-full h-full p-2 bg-transparent overflow-hidden pointer-events-none", fontClass)}
+                    style={{
+                      color: item.style.color,
+                      fontSize: item.style.fontSize,
+                      textAlign: item.style.textAlign,
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                    }}
+                 >
+                  {item.content}
+                 </div>
+             );
+        case 'post-it':
+             return (
+                 <div
+                    className={cn("w-full h-full p-4 rounded-sm shadow-md overflow-hidden pointer-events-none", fontClass)}
+                    style={{
+                      backgroundColor: item.style.backgroundColor,
+                      color: item.style.color,
+                      fontSize: item.style.fontSize,
+                      textAlign: item.style.textAlign,
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word'
+                    }}
+                 >
+                    {item.content}
+                 </div>
+             );
+        case 'shape':
+            return (
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
+                    <Shape item={item} />
+                </svg>
+            );
+        default:
+            return null;
+    }
+  }
+
 
   return (
     <div
@@ -124,44 +225,22 @@ export default function CanvasItemComponent({ item, onUpdate, isSelected, onSele
         transform: `rotate(${item.rotation}deg)`,
       }}
       onClick={handleItemClick}
+      onDoubleClick={() => onDoubleClick(item.id)}
     >
-        <div className={cn("w-full h-full transition-shadow duration-200 group", isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 ring-offset-background rounded-lg")}>
-          {item.type === 'image' && (
-            <Image src={item.content} layout="fill" objectFit="cover" alt="User upload" className="rounded-md pointer-events-none" data-ai-hint="dream board" />
+        <div 
+          className={cn("w-full h-full transition-shadow duration-200 group", 
+            isSelected && "shadow-2xl ring-2 ring-accent ring-offset-2 ring-offset-background",
+            item.type === 'post-it' ? 'rounded-sm' : 'rounded-lg'
           )}
-          {item.type === 'text' && (
-             <div
-                className={cn("w-full h-full p-2 bg-transparent overflow-hidden pointer-events-none", fontClass)}
-                style={{
-                  color: item.style.color,
-                  fontSize: item.style.fontSize,
-                  textAlign: item.style.textAlign,
-                }}
-             >
-              {item.content}
-             </div>
-          )}
-          {item.type === 'post-it' && (
-             <div
-                className={cn("w-full h-full p-4 rounded-sm shadow-md overflow-hidden pointer-events-none", fontClass)}
-                style={{
-                  backgroundColor: item.style.backgroundColor,
-                  color: item.style.color,
-                  fontSize: item.style.fontSize,
-                  textAlign: item.style.textAlign,
-                  whiteSpace: 'pre-wrap'
-                }}
-             >
-                {item.content}
-             </div>
-          )}
-          {item.type === 'shape' && (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="overflow-visible pointer-events-none">
-                <Shape item={item} />
-            </svg>
-          )}
+        >
+            {item.type === 'post-it' ? 
+                <div className="w-full h-full shadow-md" style={{ backgroundColor: item.style.backgroundColor }} />
+                : null
+            }
+            {itemContent()}
         </div>
-          {isSelected && (
+
+          {isSelected && !isEditing && (
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-1 bg-background p-1 rounded-full shadow-lg border" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
               <div
                   className="p-1.5 rounded-full cursor-move hover:bg-muted"
