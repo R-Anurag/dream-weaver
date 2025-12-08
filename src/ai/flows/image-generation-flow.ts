@@ -38,22 +38,37 @@ const generateImageFlow = ai.defineFlow(
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
   },
-  async input => {
+  async (input) => {
     try {
-        const {media} = await ai.generate({
-            model: 'googleai/gemini-2.0-flash-preview-image-generation',
-            prompt: input.prompt,
-            config: {
-                responseModalities: ['TEXT', 'IMAGE'],
-            },
-        });
+      let { operation } = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
+        prompt: input.prompt,
+      });
 
-        if (!media) {
-            console.error('Image generation failed to produce a media object.');
-            return { dataUri: null };
-        }
-        
-        return { dataUri: media.url };
+      if (!operation) {
+        console.error('Image generation failed to produce an operation.');
+        return { dataUri: null };
+      }
+
+      // Wait until the operation completes.
+      while (!operation.done) {
+        operation = await ai.checkOperation(operation);
+        // Sleep for 1 second before checking again.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      if (operation.error) {
+        console.error('Image generation operation failed:', operation.error);
+        return { dataUri: null };
+      }
+
+      const media = operation.output?.message?.content.find((p) => !!p.media);
+      if (!media || !media.media?.url) {
+        console.error('Image generation failed to produce a media object in the final operation.');
+        return { dataUri: null };
+      }
+      
+      return { dataUri: media.media.url };
 
     } catch (error) {
         console.error("An error occurred during image generation:", error);
