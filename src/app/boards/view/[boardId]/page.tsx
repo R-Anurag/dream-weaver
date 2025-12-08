@@ -43,9 +43,13 @@ function ViewOnlyCanvas({ board }: ViewOnlyCanvasProps) {
               item={item}
               onUpdate={() => {}}
               isSelected={false}
+              isEditing={false}
               onSelect={() => {}}
               onEdit={() => {}}
               onDelete={() => {}}
+              onDoubleClick={() => {}}
+              onStopEditing={() => {}}
+              onItemPointerDown={() => {}}
             />
         </div>
       ))}
@@ -95,17 +99,19 @@ export default function ViewBoardPage() {
   return (
     <div className="flex flex-col min-h-svh w-screen bg-background" key={boardId}>
          <header className="p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-between gap-4">
-            <Button asChild variant={isMobile ? "ghost" : "outline"} size={isMobile ? "icon" : "default"}>
-                <Link href="/explore">
-                    <ArrowLeft className={cn(!isMobile && "mr-2", "h-4 w-4")} />
-                    {!isMobile && 'Back to Explore'}
-                </Link>
-            </Button>
-            <div className="flex-1 text-center min-w-0">
+            <div className="flex-shrink-0">
+                <Button asChild variant={isMobile ? "ghost" : "outline"} size={isMobile ? "icon" : "default"}>
+                    <Link href="/explore">
+                        <ArrowLeft className={cn(!isMobile && "mr-2", "h-4 w-4")} />
+                        {!isMobile && 'Back to Explore'}
+                    </Link>
+                </Button>
+            </div>
+            <div className="flex-1 text-center min-w-0 px-4">
                  <h1 className="text-lg md:text-xl font-bold font-headline truncate" title={board?.name}>{board?.name || 'Loading...'}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground truncate" title={board?.description}>{board?.description}</p>
             </div>
-            <div className="w-auto flex justify-end">
+            <div className="flex-shrink-0">
               {board && (
                 <ProposalDialog board={board}>
                     <Button>

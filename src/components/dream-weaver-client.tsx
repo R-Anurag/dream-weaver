@@ -16,7 +16,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from './ui/button';
-import { PanelLeftOpen, PanelLeftClose, Rocket, Bell } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, Rocket, Bell, Settings } from 'lucide-react';
 import { useSidebar } from './ui/sidebar';
 import { sampleProposals } from '@/lib/sample-data';
 import ProposalsPanel from './proposals-panel';
@@ -335,9 +335,13 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
                     {unreadProposalsCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs">{unreadProposalsCount}</span>}
                 </Button>
                 <PublishDialog board={board} onUpdateBoard={onUpdateBoard}>
-                    <Button className="shadow-lg">
-                        <Rocket className="mr-2 h-4 w-4" />
-                        Publish
+                    <Button className="shadow-lg" variant={board?.published ? 'secondary' : 'default'}>
+                        {board?.published ? (
+                            <Settings className="mr-2 h-4 w-4" />
+                        ) : (
+                            <Rocket className="mr-2 h-4 w-4" />
+                        )}
+                        {board?.published ? 'Settings' : 'Publish'}
                     </Button>
                 </PublishDialog>
             </div>
