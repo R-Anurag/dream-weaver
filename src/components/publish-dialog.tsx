@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,11 +15,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from './ui/use-toast';
 import type { Board } from '@/types';
-import { Rocket, Copy, Check, Save } from 'lucide-react';
+import { Rocket, Copy, Check, Save, Upload } from 'lucide-react';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { ScrollArea } from './ui/scroll-area';
+import Image from 'next/image';
 
 interface PublishDialogProps {
   board: Board | undefined;
@@ -37,6 +38,7 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
   const [tags, setTags] = useState('');
   const [flairs, setFlairs] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   const { toast } = useToast();
@@ -94,6 +96,25 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
     setTimeout(() => setHasCopied(false), 2000);
   };
   
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 4 * 1024 * 1024) { // 4MB limit
+        toast({
+          title: "Image too large",
+          description: "Please select an image smaller than 4MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setThumbnailUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
   if (!board) return <>{children}</>;
 
   return (
@@ -106,10 +127,34 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
             Edit your board's public details and publish it to the world.
           </DialogDescription>
         </DialogHeader>
+         <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageUpload}
+        />
         <ScrollArea className="flex-1 min-h-0">
             <div className="grid md:grid-cols-2 gap-6 p-6">
                 {/* Left Column */}
                 <div className="space-y-6">
+                    <div className="space-y-2">
+                        <Label>Cover Image</Label>
+                        <div className="aspect-video w-full rounded-md border-2 border-dashed flex items-center justify-center text-muted-foreground bg-muted/20 relative">
+                            {thumbnailUrl ? (
+                                <Image src={thumbnailUrl} alt="Cover image preview" layout="fill" objectFit="cover" className="rounded-md" />
+                            ) : (
+                                <div className="text-center p-4">
+                                    <p className="text-sm">No cover image selected</p>
+                                </div>
+                            )}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Image
+                        </Button>
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea 
@@ -117,18 +162,11 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
                             placeholder="Describe your vision board..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="min-h-[120px]"
                         />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="thumbnailUrl">Cover Image URL</Label>
-                        <Input 
-                            id="thumbnailUrl" 
-                            placeholder="https://example.com/image.png"
-                            value={thumbnailUrl}
-                            onChange={(e) => setThumbnailUrl(e.target.value)}
-                        />
-                    </div>
+                </div>
+                {/* Right Column */}
+                <div className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="tags">Tags (comma-separated)</Label>
                         <Input 
@@ -147,10 +185,7 @@ export function PublishDialog({ board, children, onUpdateBoard }: PublishDialogP
                             onChange={(e) => setFlairs(e.target.value)}
                         />
                     </div>
-                </div>
-                {/* Right Column */}
-                <div className="space-y-6">
-                    <div className="flex items-center space-x-4 rounded-lg border p-4 h-fit">
+                    <div className="flex items-center space-x-4 rounded-lg border p-4 h-fit mt-6">
                         <Rocket className="h-6 w-6 text-primary" />
                         <div className="flex-1 space-y-1">
                             <p className="text-sm font-medium leading-none">
