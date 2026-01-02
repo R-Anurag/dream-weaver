@@ -17,6 +17,7 @@ interface CanvasProps {
   onItemDoubleClick: (id: string) => void;
   onStopEditing: () => void;
   activeTool: 'select' | 'pencil' | 'eraser';
+  onBringToFront: (id: string) => void;
 }
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -32,7 +33,8 @@ export default function Canvas({
   onDeleteItem,
   onItemDoubleClick,
   onStopEditing,
-  activeTool
+  activeTool,
+  onBringToFront
 }: CanvasProps) {
 
   const [isDrawing, setIsDrawing] = useState(false);
@@ -171,6 +173,7 @@ export default function Canvas({
     if (!item) return;
 
     onSelectItem(itemId);
+    onBringToFront(itemId);
 
     interactionRef.current = {
       itemId,

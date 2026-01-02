@@ -198,13 +198,6 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     setEditingItemId(null);
     if (itemId) {
       setIsProposalsPanelOpen(false); // Close proposals panel if an item is selected
-      // Re-order the items array to bring the selected item to the front for z-indexing
-      setLocalItems(prevItems => {
-          const item = prevItems.find(i => i.id === itemId);
-          if (!item) return prevItems;
-          const otherItems = prevItems.filter(i => i.id !== itemId);
-          return [...otherItems, item];
-      });
     }
   }, [editingItemId]);
   
@@ -223,6 +216,15 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
         setIsProposalsPanelOpen(false);
     }
   }
+  
+  const handleBringToFront = useCallback((itemId: string) => {
+    setLocalItems(prevItems => {
+        const item = prevItems.find(i => i.id === itemId);
+        if (!item) return prevItems;
+        const otherItems = prevItems.filter(i => i.id !== itemId);
+        return [...otherItems, item];
+    });
+  }, []);
 
   const handleStopEditing = useCallback(() => {
     if (editingItemId) {
@@ -408,6 +410,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
             onItemDoubleClick={handleItemDoubleClick}
             onStopEditing={handleStopEditing}
             activeTool={activeTool}
+            onBringToFront={handleBringToFront}
           />
         </div>
         {renderPanels()}
