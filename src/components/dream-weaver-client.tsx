@@ -340,7 +340,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
           key={selectedItem.id}
           item={selectedItem}
           onUpdateItem={(item) => handleUpdateItem(item, false)}
-          onDeleteItem={() => handleDeleteItem(selected.id)}
+          onDeleteItem={() => handleDeleteItem(selectedItem.id)}
           onClose={closePropertiesPanel}
           onFinalChange={handleFinalChange}
         />

@@ -37,7 +37,6 @@ interface CanvasItemProps {
   onUpdate: (item: CanvasItem) => void;
   isSelected: boolean;
   isEditing: boolean;
-  onSelect: (id: string, e: React.MouseEvent<HTMLDivElement>) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onDoubleClick: (id: string) => void;
@@ -69,7 +68,6 @@ export default function CanvasItemComponent({
     onUpdate, 
     isSelected, 
     isEditing,
-    onSelect, 
     onEdit, 
     onDelete,
     onDoubleClick,
@@ -86,13 +84,6 @@ export default function CanvasItemComponent({
     }
   }, [isEditing]);
   
-  const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    if (!isEditing) {
-      onSelect(item.id, e);
-    }
-  }
-
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit(item.id);
@@ -178,7 +169,6 @@ export default function CanvasItemComponent({
   }
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.stopPropagation();
     onItemPointerDown(item.id, e);
   };
 
@@ -193,7 +183,6 @@ export default function CanvasItemComponent({
         height: item.height,
         transform: `rotate(${item.rotation}deg)`,
       }}
-      onClick={handleItemClick}
       onDoubleClick={() => onDoubleClick(item.id)}
       onPointerDown={handlePointerDown}
     >

@@ -159,19 +159,15 @@ export default function Canvas({
   const drawingItems = boardItems ? boardItems.filter(item => item.type === 'drawing') : [];
   const otherItems = boardItems ? boardItems.filter(item => item.type !== 'drawing') : [];
   
-  const handleItemSelect = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
-    if (editingItemId && id !== editingItemId) {
-      onStopEditing();
-    }
-    onSelectItem(id);
-  };
-
   const handleItemPointerDown = (itemId: string, e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
 
     const item = boardItems.find(i => i.id === itemId);
     if (!item) return;
 
+    if (editingItemId && itemId !== editingItemId) {
+      onStopEditing();
+    }
     onSelectItem(itemId);
     onBringToFront(itemId);
 
@@ -243,7 +239,6 @@ export default function Canvas({
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
           isEditing={item.id === editingItemId}
-          onSelect={handleItemSelect}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
           onDoubleClick={onItemDoubleClick}
