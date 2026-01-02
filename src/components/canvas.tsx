@@ -17,6 +17,7 @@ interface CanvasProps {
   onItemDoubleClick: (id: string) => void;
   onStopEditing: () => void;
   activeTool: 'select' | 'pencil' | 'eraser';
+  onBringToFront: (id: string) => void;
 }
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -32,15 +33,22 @@ export default function Canvas({
   onDeleteItem,
   onItemDoubleClick,
   onStopEditing,
-  activeTool
+  activeTool,
+  onBringToFront
 }: CanvasProps) {
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentDrawing, setCurrentDrawing] = useState<CanvasItem | null>(null);
   
-  const isDraggingItem = useRef(false);
+  const interactionRef = useRef<{
+    itemId: string;
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+  } | null>(null);
 
-  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
+  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent | PointerEvent) => {
     const canvas = e.currentTarget.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -51,7 +59,7 @@ export default function Canvas({
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && !isDraggingItem.current) {
+    if (e.target === e.currentTarget) {
         onSelectItem(null);
         if (editingItemId) {
           onStopEditing();
@@ -66,7 +74,7 @@ export default function Canvas({
     if (activeTool !== 'pencil') return;
 
     setIsDrawing(true);
-    const { x, y } = getPointerPosition(e);
+    const { x, y } = getPointerPosition(e as React.MouseEvent);
     
     const newDrawing: CanvasItem = {
       id: generateId(),
@@ -106,7 +114,7 @@ export default function Canvas({
         e.preventDefault();
     }
 
-    const { x, y } = getPointerPosition(e);
+    const { x, y } = getPointerPosition(e as React.MouseEvent);
     
     if (currentDrawing.style.points) {
       const updatedDrawing = {
@@ -128,7 +136,6 @@ export default function Canvas({
         setCurrentDrawing(null);
     }
     setIsDrawing(false);
-    isDraggingItem.current = false;
   };
 
   const renderDrawing = (item: CanvasItem) => {
@@ -152,9 +159,55 @@ export default function Canvas({
   const drawingItems = boardItems ? boardItems.filter(item => item.type === 'drawing') : [];
   const otherItems = boardItems ? boardItems.filter(item => item.type !== 'drawing') : [];
   
-  const handleItemPointerDown = () => {
-    isDraggingItem.current = true;
-  }
+  const handleItemPointerDown = (itemId: string, e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    const item = boardItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    if (editingItemId && itemId !== editingItemId) {
+      onStopEditing();
+    }
+    onSelectItem(itemId);
+    onBringToFront(itemId);
+
+    interactionRef.current = {
+      itemId,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: item.x,
+      initialY: item.y,
+    };
+
+    document.addEventListener('pointermove', handleItemPointerMove);
+    document.addEventListener('pointerup', handleItemPointerUp);
+  };
+
+  const handleItemPointerMove = (e: PointerEvent) => {
+    if (!interactionRef.current) return;
+    const { itemId, startX, startY, initialX, initialY } = interactionRef.current;
+    
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const currentItem = boardItems.find(i => i.id === itemId);
+    if (currentItem) {
+      onUpdateItem({ ...currentItem, x: initialX + dx, y: initialY + dy });
+    }
+  };
+
+  const handleItemPointerUp = () => {
+    if (interactionRef.current) {
+        const itemToUpdate = boardItems.find(i => i.id === interactionRef.current?.itemId);
+        if (itemToUpdate) {
+            onUpdateItem(itemToUpdate, true);
+        }
+    }
+
+    document.removeEventListener('pointermove', handleItemPointerMove);
+    document.removeEventListener('pointerup', handleItemPointerUp);
+    interactionRef.current = null;
+  };
 
   return (
     <div
@@ -186,7 +239,6 @@ export default function Canvas({
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
           isEditing={item.id === editingItemId}
-          onSelect={onSelectItem}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
           onDoubleClick={onItemDoubleClick}

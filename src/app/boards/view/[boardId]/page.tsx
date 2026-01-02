@@ -13,6 +13,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ProposalDialog } from '@/components/proposal-dialog';
 import { getBoards } from '@/lib/board-service';
+import { hasSentProposal } from '@/lib/proposal-service';
 
 
 interface ViewOnlyCanvasProps {
@@ -63,6 +64,7 @@ export default function ViewBoardPage() {
   const boardId = params.boardId as string;
   const [board, setBoard] = useState<Board | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const [hasSentProposalState, setHasSentProposalState] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -74,22 +76,28 @@ export default function ViewBoardPage() {
       const sampleBoard = sampleBoards.find(b => b.id === boardId);
       if (sampleBoard) {
         setBoard(sampleBoard);
-        setIsLoading(false);
-        return;
-      }
-
-      // If not in sample, check "database" (localStorage via service)
-      try {
-        const userBoards = await getBoards();
-        const userBoard = userBoards.find(b => b.id === boardId);
-        if (userBoard) {
-          setBoard(userBoard);
+      } else {
+        // If not in sample, check "database" (localStorage via service)
+        try {
+          const userBoards = await getBoards();
+          const userBoard = userBoards.find(b => b.id === boardId);
+          if (userBoard) {
+            setBoard(userBoard);
+          }
+        } catch (error) {
+          console.error("Failed to load board", error);
         }
-      } catch (error) {
-        console.error("Failed to load board", error);
-      } finally {
-        setIsLoading(false);
       }
+      
+      try {
+        // Check if a proposal was already sent
+        const alreadySent = await hasSentProposal(boardId, 'A Collaborator'); // Using mock user name
+        setHasSentProposalState(alreadySent);
+      } catch (error) {
+         console.error("Failed to check for existing proposals", error);
+      }
+      
+      setIsLoading(false);
     };
 
     findBoard();
@@ -113,10 +121,13 @@ export default function ViewBoardPage() {
             </div>
             <div className="flex-shrink-0">
               {board && (
-                <ProposalDialog board={board}>
-                    <Button>
+                <ProposalDialog 
+                    board={board} 
+                    onProposalSent={() => setHasSentProposalState(true)}
+                >
+                    <Button disabled={hasSentProposalState}>
                         <Sparkles className="mr-2 h-4 w-4" />
-                        Collaborate
+                        {hasSentProposalState ? 'Proposal Sent' : 'Collaborate'}
                     </Button>
                 </ProposalDialog>
               )}

@@ -88,15 +88,16 @@ export default function ExplorePage() {
         try {
             const userBoards = await getBoards();
             const publishedUserBoards = userBoards.filter(b => b.published);
-            // Combine sample boards and user's published boards, avoiding duplicates
             const combined = [...sampleBoards, ...publishedUserBoards];
             const uniqueBoards = Array.from(new Map(combined.map(b => [b.id, b])).values());
-            setAllBoards(uniqueBoards.filter(b => b.published));
-            setFilteredBoardIds(uniqueBoards.filter(b => b.published).map(b => b.id));
+            const publishedBoards = uniqueBoards.filter(b => b.published);
+            setAllBoards(publishedBoards);
+            setFilteredBoardIds(publishedBoards.map(b => b.id));
         } catch (error) {
             console.error("Failed to load boards:", error);
-            setAllBoards(sampleBoards.filter(b => b.published)); // Fallback to sample boards
-            setFilteredBoardIds(sampleBoards.filter(b => b.published).map(b => b.id));
+            const publishedSampleBoards = sampleBoards.filter(b => b.published);
+            setAllBoards(publishedSampleBoards);
+            setFilteredBoardIds(publishedSampleBoards.map(b => b.id));
         } finally {
             setIsBoardsLoading(false);
         }
@@ -363,3 +364,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    

@@ -18,9 +18,9 @@ import {
 import { Button } from './ui/button';
 import { PanelLeftOpen, PanelLeftClose, Rocket, Bell, Settings } from 'lucide-react';
 import { useSidebar } from './ui/sidebar';
-import { sampleProposals } from '@/lib/sample-data';
 import ProposalsPanel from './proposals-panel';
 import { PublishDialog } from './publish-dialog';
+import { getProposals, updateProposalStatus } from '@/lib/proposal-service';
 
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -120,6 +120,13 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
   const isMobile = useIsMobile();
   const { state, toggleSidebar } = useSidebar();
   
+  const loadProposals = useCallback(async () => {
+    if (board) {
+      const boardProposals = await getProposals(board.id);
+      setProposals(boardProposals);
+    }
+  }, [board]);
+
   useEffect(() => {
     const initialItems = board?.items || [];
     setLocalItems(initialItems);
@@ -130,18 +137,15 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     setIsPropertiesPanelOpen(false);
     setIsProposalsPanelOpen(false);
     setActiveTool('select');
-     if(board) {
-        const boardProposals = sampleProposals.filter(p => p.boardId === 'board-1'); // mock
-        setProposals(boardProposals);
-    }
-  }, [board?.id]);
+    loadProposals();
+  }, [board?.id, loadProposals]);
 
-  const updateItemsAndSave = useCallback((newItems: CanvasItem[], record: boolean) => {
+  const updateItems = useCallback((newItems: CanvasItem[], record: boolean) => {
     setLocalItems(newItems);
-    if(board) {
-        onUpdateItems(board.id, newItems);
-    }
     if (record) {
+      if(board) {
+          onUpdateItems(board.id, newItems);
+      }
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push(newItems);
       setHistory(newHistory);
@@ -151,14 +155,27 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem, record = false) => {
     const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    updateItemsAndSave(newItems, record);
-  }, [localItems, updateItemsAndSave]);
+    setLocalItems(newItems);
+     if (record) {
+      if(board) {
+          onUpdateItems(board.id, newItems);
+      }
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(newItems);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
+  }, [localItems, history, historyIndex, board, onUpdateItems]);
+
 
   const handleUndo = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       setHistoryIndex(newIndex);
-      updateItemsAndSave(history[newIndex], false);
+      setLocalItems(history[newIndex]);
+      if(board) {
+        onUpdateItems(board.id, history[newIndex]);
+      }
     }
   };
 
@@ -166,7 +183,10 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
       setHistoryIndex(newIndex);
-      updateItemsAndSave(history[newIndex], false);
+      setLocalItems(history[newIndex]);
+      if(board) {
+        onUpdateItems(board.id, history[newIndex]);
+      }
     }
   };
 
@@ -178,15 +198,8 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     setEditingItemId(null);
     if (itemId) {
       setIsProposalsPanelOpen(false); // Close proposals panel if an item is selected
-      const item = localItems.find(i => i.id === itemId);
-      if (item) {
-        const otherItems = localItems.filter(i => i.id !== itemId);
-        const newItems = [...otherItems, item];
-        // Don't record history for selection, just re-order
-        updateItemsAndSave(newItems, false); 
-      }
     }
-  }, [localItems, editingItemId, updateItemsAndSave]);
+  }, [editingItemId]);
   
   const handleEditItemProperties = (itemId: string) => {
     setSelectedItemId(itemId);
@@ -203,13 +216,21 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
         setIsProposalsPanelOpen(false);
     }
   }
+  
+  const handleBringToFront = useCallback((itemId: string) => {
+    const item = localItems.find(i => i.id === itemId);
+    if (!item) return;
+    const otherItems = localItems.filter(i => i.id !== itemId);
+    const newItems = [...otherItems, item];
+    updateItems(newItems, true);
+}, [localItems, updateItems]);
 
   const handleStopEditing = useCallback(() => {
     if (editingItemId) {
-      updateItemsAndSave(localItems, true);
+      updateItems(localItems, true);
       setEditingItemId(null);
     }
-  }, [editingItemId, localItems, updateItemsAndSave]);
+  }, [editingItemId, localItems, updateItems]);
 
 
   const selectedItem = localItems.find(i => i.id === selectedItemId);
@@ -220,8 +241,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
         return;
     }
     const newItem = createNewItem(type, content, shape);
-    const newItems = [...localItems, newItem];
-    updateItemsAndSave(newItems, true);
+    updateItems([...localItems, newItem], true);
 
     if (type !== 'drawing') {
       handleSelectItem(newItem.id);
@@ -230,14 +250,13 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
 
   const handleAddDrawingItem = useCallback((item: CanvasItem) => {
     if (!board) return;
-    const newItems = [...localItems, item];
-    updateItemsAndSave(newItems, true);
-  }, [board, localItems, updateItemsAndSave]);
+    updateItems([...localItems, item], true);
+  }, [board, localItems, updateItems]);
   
   const handleDeleteItem = useCallback((itemIdToDelete: string) => {
     if (!itemIdToDelete || !board) return;
     const newItems = localItems.filter(i => i.id !== itemIdToDelete);
-    updateItemsAndSave(newItems, true);
+    updateItems(newItems, true);
     
     if (selectedItemId === itemIdToDelete) {
         setSelectedItemId(null);
@@ -246,7 +265,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     if (editingItemId === itemIdToDelete) {
         setEditingItemId(null);
     }
-  }, [board, localItems, selectedItemId, editingItemId, updateItemsAndSave]);
+  }, [board, localItems, selectedItemId, editingItemId, updateItems]);
 
 
   const closePropertiesPanel = () => {
@@ -254,17 +273,27 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     setSelectedItemId(null);
   };
   
-   const handlePointerUp = useCallback(() => {
-    updateItemsAndSave(localItems, true);
-  }, [localItems, updateItemsAndSave]);
+   const handleFinalChange = useCallback(() => {
+    updateItems(localItems, true);
+  }, [localItems, updateItems]);
 
   const handleToggleProposalsPanel = () => {
     const newOpenState = !isProposalsPanelOpen;
     setIsProposalsPanelOpen(newOpenState);
     if (newOpenState) {
+        loadProposals();
         setIsPropertiesPanelOpen(false);
         setSelectedItemId(null);
     }
+  }
+
+  const handleUpdateProposalStatus = async (proposalId: string, status: 'accepted' | 'rejected') => {
+    await updateProposalStatus(proposalId, status);
+    toast({
+        title: `Proposal ${status}`,
+        description: `The collaboration proposal has been ${status}.`
+    });
+    loadProposals();
   }
 
 
@@ -291,14 +320,14 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
                     onUpdateItem={(item) => handleUpdateItem(item, false)}
                     onDeleteItem={() => handleDeleteItem(selectedItem.id)}
                     onClose={closePropertiesPanel}
-                    onFinalChange={() => updateItemsAndSave(localItems, true)}
+                    onFinalChange={handleFinalChange}
                   />
               )}
             </SheetContent>
           </Sheet>
           <Sheet open={isProposalsPanelOpen} onOpenChange={setIsProposalsPanelOpen}>
             <SheetContent side="left" className="w-[85vw] p-0 flex flex-col">
-                 <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} onClose={() => setIsProposalsPanelOpen(false)} />
+                 <ProposalsPanel proposals={proposals} onUpdateProposalStatus={handleUpdateProposalStatus} onClose={() => setIsProposalsPanelOpen(false)} />
             </SheetContent>
           </Sheet>
         </>
@@ -313,13 +342,13 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
           onUpdateItem={(item) => handleUpdateItem(item, false)}
           onDeleteItem={() => handleDeleteItem(selectedItem.id)}
           onClose={closePropertiesPanel}
-          onFinalChange={() => updateItemsAndSave(localItems, true)}
+          onFinalChange={handleFinalChange}
         />
       );
     }
     
     if (isProposalsPanelOpen) {
-        return <ProposalsPanel proposals={proposals} onUpdateProposalStatus={() => {}} onClose={() => setIsProposalsPanelOpen(false)} />
+        return <ProposalsPanel proposals={proposals} onUpdateProposalStatus={handleUpdateProposalStatus} onClose={() => setIsProposalsPanelOpen(false)} />
     }
     
     return null;
@@ -329,7 +358,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
 
   return (
       <main className="flex-1 flex flex-row relative">
-        <div className="flex-1 flex flex-col relative" onPointerUp={handlePointerUp}>
+        <div className="flex-1 flex flex-col relative">
           <header className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
              <Button
                 onClick={toggleSidebar}
@@ -370,7 +399,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
            />
           <Canvas
             boardItems={localItems}
-            onUpdateItem={(item) => handleUpdateItem(item, false)}
+            onUpdateItem={handleUpdateItem}
             onAddItem={handleAddDrawingItem}
             selectedItemId={selectedItemId}
             editingItemId={editingItemId}
@@ -380,6 +409,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
             onItemDoubleClick={handleItemDoubleClick}
             onStopEditing={handleStopEditing}
             activeTool={activeTool}
+            onBringToFront={handleBringToFront}
           />
         </div>
         {renderPanels()}
