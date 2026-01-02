@@ -51,6 +51,18 @@ export async function getProposals(boardId: string): Promise<Proposal[]> {
 }
 
 /**
+ * Checks if a proposal has already been sent for a specific board by the mock user.
+ * @param boardId The ID of the board to check.
+ * @returns A promise that resolves to true if a proposal exists, false otherwise.
+ */
+export async function hasSentProposal(boardId: string, user: string): Promise<boolean> {
+    await delay(50);
+    const allProposals = getAllProposalsFromStorage();
+    return allProposals.some(p => p.boardId === boardId && p.from === user);
+}
+
+
+/**
  * Creates a new proposal.
  * @param proposalData The data for the new proposal.
  * @returns A promise that resolves to the newly created proposal.

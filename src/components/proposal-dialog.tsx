@@ -25,6 +25,7 @@ import { createProposal } from '@/lib/proposal-service';
 interface ProposalDialogProps {
   board: Board;
   children: React.ReactNode;
+  onProposalSent?: () => void;
 }
 
 const useTypewriter = (initialText: string = '', speed: number = 50) => {
@@ -50,7 +51,7 @@ const useTypewriter = (initialText: string = '', speed: number = 50) => {
 };
 
 
-export function ProposalDialog({ board, children }: ProposalDialogProps) {
+export function ProposalDialog({ board, children, onProposalSent }: ProposalDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [headings, setHeadings] = useState<string[]>([]);
   const [selectedHeadingIndex, setSelectedHeadingIndex] = useState(0);
@@ -147,6 +148,7 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
             from: 'A Collaborator' // Mock user name
         });
         toast({ title: 'Success!', description: 'Your collaboration proposal has been sent.' });
+        onProposalSent?.();
         setIsOpen(false);
     } catch (error) {
         console.error('Failed to send proposal', error);
