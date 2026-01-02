@@ -164,26 +164,8 @@ export default function Canvas({
     onSelectItem(id);
   };
 
-  const handleItemPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleItemPointerDown = (itemId: string, e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
-
-    // Find the item ID from the target element
-    let target = e.target as HTMLElement;
-    let itemElement: HTMLElement | null = null;
-    while(target && target !== e.currentTarget as HTMLElement) {
-      if (target.parentElement?.id === 'canvas') {
-        itemElement = target;
-        break;
-      }
-      target = target.parentElement as HTMLElement;
-    }
-
-    const itemId = otherItems.find(item => {
-      const el = document.querySelector(`[style*="left: ${item.x}px; top: ${item.y}px;"]`);
-      return el === itemElement;
-    })?.id;
-
-    if (!itemId) return;
 
     const item = boardItems.find(i => i.id === itemId);
     if (!item) return;
@@ -216,10 +198,16 @@ export default function Canvas({
   };
 
   const handleItemPointerUp = () => {
+    if (interactionRef.current) {
+        const itemToUpdate = boardItems.find(i => i.id === interactionRef.current?.itemId);
+        if (itemToUpdate) {
+            onUpdateItem(itemToUpdate, true);
+        }
+    }
+
     document.removeEventListener('pointermove', handleItemPointerMove);
     document.removeEventListener('pointerup', handleItemPointerUp);
     interactionRef.current = null;
-    onUpdateItem(boardItems.find(i => i.id === selectedItemId)!, true);
   };
 
   return (

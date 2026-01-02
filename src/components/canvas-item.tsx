@@ -42,7 +42,7 @@ interface CanvasItemProps {
   onDelete: (id: string) => void;
   onDoubleClick: (id: string) => void;
   onStopEditing: () => void;
-  onItemPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onItemPointerDown: (id: string, e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -179,7 +179,7 @@ export default function CanvasItemComponent({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    onItemPointerDown(e);
+    onItemPointerDown(item.id, e);
   };
 
 
