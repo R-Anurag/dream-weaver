@@ -38,9 +38,15 @@ export default function Canvas({
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentDrawing, setCurrentDrawing] = useState<CanvasItem | null>(null);
   
-  const isDraggingItem = useRef(false);
+  const interactionRef = useRef<{
+    itemId: string;
+    startX: number;
+    startY: number;
+    initialX: number;
+    initialY: number;
+  } | null>(null);
 
-  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
+  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent | PointerEvent) => {
     const canvas = e.currentTarget.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -51,7 +57,7 @@ export default function Canvas({
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && !isDraggingItem.current) {
+    if (e.target === e.currentTarget) {
         onSelectItem(null);
         if (editingItemId) {
           onStopEditing();
@@ -66,7 +72,7 @@ export default function Canvas({
     if (activeTool !== 'pencil') return;
 
     setIsDrawing(true);
-    const { x, y } = getPointerPosition(e);
+    const { x, y } = getPointerPosition(e as React.MouseEvent);
     
     const newDrawing: CanvasItem = {
       id: generateId(),
@@ -106,7 +112,7 @@ export default function Canvas({
         e.preventDefault();
     }
 
-    const { x, y } = getPointerPosition(e);
+    const { x, y } = getPointerPosition(e as React.MouseEvent);
     
     if (currentDrawing.style.points) {
       const updatedDrawing = {
@@ -128,7 +134,6 @@ export default function Canvas({
         setCurrentDrawing(null);
     }
     setIsDrawing(false);
-    isDraggingItem.current = false;
   };
 
   const renderDrawing = (item: CanvasItem) => {
@@ -152,9 +157,70 @@ export default function Canvas({
   const drawingItems = boardItems ? boardItems.filter(item => item.type === 'drawing') : [];
   const otherItems = boardItems ? boardItems.filter(item => item.type !== 'drawing') : [];
   
-  const handleItemPointerDown = () => {
-    isDraggingItem.current = true;
-  }
+  const handleItemSelect = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
+    if (editingItemId && id !== editingItemId) {
+      onStopEditing();
+    }
+    onSelectItem(id);
+  };
+
+  const handleItemPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    // Find the item ID from the target element
+    let target = e.target as HTMLElement;
+    let itemElement: HTMLElement | null = null;
+    while(target && target !== e.currentTarget as HTMLElement) {
+      if (target.parentElement?.id === 'canvas') {
+        itemElement = target;
+        break;
+      }
+      target = target.parentElement as HTMLElement;
+    }
+
+    const itemId = otherItems.find(item => {
+      const el = document.querySelector(`[style*="left: ${item.x}px; top: ${item.y}px;"]`);
+      return el === itemElement;
+    })?.id;
+
+    if (!itemId) return;
+
+    const item = boardItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    onSelectItem(itemId);
+
+    interactionRef.current = {
+      itemId,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: item.x,
+      initialY: item.y,
+    };
+
+    document.addEventListener('pointermove', handleItemPointerMove);
+    document.addEventListener('pointerup', handleItemPointerUp);
+  };
+
+  const handleItemPointerMove = (e: PointerEvent) => {
+    if (!interactionRef.current) return;
+    const { itemId, startX, startY, initialX, initialY } = interactionRef.current;
+    
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const currentItem = boardItems.find(i => i.id === itemId);
+    if (currentItem) {
+      onUpdateItem({ ...currentItem, x: initialX + dx, y: initialY + dy });
+    }
+  };
+
+  const handleItemPointerUp = () => {
+    document.removeEventListener('pointermove', handleItemPointerMove);
+    document.removeEventListener('pointerup', handleItemPointerUp);
+    interactionRef.current = null;
+    onUpdateItem(boardItems.find(i => i.id === selectedItemId)!, true);
+  };
 
   return (
     <div
@@ -186,7 +252,7 @@ export default function Canvas({
           onUpdate={onUpdateItem}
           isSelected={item.id === selectedItemId}
           isEditing={item.id === editingItemId}
-          onSelect={onSelectItem}
+          onSelect={handleItemSelect}
           onEdit={onEditItem}
           onDelete={onDeleteItem}
           onDoubleClick={onItemDoubleClick}

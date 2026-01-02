@@ -37,12 +37,12 @@ interface CanvasItemProps {
   onUpdate: (item: CanvasItem) => void;
   isSelected: boolean;
   isEditing: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, e: React.MouseEvent<HTMLDivElement>) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onDoubleClick: (id: string) => void;
   onStopEditing: () => void;
-  onItemPointerDown: () => void;
+  onItemPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
 const Shape = ({ item }: { item: CanvasItem }) => {
@@ -76,13 +76,7 @@ export default function CanvasItemComponent({
     onStopEditing,
     onItemPointerDown
 }: CanvasItemProps) {
-  const interactionRef = useRef<{
-    startX: number;
-    startY: number;
-    initialX: number;
-    initialY: number;
-  } | null>(null);
-
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -91,41 +85,11 @@ export default function CanvasItemComponent({
         textareaRef.current.select();
     }
   }, [isEditing]);
-
-
-  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    onItemPointerDown();
-    interactionRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      initialX: item.x,
-      initialY: item.y,
-    };
-    
-    document.addEventListener('pointermove', handlePointerMove);
-    document.addEventListener('pointerup', handlePointerUp);
-  }, [item.x, item.y, onItemPointerDown]);
-
-  const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!interactionRef.current) return;
-    
-    const dx = e.clientX - interactionRef.current.startX;
-    const dy = e.clientY - interactionRef.current.startY;
-
-    onUpdate({ ...item, x: interactionRef.current.initialX + dx, y: interactionRef.current.initialY + dy });
-  }, [item, onUpdate]);
-
-  const handlePointerUp = useCallback(() => {
-    interactionRef.current = null;
-    document.removeEventListener('pointermove', handlePointerMove);
-    document.removeEventListener('pointerup', handlePointerUp);
-  }, []);
   
   const handleItemClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (!isEditing) {
-      onSelect(item.id);
+      onSelect(item.id, e);
     }
   }
 
@@ -213,10 +177,15 @@ export default function CanvasItemComponent({
     }
   }
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    onItemPointerDown(e);
+  };
+
 
   return (
     <div
-      className={cn("absolute")}
+      className={cn("absolute cursor-move")}
       style={{
         left: item.x,
         top: item.y,
@@ -226,6 +195,7 @@ export default function CanvasItemComponent({
       }}
       onClick={handleItemClick}
       onDoubleClick={() => onDoubleClick(item.id)}
+      onPointerDown={handlePointerDown}
     >
         <div 
           className={cn("w-full h-full transition-shadow duration-200 group", 
@@ -243,8 +213,7 @@ export default function CanvasItemComponent({
           {isSelected && !isEditing && (
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-1 bg-background p-1 rounded-full shadow-lg border" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
               <div
-                  className="p-1.5 rounded-full cursor-move hover:bg-muted"
-                  onPointerDown={handlePointerDown}
+                  className="p-1.5 rounded-full cursor-grab active:cursor-grabbing hover:bg-muted"
               >
                 <Move className="w-4 h-4 text-foreground" />
               </div>

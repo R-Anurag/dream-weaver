@@ -154,9 +154,17 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
   }, [board, history, historyIndex, onUpdateItems]);
 
   const handleUpdateItem = useCallback((updatedItem: CanvasItem, record = false) => {
-    const newItems = localItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
-    updateItems(newItems, record);
-  }, [localItems, updateItems]);
+    setLocalItems(prevItems => {
+        const newItems = prevItems.map(item => (item.id === updatedItem.id ? updatedItem : item));
+        if (record) {
+            const newHistory = history.slice(0, historyIndex + 1);
+            newHistory.push(newItems);
+            setHistory(newHistory);
+            setHistoryIndex(newHistory.length - 1);
+        }
+        return newItems;
+    });
+  }, [history, historyIndex]);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -182,15 +190,15 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
     setEditingItemId(null);
     if (itemId) {
       setIsProposalsPanelOpen(false); // Close proposals panel if an item is selected
-      const item = localItems.find(i => i.id === itemId);
-      if (item) {
-        const otherItems = localItems.filter(i => i.id !== itemId);
-        const newItems = [...otherItems, item];
-        // Don't record history for selection, just re-order
-        updateItems(newItems, false); 
-      }
+      // Re-order the items array to bring the selected item to the front for z-indexing
+      setLocalItems(prevItems => {
+          const item = prevItems.find(i => i.id === itemId);
+          if (!item) return prevItems;
+          const otherItems = prevItems.filter(i => i.id !== itemId);
+          return [...otherItems, item];
+      });
     }
-  }, [localItems, editingItemId, updateItems]);
+  }, [editingItemId]);
   
   const handleEditItemProperties = (itemId: string) => {
     setSelectedItemId(itemId);
@@ -210,10 +218,19 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
 
   const handleStopEditing = useCallback(() => {
     if (editingItemId) {
-      updateItems(localItems, true);
+      const itemsToRecord = localItems;
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(itemsToRecord);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+
+      if (board) {
+          onUpdateItems(board.id, itemsToRecord);
+      }
+      
       setEditingItemId(null);
     }
-  }, [editingItemId, localItems, updateItems]);
+  }, [editingItemId, localItems, history, historyIndex, board, onUpdateItems]);
 
 
   const selectedItem = localItems.find(i => i.id === selectedItemId);
@@ -259,8 +276,12 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
   };
   
    const handlePointerUp = useCallback(() => {
-    if (localItems !== history[historyIndex]) {
-        updateItems(localItems, true);
+    const lastHistoryState = history[historyIndex];
+    const currentItemsState = localItems;
+    
+    // A simple way to check if items actually moved. A more robust check might be needed.
+    if (JSON.stringify(lastHistoryState) !== JSON.stringify(currentItemsState)) {
+      updateItems(currentItemsState, true);
     }
   }, [localItems, history, historyIndex, updateItems]);
 
