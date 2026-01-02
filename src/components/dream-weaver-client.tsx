@@ -218,13 +218,12 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
   }
   
   const handleBringToFront = useCallback((itemId: string) => {
-    setLocalItems(prevItems => {
-        const item = prevItems.find(i => i.id === itemId);
-        if (!item) return prevItems;
-        const otherItems = prevItems.filter(i => i.id !== itemId);
-        return [...otherItems, item];
-    });
-  }, []);
+    const item = localItems.find(i => i.id === itemId);
+    if (!item) return;
+    const otherItems = localItems.filter(i => i.id !== itemId);
+    const newItems = [...otherItems, item];
+    updateItems(newItems, true);
+}, [localItems, updateItems]);
 
   const handleStopEditing = useCallback(() => {
     if (editingItemId) {
@@ -341,7 +340,7 @@ export default function DreamWeaverClient({ board, onUpdateItems, onUpdateBoard 
           key={selectedItem.id}
           item={selectedItem}
           onUpdateItem={(item) => handleUpdateItem(item, false)}
-          onDeleteItem={() => handleDeleteItem(selectedItem.id)}
+          onDeleteItem={() => handleDeleteItem(selected.id)}
           onClose={closePropertiesPanel}
           onFinalChange={handleFinalChange}
         />
