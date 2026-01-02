@@ -20,6 +20,7 @@ import type { Board } from '@/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
 import { Label } from './ui/label';
+import { createProposal } from '@/lib/proposal-service';
 
 interface ProposalDialogProps {
   board: Board;
@@ -133,9 +134,24 @@ export function ProposalDialog({ board, children }: ProposalDialogProps) {
       setSelectedHeadingIndex(prev => (prev - 1 + headings.length) % headings.length);
   }
 
-  const handleSendProposal = () => {
-    setIsOpen(false);
-    toast({ title: 'Success!', description: 'Your collaboration proposal has been sent.' });
+  const handleSendProposal = async () => {
+    if (!proposalBody) {
+        toast({ title: 'Proposal is empty', description: 'Please write a message before sending.', variant: 'destructive' });
+        return;
+    }
+    try {
+        await createProposal({
+            boardId: board.id,
+            boardName: board.name,
+            message: proposalBody,
+            from: 'A Collaborator' // Mock user name
+        });
+        toast({ title: 'Success!', description: 'Your collaboration proposal has been sent.' });
+        setIsOpen(false);
+    } catch (error) {
+        console.error('Failed to send proposal', error);
+        toast({ title: 'Error', description: 'Could not send proposal. Please try again.', variant: 'destructive' });
+    }
   };
   
   const renderContent = () => {

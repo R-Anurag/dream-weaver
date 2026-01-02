@@ -32,7 +32,7 @@ const ProposalCard = ({ proposal, onUpdateProposalStatus }: { proposal: Proposal
           <div className="flex justify-between items-center">
             <h4 className="font-semibold text-sm">{proposal.from}</h4>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(proposal.timestamp, { addSuffix: true })}
+              {formatDistanceToNow(new Date(proposal.timestamp), { addSuffix: true })}
             </p>
           </div>
           <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{proposal.message}</p>
@@ -60,8 +60,9 @@ const ProposalCard = ({ proposal, onUpdateProposalStatus }: { proposal: Proposal
 
 export default function ProposalsPanel({ proposals, onUpdateProposalStatus, onClose }: ProposalsPanelProps) {
     const isMobile = useIsMobile();
-    const pendingProposals = proposals.filter(p => p.status === 'pending');
-    const otherProposals = proposals.filter(p => p.status !== 'pending');
+    const sortedProposals = [...proposals].sort((a, b) => b.timestamp - a.timestamp);
+    const pendingProposals = sortedProposals.filter(p => p.status === 'pending');
+    const otherProposals = sortedProposals.filter(p => p.status !== 'pending');
 
     const content = (
         <>
